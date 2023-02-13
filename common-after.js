@@ -355,6 +355,319 @@ function drawArtInCroppedArea(areaName) {
   ctx.save();
 }
 
+function parseAndDrawCardEffectBlock(args = {}) {
+  // parsing argument hash
+  block = args["block"] || "";
+  effectStartX = args["startX"] || 0;
+  effectStartY = args["startY"] || 0;
+  effectBaseFontSize = args["baseFontSize"] || pw(4.05);
+  effectFontSize = args["fontSize"] || effectBaseFontSize;
+  prePhaseLineHeightFactor = args["phaseLineHeightFactor"] || 0;
+
+
+  // Reset indent to default
+  currentIndentX = effectStartX;
+
+  // Check for the first block to adjust whole effect text starting Y position
+  if (index == 0) {
+    // Adjust (bring the text up a little more when it's smaller)
+    currentOffsetY -= effectBaseFontSize;
+    currentOffsetY += effectFontSize;
+  }
+
+  // We've gotten the text block, time to get the individual words from it and draw them appropriately
+  let blockString = block;
+
+  // Replace spaces after numbers (and X variables) with non-breaking spaces
+  blockString = blockString.replaceAll(/([0-9X]) /g, '$1\xa0'); // Non-breakable space is char 0xa0 (160 dec)
+
+  // Check for phase labels, such as START PHASE
+  let isPhase = false; let phaseName = ''; let testString = '';
+  // Create test string by getting first two words of block string
+  let blockWords = blockString.split(' ');
+  // Account for formats like "> Start Phase" by checking for length of first "word"
+  let numberOfLabelWords = 0;
+  if (blockWords[0].length < 2) {
+    testString = stripStringOfCapitalizationAndPunctuation(blockWords[1] + ' ' + blockWords[2]);
+    numberOfLabelWords = 3;
+  }
+  else {
+    testString = stripStringOfCapitalizationAndPunctuation(blockWords[0] + ' ' + blockWords[1]);
+    numberOfLabelWords = 2;
+  }
+  // Compare first two actual words to possible phases
+  if (testString === 'start phase') {
+    isPhase = true; phaseName = 'Start Phase';
+  }
+  else if (testString === 'play phase') {
+    isPhase = true; phaseName = 'Play Phase';
+  }
+  else if (testString === 'power phase') {
+    isPhase = true; phaseName = 'Power Phase';
+  }
+  else if (testString === 'draw phase') {
+    isPhase = true; phaseName = 'Draw Phase';
+  }
+  else if (testString === 'end phase') {
+    isPhase = true; phaseName = 'End Phase';
+  }
+
+  // If this is a phase label block...
+  if (isPhase) {
+    // Adjust line height, differently depending on if this is the first block or not
+    if (index == 0) {
+      currentOffsetY = effectStartY + savedBoxHeightOffset;
+    }
+    else {
+      currentOffsetY = currentOffsetY - lineHeight + lineHeight * prePhaseLineHeightFactor;
+    }
+    // Get the phase label icon
+    let iconString = phaseName + ' Icon';
+    if (useHighContrastPhaseLabels) iconString += ' High Contrast';
+    let thisIcon = loadedGraphics[iconString];
+    // Style and draw the iconcon
+    const effectPhaseIconX = pw(8.9); // Keep the icon aligned to left edge of text box
+    let iconWidth = pw(5);
+    let iconHeight = iconWidth; // These graphics have 1:1 proportions
+    let iconX = effectPhaseIconX - iconWidth / 2;
+    let iconY = currentOffsetY - effectPhaseFontSize;// iconHeight/2;
+    ctx.drawImage(thisIcon, iconX, iconY, iconWidth, iconHeight);
+
+    // Style and draw the text after the icon
+    // Set basic font properties
+    ctx.font = '400 ' + effectPhaseFontSize + 'px ' + effectPhaseFontFamily;
+    // Get phase color
+    let phaseColor = '';
+    if (useHighContrastPhaseLabels) {
+      switch (phaseName) {
+        case 'Start Phase': phaseColor = colorStartPhaseHighContrast; break;
+        case 'Play Phase': phaseColor = colorPlayPhaseHighContrast; break;
+        case 'Power Phase': phaseColor = colorPowerPhaseHighContrast; break;
+        case 'Draw Phase': phaseColor = colorDrawPhaseHighContrast; break;
+        case 'End Phase': phaseColor = colorEndPhaseHighContrast; break;
+      }
+    }
+    else {
+      switch (phaseName) {
+        case 'Start Phase': phaseColor = colorStartPhaseOriginal; break;
+        case 'Play Phase': phaseColor = colorPlayPhaseOriginal; break;
+        case 'Power Phase': phaseColor = colorPowerPhaseOriginal; break;
+        case 'Draw Phase': phaseColor = colorDrawPhaseOriginal; break;
+        case 'End Phase': phaseColor = colorEndPhaseOriginal; break;
+      }
+    }
+
+    // Font stroke
+    ctx.strokeStyle = colorBlack;
+    ctx.lineWidth = effectPhaseFontSize * 0.2;
+    ctx.lineJoin = "miter";
+    ctx.miterLimit = 3;
+    ctx.strokeText(phaseName, currentOffsetX, currentOffsetY);
+    // Font fill
+    ctx.fillStyle = phaseColor;
+    ctx.fillText(phaseName, currentOffsetX, currentOffsetY);
+
+    // Prepare for next block
+    currentOffsetY = currentOffsetY + lineHeight * postPhaseLineHeightFactor;
+
+    // If the user put the effect on the same line as the label, draw a new block with that effect
+    // Bug: "END PHASE: Here we go"
+    if (blockWords.length > numberOfLabelWords) {
+      // Abort if the rest of the line is just a single space (there's probably a more robust way to handle this kind of potential issue, but it's not very important. Maybe using String.prototype.trim().)
+      if (blockWords.length === numberOfLabelWords + 1 && blockWords[blockWords.length - 1] == '') {
+        return;
+      }
+      // Remove phase label words
+      blockWords.splice(0, numberOfLabelWords);
+      // Rejoin the remaining words into a string
+      let newBlockString = blockWords.join(' ');
+      // Run the block drawing function again on this new string
+      parseAndDrawCardEffectBlock(newBlockString, index);
+      // Stop processing this block
+      return;
+    }
+    else {
+      // If the line was just the phase labels, simply stop processing the block here
+      return;
+    }
+
+  }
+
+  // Check for POWER: and REACTION:
+  let isIndentBlock = false; let labelWord = ''; let testStringPR = '';
+  // Create test string by getting first word of block string
+  let blockWordsPR = blockString.split(' ');
+  testStringPR = blockWordsPR[0].toLowerCase();
+  if (testStringPR === 'power:') {
+    isIndentBlock = true;
+    labelWord = 'POWER:';
+  }
+  else if (testStringPR === 'reaction:') {
+    isIndentBlock = true;
+    labelWord = 'REACTION:';
+  }
+  else if (testStringPR === '>' || testStringPR === '-') {
+    isIndentBlock = true;
+    labelWord = '»';
+  }
+
+  // If it's a POWER: or REACTION:, draw that label and then prepare the rest of the block for being indented
+  if (isIndentBlock) {
+    // Draw POWER:
+    ctx.fillStyle = colorBlack;
+    let effectPowerFontSize = effectFontSize * effectPowerFontSizeFactor;
+    ctx.font = '900 ' + effectPowerFontSize + 'px ' + effectPowerFontFamily;
+    // Slightly different for incap bullets
+    if (labelWord == '»') {
+      ctx.font = '400 ' + effectPowerFontSize + 'px ' + effectPowerFontFamily;
+    }
+    ctx.fillText(labelWord, currentOffsetX, currentOffsetY);
+    // Prepare for the rest of the text
+    // Prepare indent
+    let powerWidth = ctx.measureText(labelWord).width + spaceWidth;
+    currentIndentX += powerWidth + pw(0.2);
+    // Add a little more indent for bullet point
+    if (labelWord == '»') {
+      currentIndentX += pw(1);
+    }
+    currentOffsetX = currentIndentX;
+    // Remove the POWER:/REACTION: from block string
+    //var result = original.substr(original.indexOf(" ") + 1);
+    if (blockString.length === labelWord.length) {
+      // For edge case where the whole block string is just 'POWER:', so it doesn't draw twice and look weird
+      blockString = '';
+    }
+    else {
+      blockString = blockString.substr(blockString.indexOf(" ") + 1);
+    }
+
+  }
+
+  // Okay, time for handling normal body text...
+
+  // First, identify special word strings and replace their spaces with underscores
+  effectBoldList.forEach((phrase) => {
+    // Make an all-caps copy of the block string
+    let testString = blockString.toUpperCase();
+    // Find the position of each instance of this phrase in the string
+    let position = testString.indexOf(phrase);
+    while (position !== -1) {
+      // Replace this instance of this phrase in the real block string with the all-caps + underscore format for detecting later
+      let thisSubString = blockString.substr(position, phrase.length);
+      blockString = blockString.replace(thisSubString, phrase.replaceAll(' ', '_'));
+      // Repeat if there's another instance of this phrase
+      position = testString.indexOf(phrase, position + 1);
+    }
+  })
+  effectItalicsList.forEach((phrase) => {
+    // Make an all-caps copy of the block string
+    let testString = blockString.toUpperCase();
+    // Find the position of each instance of this phrase in the string
+    let position = testString.indexOf(phrase);
+    while (position !== -1) {
+      // Replace this instance of this phrase in the real block string with the all-caps + underscore format for detecting later
+      let thisSubString = blockString.substr(position, phrase.length);
+      blockString = blockString.replace(thisSubString, phrase.replaceAll(' ', '_'));
+      // Repeat if there's another instance of this phrase
+      position = testString.indexOf(phrase, position + 1);
+    }
+  })
+
+  // Make minus signs more readable by replacing hyphens with en-dashes
+  blockString = blockString.replaceAll('-', '–');
+
+  // Extract all the words
+  let words = blockString.split(' ');
+
+  // Analyze and draw each 'word' (including special phrases as 1 word...U.u)
+  words.forEach((word, index) => {
+    let thisIndex = index;
+    // Find out it this word should be bolded or italicized
+    let thisWord = getWordProperties(word); // returns an object: {text, isBold, isItalics}
+
+    // Set drawing styles
+    let weightValue = effectFontWeight;
+    let styleValue = "normal";
+    if (thisWord.isBold) { weightValue = "600" }
+    if (thisWord.isItalics) { styleValue = "italic" }
+    ctx.font = weightValue + ' ' + styleValue + ' ' + effectFontSize + 'px ' + effectFontFamily;
+    ctx.fillStyle = colorBlack;
+
+    // Break up special bold/italics phrases into their component words
+    let phraseParts = thisWord.text.split(' ');
+
+    // For each word in the phrase (and there will usually be just one)
+    phraseParts.forEach((wordString) => {
+      // Get how much width the word and a space would add to the line
+      let wordWidth = ctx.measureText(wordString).width;
+      // Check to see if the line should wrap
+      let wrapped = false;
+      // Looks forward to see if adding this word to the current line would make the line exceed the maximum x position
+      if (currentOffsetX + spaceWidth + wordWidth > effectEndX) {
+        // If it would, then start the next line
+        currentOffsetY += lineHeight;
+        currentOffsetX = currentIndentX;
+        wrapped = true;
+      }
+      // Determine string to draw
+      let stringToDraw = '';
+      // Check if there's a punctuation mark at the end of a bold/italicized word
+      let endingPunctuation = '';
+      if ((thisWord.isBold || thisWord.isItalics) && wordString[wordString.length - 1].match(/[.,!;:\?]/g)) {
+        endingPunctuation = wordString.charAt(wordString.length - 1); // Get the punctuation at the end of the string
+        wordString = wordString.slice(0, wordString.length - 1); // Remove the punctuation from the main string
+      }
+
+      // Check line wrapping status
+      if (wrapped == false && thisIndex > 0) {
+        // If the line did not wrap and it's not the first word of the block, draw the word with a space
+        currentOffsetX += spaceWidth;
+        stringToDraw = wordString;
+        // Draw the string
+        ctx.fillText(stringToDraw, currentOffsetX, currentOffsetY);
+        // If there was ending punctuation after a bold/italicized word, draw that now
+        if (endingPunctuation != '') {
+          // Get width of word without ending punctuation
+          let mainWordWidth = ctx.measureText(stringToDraw).width;
+          // Set the font styles to effect text default
+          ctx.font = effectFontWeight + ' ' + 'normal' + ' ' + effectFontSize + 'px ' + effectFontFamily;
+          // Draw the punctuation
+          let drawX = currentOffsetX + mainWordWidth;
+          ctx.fillText(endingPunctuation, drawX, currentOffsetY);
+        }
+        // Prepare currentOffsetX for next word
+        currentOffsetX += wordWidth;
+      }
+      else {
+        // If the line wrapped (or if it was the first word in the whole block), draw the word with no space
+        stringToDraw = wordString;
+        // Draw the string
+        ctx.fillText(stringToDraw, currentOffsetX, currentOffsetY);
+        // If there was ending punctuation after a bold/italicized word, draw that now
+        if (endingPunctuation != '') {
+          // Get width of word without ending punctuation
+          let mainWordWidth = ctx.measureText(stringToDraw).width;
+          // Set the font styles to effect text default
+          ctx.font = effectFontWeight + ' ' + 'normal' + ' ' + effectFontSize + 'px ' + effectFontFamily;
+          // Draw the punctuation
+          let drawX = currentOffsetX + mainWordWidth;
+          ctx.fillText(endingPunctuation, drawX, currentOffsetY);
+        }
+        // Prepare currentOffsetX for next word
+        currentOffsetX += wordWidth;
+      }
+
+      // Increase the index (only necessary for multi-word phrases)
+      thisIndex++;
+    })
+
+
+  })
+
+  // After drawing all the words, prepare for the next block
+  currentOffsetX = effectStartX;
+  currentOffsetY += lineHeight * blockSpacingFactor;
+}
 
 
 

@@ -248,9 +248,9 @@ let currentOffsetY = 0; // Current y position for draw commands
 
 
 // These phrases will be automatically bolded
-var effectBoldList = ["START PHASE", "PLAY PHASE", "POWER PHASE", "DRAW PHASE", "END PHASE", "PERFORM", "ACCOMPANY", "RAP", "REAP"];
+var effectBoldList = ["START PHASE", "PLAY PHASE", "POWER PHASE", "DRAW PHASE", "END PHASE", "PERFORM", "ACCOMPANY"];
 // These phrases will be automatically italicized
-var effectItalicsList = ["PERFORM", "ACCOMPANY", "RAP", "REAP"];
+var effectItalicsList = ["PERFORM", "ACCOMPANY"];
 
 
 /*
