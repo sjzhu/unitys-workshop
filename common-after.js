@@ -174,6 +174,7 @@ imageAreas = {
       return getUserImageAdjustments('backgroundArt');
     }
   },
+  // TODO: find a way to make these values modifiable
   hccf_nemesisIcon: {
     pathShape: coordinatesToPathShape([
       [12, 91.5],
@@ -540,7 +541,7 @@ function parseBodyText(originalLine) {
     line = line.substring(phaseRegexResult[0].length);
   }
 
-  // Check if there is anything else to render. If not, only the phase block will be returned. 
+  // Check if there is anything else to render. If not, only the phase block will be returned.
   if (line.length == 0) {
     return blocks;
   }
@@ -586,27 +587,41 @@ function parseCardBody() {
 }
 
 /**
+ * Parses the reminder text on CCs and returns the text as parsed blocks
+ */
+function parseReminderText() {
+  const inputValue = $('#inputReminderText').prop('value');
+
+  // Split at line returns, then iterate through the array to build an ordered list of blocks
+  const parsedBlocks = inputValue
+    .split("\n")
+    .map(line => parseBodyText(line))
+    .flat();
+  return parsedBlocks;
+}
+
+/**
  * Given an array of parsed blocks, calculate the box height offset of a card.
- * 
+ *
  * drawBodyText() alters the currentOffsetY, so we draw once and subtract that value from effectStartY to determine the height of the drawn body content. We add 137
  * (the closest round number representing the height of 3 lines drawn in the same paragraph) to this in order to determine the offset that a hero body box would need in
  * order to fit all of the blocks that we parsed from the user input. Hero character card body boxes have a minimum size, so we min this value with 0 to determine the offset
  * of our box (increasing the offset moves our Y position *downwards*, so a positive number yields a smaller box).
  */
-function adjustBoxHeightOffset(parsedBlocks) {
+function adjustBoxHeightOffset(parsedBlocks, reminderOffset = 0) {
   boxHeightOffset = 0;
   drawBodyText(parsedBlocks);
-  boxHeightOffset = Math.min(Math.round(effectStartY - currentOffsetY + 137), 0);
+  boxHeightOffset = Math.min(Math.round(effectStartY - currentOffsetY), reminderOffset);
   currentOffsetY = 0;
 }
 
 /** Draws the text box of a character card (but not the text inside it). */
-function drawCharacterBodyBox() {
+function drawCharacterBodyBox(reminderOffset = 0) {
   // Sets the coordinates of the corners of the textbox. The bottom will never change, but the top can change based on boxHeightOffset
   const topLeft = [pw(10), ph(79) + boxHeightOffset];
   const topRight = [pw(90), ph(79) + boxHeightOffset];
-  const bottomLeft = [pw(10), ph(94)];
-  const bottomRight = [pw(90), ph(93)];
+  const bottomLeft = [pw(10), ph(94) + reminderOffset];
+  const bottomRight = [pw(90), ph(93) + reminderOffset];
 
   // Determine the initial shape of the box.
   const boxShape = new Path2D();
@@ -726,7 +741,7 @@ function drawIndentBlock(indentLabel, indentContent, isFirstBlock) {
   if (isFirstBlock) {
     currentOffsetY = currentOffsetY - effectBaseFontSize + effectFontSize;
   }
-  
+
   // Set shared characteristics for all labels:
   ctx.fillStyle = colorBlack;
 
@@ -807,7 +822,7 @@ function drawSimpleBlock(simpleContent, isFirstBlock) {
     }
     return newWord;
   });
-  
+
   // Analyze and draw each 'word' (including special phrases as 1 word...U.u)
   words.forEach((word, index) => {
     let thisIndex = index;
@@ -880,6 +895,134 @@ function drawSimpleBlock(simpleContent, isFirstBlock) {
 
   // After drawing all the words, prepare for the next block
   currentOffsetX = effectStartX;
+  currentOffsetY += lineHeight * blockSpacingFactor;
+}
+
+/** Draws a block of simple text. The name is deceiving, this function is very complex! */
+function drawReminderBlock(simpleContent, isFirstBlock) {
+  // If this is the first block, adjust the Y position, bringing the text up a little more if the font is smaller
+  if (isFirstBlock) {
+    currentOffsetY = currentOffsetY - reminderBaseFontSize + reminderFontSize;
+  }
+
+  // Replace spaces after numbers (and X variables) with non-breaking spaces
+  let blockString = simpleContent.replaceAll(/([0-9X]) /g, '$1\xa0'); // Non-breakable space is char 0xa0 (160 dec)
+
+  // First, identify special word strings and replace their spaces with underscores
+  effectBoldList.forEach((phrase) => {
+    // Make an all-caps copy of the block string
+    let testString = blockString.toUpperCase();
+    // Find the position of each instance of this phrase in the string
+    let position = testString.indexOf(phrase);
+    while (position !== -1) {
+      // Replace this instance of this phrase in the real block string with the all-caps + underscore format for detecting later
+      let thisSubString = blockString.substr(position, phrase.length);
+      blockString = blockString.replace(thisSubString, phrase.replaceAll(' ', '_'));
+      // Repeat if there's another instance of this phrase
+      position = testString.indexOf(phrase, position + 1);
+    }
+  });
+  effectItalicsList.forEach((phrase) => {
+    // Make an all-caps copy of the block string
+    let testString = blockString.toUpperCase();
+    // Find the position of each instance of this phrase in the string
+    let position = testString.indexOf(phrase);
+    while (position !== -1) {
+      // Replace this instance of this phrase in the real block string with the all-caps + underscore format for detecting later
+      let thisSubString = blockString.substr(position, phrase.length);
+      blockString = blockString.replace(thisSubString, phrase.replaceAll(' ', '_'));
+      // Repeat if there's another instance of this phrase
+      position = testString.indexOf(phrase, position + 1);
+    }
+  });
+
+  // Make minus signs more readable by replacing hyphens with en-dashes
+  blockString = blockString.replaceAll('-', '–');
+
+  // Extract all the words
+  // add special processing for spaces after numbers
+  let words = blockString.split(' ').flatMap((word) => {
+    let newWord = word;
+    // double count the word afterwards
+    if (word.indexOf('\xa0') != -1) {
+      newWord = word.split('\xa0');
+      newWord[0] = word
+    }
+    return newWord;
+  });
+
+  // Analyze and draw each 'word' (including special phrases as 1 word...U.u)
+  words.forEach((word, index) => {
+    let thisIndex = index;
+    // Find out it this word should be bolded or italicized
+    let thisWord = getWordProperties(word); // returns an object: {text, isBold, isItalics}
+
+    // Set drawing styles
+    let weightValue = effectFontWeight;
+    let styleValue = "normal";
+    if (thisWord.isBold) { weightValue = "600" }
+    if (thisWord.isItalics) { styleValue = "italic" }
+    ctx.font = weightValue + ' ' + styleValue + ' ' + reminderFontSize + 'px ' + effectFontFamily;
+    ctx.fillStyle = colorBlack;
+
+    // Break up special bold/italics phrases into their component words
+    let phraseParts = thisWord.text.split(' ');
+
+    // For each word in the phrase (and there will usually be just one)
+    phraseParts.forEach((wordString) => {
+      // Get how much width the word and a space would add to the line
+      let wordWidth = ctx.measureText(wordString).width;
+      // Check to see if the line should wrap
+      let wrapped = false;
+      // Looks forward to see if adding this word to the current line would make the line exceed the maximum x position
+      if (currentOffsetX + spaceWidth + wordWidth > reminderEndX) {
+        // If it would, then start the next line
+        currentOffsetY += lineHeight;
+        currentOffsetX = currentIndentX;
+        wrapped = true;
+      }
+      // remove double counted word since we already calculated if we need to go to the next line
+      if (wordString.indexOf('\xa0') != -1) {
+        wordString = wordString.split('\xa0')[0];
+        wordWidth = ctx.measureText(wordString).width;
+      }
+      // Determine string to draw
+      let stringToDraw = '';
+      // Check if there's a punctuation mark at the end of a bold/italicized word
+      let endingPunctuation = '';
+      if ((thisWord.isBold || thisWord.isItalics) && wordString[wordString.length - 1].match(/[.,!;:\?]/g)) {
+        endingPunctuation = wordString.charAt(wordString.length - 1); // Get the punctuation at the end of the string
+        wordString = wordString.slice(0, wordString.length - 1); // Remove the punctuation from the main string
+      }
+
+      // Check line wrapping status
+      if (wrapped == false && thisIndex > 0) {
+        // If the line did not wrap and it's not the first word of the block, draw the word with a space
+        currentOffsetX += spaceWidth;
+      }
+      stringToDraw = wordString;
+      // Draw the string
+      ctx.fillText(stringToDraw, currentOffsetX, currentOffsetY);
+      // If there was ending punctuation after a bold/italicized word, draw that now
+      if (endingPunctuation != '') {
+        // Get width of word without ending punctuation
+        let mainWordWidth = ctx.measureText(stringToDraw).width;
+        // Set the font styles to effect text default
+        ctx.font = effectFontWeight + ' ' + 'normal' + ' ' + reminderFontSize + 'px ' + effectFontFamily;
+        // Draw the punctuation
+        let drawX = currentOffsetX + mainWordWidth;
+        ctx.fillText(endingPunctuation, drawX, currentOffsetY);
+      }
+      // Prepare currentOffsetX for next word
+      currentOffsetX += wordWidth;
+
+      // Increase the index (only necessary for multi-word phrases)
+      thisIndex++;
+    })
+  });
+
+  // After drawing all the words, prepare for the next block
+  currentOffsetX = reminderStartX;
   currentOffsetY += lineHeight * blockSpacingFactor;
 }
 

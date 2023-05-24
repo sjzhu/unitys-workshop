@@ -100,8 +100,10 @@ function drawCardCanvas() {
   // First, parse the blocks of this card's body text.
   const parsedBlocks = parseCardBody();
 
+  reminderOffsetY = -70
+
   // Adjust the box height offset.
-  adjustBoxHeightOffset(parsedBlocks);
+  adjustBoxHeightOffset(parsedBlocks, reminderOffsetY);
 
   // Clear the canvas and reset the context states
   ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -121,10 +123,10 @@ function drawCardCanvas() {
   // Draw the foreground art
   drawArtInCroppedArea('hccf_foregroundArt');
   drawArtInCroppedArea('hccf_heroNameArt');
-  loadEffectList();  
+  loadEffectList();
 
   // Draw the character body box, and the text in the card body.
-  drawCharacterBodyBox();
+  drawCharacterBodyBox(reminderOffsetY);
   drawBodyText(parsedBlocks);
 
   // == Draw the power name
@@ -145,6 +147,11 @@ function drawCardCanvas() {
   ctx.strokeText(powerName, powerNameX, powerNameY);
   ctx.fillText(powerName, powerNameX, powerNameY);
 
+  // TODO: Find a way to parse reminder text into blocks instead of feeding it all in
+  currentOffsetX = reminderStartX;
+  currentOffsetY = reminderStartY;
+  drawReminderBlock($('#inputReminderText').val(), true);
+
   // === Draw the keyword box ("Hero")
   drawKeywords();
 
@@ -158,7 +165,7 @@ function drawCardCanvas() {
 
     // Draw the nemesis icon frame
     let frameSize = pw(15);
-    ctx.drawImage(loadedGraphics['Nemesis Icon Frame'], pw(11), ph(89), frameSize, frameSize);
+    ctx.drawImage(loadedGraphics['Nemesis Icon Frame'], pw(11), ph(89) + reminderOffsetY, frameSize, frameSize);
   }
 }
 
@@ -273,6 +280,15 @@ const postPhaseLineHeightFactor = 1.05; // Spacing below phase block
 let currentIndentX = effectStartX; // Different x position to reset to when drawing a block with an indent (such as a POWER:)
 let currentOffsetX = 0; // Current x position for draw commands
 let currentOffsetY = 0; // Current y position for draw commands
+let reminderOffsetY = 0; // Size of the margin we draw for reminder text on the CC
+
+const reminderMarginXPercent = 7;
+const reminderStartX = pw(reminderMarginXPercent);
+const reminderEndX = pw(100 - reminderMarginXPercent + 1);
+const reminderStartY = ph(95);
+const reminderBaseFontSize = pw(3);
+let reminderFontSize = reminderBaseFontSize;
+let reminderFontScale = 1;
 
 // Set of default bolded terms
 const defaultBoldList = new Set(["START PHASE", "PLAY PHASE", "POWER PHASE", "DRAW PHASE", "END PHASE", "PERFORM", "ACCOMPANY"]);
