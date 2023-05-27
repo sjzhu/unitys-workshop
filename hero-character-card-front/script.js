@@ -100,7 +100,7 @@ function drawCardCanvas() {
   // First, parse the blocks of this card's body text.
   const parsedBlocks = parseCardBody();
 
-  reminderOffsetY = -70
+  reminderOffsetY = -1 * ph(4);
 
   // Adjust the box height offset.
   adjustBoxHeightOffset(parsedBlocks, reminderOffsetY);
@@ -147,10 +147,17 @@ function drawCardCanvas() {
   ctx.strokeText(powerName, powerNameX, powerNameY);
   ctx.fillText(powerName, powerNameX, powerNameY);
 
+  // Draw black rectangle for reminder text
+  ctx.fillStyle = colorBlack;
+  ctx.fillRect(0, ph(93), canvas.width, ph(7));
+
   // TODO: Find a way to parse reminder text into blocks instead of feeding it all in
   currentOffsetX = reminderStartX;
   currentOffsetY = reminderStartY;
-  drawReminderBlock($('#inputReminderText').val(), true);
+  let splitBlocks = $('#inputReminderText').val().split("\n");
+  splitBlocks.forEach((block, index) => {
+    drawReminderBlock(block, index == 0);
+  })
 
   // === Draw the keyword box ("Hero")
   drawKeywords();
@@ -160,13 +167,43 @@ function drawCardCanvas() {
 
   // === Draw the Nemesis Icon
   if (loadedUserImages['nemesisIcon']) {
-    // Draw the nemesis icon image
-    drawArtInCroppedArea('hccf_nemesisIcon');
-
-    // Draw the nemesis icon frame
-    let frameSize = pw(15);
-    ctx.drawImage(loadedGraphics['Nemesis Icon Frame'], pw(11), ph(89) + reminderOffsetY, frameSize, frameSize);
+    drawNemesisIcon(-4);
   }
+}
+
+/**
+ * Draw nemesis icon on Hero CCs.
+ */
+function drawNemesisIcon(offsetY) {
+
+  // Edit nemesis icon area according to offset
+  imageAreas['hccf_nemesisIcon'] = {
+    pathShape: coordinatesToPathShape([
+      [12, 91.5 + offsetY],
+      [13, 90.5 + offsetY],
+
+      [24, 90.5 + offsetY],
+      [25, 91.5 + offsetY],
+
+      [19, 96.25 + offsetY],
+      [18, 96.25 + offsetY]
+    ]),
+    scaleStyle: 'fill',
+    vAlign: 'center',
+    getImage: function () {
+      return getUserImage('nemesisIcon');
+    },
+    getAdjustments: function () {
+      return getUserImageAdjustments('nemesisIcon');
+    }
+  }
+
+  // Draw the nemesis icon image
+  drawArtInCroppedArea('hccf_nemesisIcon');
+
+  // Draw the nemesis icon frame
+  let frameSize = pw(15);
+  ctx.drawImage(loadedGraphics['Nemesis Icon Frame'], pw(11), ph(89) + reminderOffsetY, frameSize, frameSize);
 }
 
 /**
@@ -282,11 +319,11 @@ let currentOffsetX = 0; // Current x position for draw commands
 let currentOffsetY = 0; // Current y position for draw commands
 let reminderOffsetY = 0; // Size of the margin we draw for reminder text on the CC
 
-const reminderMarginXPercent = 7;
+const reminderMarginXPercent = 10;
 const reminderStartX = pw(reminderMarginXPercent);
 const reminderEndX = pw(100 - reminderMarginXPercent + 1);
 const reminderStartY = ph(95);
-const reminderBaseFontSize = pw(3);
+const reminderBaseFontSize = pw(3.5);
 let reminderFontSize = reminderBaseFontSize;
 let reminderFontScale = 1;
 

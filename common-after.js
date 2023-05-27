@@ -611,7 +611,7 @@ function parseReminderText() {
 function adjustBoxHeightOffset(parsedBlocks, reminderOffset = 0) {
   boxHeightOffset = 0;
   drawBodyText(parsedBlocks);
-  boxHeightOffset = Math.min(Math.round(effectStartY - currentOffsetY), reminderOffset);
+  boxHeightOffset = Math.min(Math.round(effectStartY - currentOffsetY + 85), reminderOffset);
   currentOffsetY = 0;
 }
 
@@ -963,7 +963,7 @@ function drawReminderBlock(simpleContent, isFirstBlock) {
     if (thisWord.isBold) { weightValue = "600" }
     if (thisWord.isItalics) { styleValue = "italic" }
     ctx.font = weightValue + ' ' + styleValue + ' ' + reminderFontSize + 'px ' + effectFontFamily;
-    ctx.fillStyle = colorBlack;
+    ctx.fillStyle = "white";
 
     // Break up special bold/italics phrases into their component words
     let phraseParts = thisWord.text.split(' ');
@@ -978,7 +978,7 @@ function drawReminderBlock(simpleContent, isFirstBlock) {
       if (currentOffsetX + spaceWidth + wordWidth > reminderEndX) {
         // If it would, then start the next line
         currentOffsetY += lineHeight;
-        currentOffsetX = currentIndentX;
+        currentOffsetX = reminderStartX;
         wrapped = true;
       }
       // remove double counted word since we already calculated if we need to go to the next line
@@ -1023,7 +1023,7 @@ function drawReminderBlock(simpleContent, isFirstBlock) {
 
   // After drawing all the words, prepare for the next block
   currentOffsetX = reminderStartX;
-  currentOffsetY += lineHeight * blockSpacingFactor;
+  currentOffsetY += ph(4);
 }
 
 function getWordProperties(word) {
