@@ -160,6 +160,13 @@
 
         <button style="margin-top: 10px;" data-image-purpose="mainArt" class="adjustmentResetButton">Reset Adjustments</button>
       </div>
+      <div class="inputGroup">
+        <details>
+          <summary>Advanced Formatting</summary>
+          <label for="inputQuoteTextSize" style="margin-top: 10px;">Quote Text Size</label>
+          <input type="range" class="contentInput" id="inputQuoteTextSize" min="80" max="100" value="100">
+        </details>
+      </div>
     </div>
     <div>
       <div class="inputGroup">
@@ -194,6 +201,13 @@
         <!-- Standard US / Poker card size is 63mm x 88mm -->
       </div>
     </div>
+    <div class="inputGroup">
+      <label for="jsonInput">JSON Input/Output</label>
+      <div id="jsonError" class="errorMessage"></div>
+      <textarea rows="10" class="contentInput" id="jsonInput"></textarea>
+      <button style="margin-top: 10px;" id="parseJsonInputButton">Parse JSON</button>
+      <button style="margin-top: 10px;" id="outputJsonButton">Output JSON</button>
+    </div>
   </div>
 
   <!-- Scripts -->
@@ -205,6 +219,7 @@
   <script>
     const CARD_FORM = "deck";
     const ORIENTATION = "vertical";
+    const FACE = "front";
     const DEFAULT_DOWNLOAD_NAME = "villain-deck-front";
   </script>
   <!-- Common script -->

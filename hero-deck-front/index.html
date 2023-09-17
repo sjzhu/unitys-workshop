@@ -160,6 +160,13 @@
 
         <button style="margin-top: 10px;" data-image-purpose="mainArt" class="adjustmentResetButton">Reset Adjustments</button>
       </div>
+      <div class="inputGroup">
+        <details>
+          <summary>Advanced Formatting</summary>
+          <label for="inputQuoteTextSize" style="margin-top: 10px;">Quote Text Size</label>
+          <input type="range" class="contentInput" id="inputQuoteTextSize" min="80" max="100" value="100">
+        </details>
+      </div>
     </div>
     <div>
       <div class="inputGroup">
@@ -217,6 +224,7 @@
   <script>
     const CARD_FORM = "deck";
     const ORIENTATION = "vertical";
+    const FACE = "front";
     const DEFAULT_DOWNLOAD_NAME = "hero-deck-front";
   </script>
   <!-- Common script -->

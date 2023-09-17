@@ -113,47 +113,10 @@ function drawCardCanvas() {
 
   drawCharacterBodyBox();
 
-  // === Draw the card border
-  ctx.drawImage(loadedGraphics['Border'], 0, 0, canvas.width, canvas.height);
-
-  // === Draw the text box
-
-  // 1) create the shape
-  let topLeft, topRight, bottomLeft, bottomRight, heightOffset;
-
-  // Default coordinates (bottom will never change, but top could change based on heightOffset)
-  topLeft = [pw(10), ph(78.5)]; topRight = [pw(90), ph(78.5)];
-  bottomLeft = [pw(10), ph(94)]; bottomRight = [pw(90), ph(93)];
-
-  heightOffset = boxHeightOffset;
-
-  topLeft[1] += heightOffset; topRight[1] += heightOffset;
-
-  let boxShape = new Path2D();
-  boxShape.moveTo(topLeft[0], topLeft[1]);
-  boxShape.lineTo(topRight[0], topRight[1]);
-  boxShape.lineTo(bottomRight[0], bottomRight[1]);
-  boxShape.lineTo(bottomLeft[0], bottomLeft[1]);
-  boxShape.closePath();
-
-  // 2) draw the shape
-
-  // White inner part
-  ctx.fillStyle = "#ffffffcc"; // Last two digits are transparency
-  ctx.fill(boxShape);
-  // Black border
-  ctx.fillStyle = colorBlack;
-  ctx.lineWidth = pw(0.5);
-  ctx.stroke(boxShape);
-  // Black "shadow" in top-left
-  let shadowShape = new Path2D;
-  let shadowOffset = pw(-0.7);
-  shadowShape.moveTo(bottomLeft[0] + shadowOffset, bottomLeft[1] + shadowOffset);
-  shadowShape.lineTo(topLeft[0] + shadowOffset, topLeft[1] + shadowOffset);
-  shadowShape.lineTo(topRight[0] + shadowOffset, topRight[1] + shadowOffset);
-  ctx.fillStyle = colorBlack;
-  ctx.lineWidth = pw(1);
-  ctx.stroke(shadowShape);
+  if (showBorder) {
+    // === Draw the card border
+    ctx.drawImage(loadedGraphics['Border'], 0, 0, canvas.width, canvas.height);
+  }
 
   // == Draw the power name
 
@@ -177,50 +140,3 @@ function drawCardCanvas() {
   // Draw the character body box, and the text in the card body.
   drawBodyText(parsedBlocks);
 }
-
-
-
-
-
-
-/*
-============================================================================
-Effect text values
-============================================================================
-*/
-
-const effectBaseFontSize = pw(3.95); // Font size for most effect text
-let effectFontScale = 1; // This will update with the user input value
-let effectFontSize = effectBaseFontSize; // The font size that will be used (modifiable) ('px' unit is added later);
-const effectFontWeight = 400; // Font weight for most effect text
-const effectFontFamily = 'Noto Sans'; // Font family for most effect text
-const effectPowerFontFamily = 'Work Sans'; // Font family for POWER: and REACTION:
-const effectPowerFontSizeFactor = 1.08; // POWER: will be drawn at effectFontSize times this value
-const effectPhaseFontFamily = 'Avengeance Mightiest Avenger';
-const effectPhaseFontSizeFactor = 1;
-
-// Space between words
-const spaceWidthFactor = 0.26;
-let spaceWidth = effectFontSize * spaceWidthFactor;
-
-const effectMarginXPercent = 14.5; // Percent of width on each side of text
-const effectStartX = pw(effectMarginXPercent); // Left boundary of effect text
-const effectEndX = pw(100 - effectMarginXPercent + 1); // Right boundary of effect text
-const effectStartY = ph(86); // Top boundary of effect text
-const effectPhaseStartX = pw(6.5); // Left boundary of phase label images
-
-const effectBaseLineHeight = pw(5);
-let lineHeight = effectBaseLineHeight * effectFontScale; // Distance between two lines in the same paragraph
-const blockSpacingFactor = 1.3; // Multiply lineHeight by this to get the distance between two blocks
-const prePhaseLineHeightFactor = 1.2; // Spacing above phase block
-const postPhaseLineHeightFactor = 1.05; // Spacing below phase block
-
-let currentIndentX = effectStartX; // Different x position to reset to when drawing a block with an indent (such as a POWER:)
-let currentOffsetX = 0; // Current x position for draw commands
-let currentOffsetY = 0; // Current y position for draw commands
-
-
-// These phrases will be automatically bolded
-var effectBoldList = ["START PHASE", "PLAY PHASE", "POWER PHASE", "DRAW PHASE", "END PHASE", "PERFORM", "ACCOMPANY"];
-// These phrases will be automatically italicized
-var effectItalicsList = ["PERFORM", "ACCOMPANY"];

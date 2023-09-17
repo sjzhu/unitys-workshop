@@ -113,6 +113,34 @@ $('#suddenly').on('input', function () {
   drawCardCanvas();
 });
 
+// Toggle card border and re-draw
+$('#inputDisplayBorder').on('input', function () {
+  showBorder = this.checked;
+  drawCardCanvas();
+});
+
+// Parse JSON input buttom
+$('#parseJsonInputButton').on('click', function () {
+  // attempt to parse the JSON
+  let jsonString = $('#jsonInput').prop('value');
+  // get rid of extra commas that happen when pasting from array
+  if (jsonString.slice(-1) == ',') {
+    jsonString = jsonString.slice(0,-1)
+  }
+  try {
+    let jsonData = JSON.parse(jsonString);
+    parseJSONData(jsonData);
+  } catch(err) {
+    $('#jsonError').text("JSON Parse error:" + err.message);
+    return;
+  }
+  $('#jsonError').text("");
+})
+
+// Output JSON Input button
+$('#outputJsonButton').on('click', function () {
+  outputJSONData();
+});
 
 /*
 ============================================================================
@@ -491,6 +519,185 @@ function drawArtInCroppedArea(areaName) {
 
 /*
 ============================================================================
+JSON Parsing
+============================================================================
+*/
+
+function parseJSONData(data) {
+  if('Title' in data) {
+    $('#inputTitle').val(data.Title);
+  } else {
+    $('#inputTitle').val('');
+  }
+  if('HP' in data) {
+    $('#inputHP').val(data.HP);
+  } else {
+    $('#inputHP').val('');
+  }
+  if('Keywords' in data) {
+    $('#inputKeywords').val(data.Keywords);
+  } else {
+    $('#inputKeywords').val('');
+  }
+  if('BoldedTerms' in data) {
+    $('#inputBoldWords').val(data.BoldedTerms);
+  } else {
+    $('#inputBoldWords').val('');
+  }
+  if('GameText' in data) {
+    $('#inputEffect').val(data.GameText);
+  } else {
+    $('#inputEffect').val('');
+  }
+  if('GameTextSize' in data) {
+    $('#inputEffectTextSize').val(data.GameTextSize);
+  } else {
+    $('#inputEffectTextSize').val(100);
+  }
+  if('Quote' in data) {
+    $('#inputQuote').val(data.Quote);
+  } else {
+    $('#inputQuote').val('');
+  }
+  if('QuoteTextSize' in data) {
+    $('#inputQuoteTextSize').val(data.QuoteTextSize);
+  } else {
+    $('#inputQuoteTextSize').val(100);
+  }
+  if('Attribution' in data) {
+    $('#inputAttribution').val(data.Attribution);
+  } else {
+    $('#inputAttribution').val('');
+  }
+  if('ImageURL' in data) {
+    cardArtImage = new Image();
+    cardArtImage.src = data.ImageURL;
+    cardArtImage.onload = function (e) {
+      // Once the Image has loaded, redraw the canvas so it immediately appears
+      drawCardCanvas();
+    }
+  } else {
+    cardArtImage = undefined;
+  }
+  if('ImageX' in data) {
+    $('.inputImageOffsetX').val(data.ImageX);
+  } else {
+    $('.inputImageOffsetX').val(0);
+  }
+  if('ImageY' in data) {
+    $('.inputImageOffsetY').val(data.ImageY);
+  } else {
+    $('.inputImageOffsetY').val(0);
+  }
+  if('ImageZoom' in data) {
+    // special parsing for the zoom value, as if it's fed a non-number, it will
+    // default to the middle of the bar, which is not the default
+    let zoomVal = parseInt(data.ImageZoom);
+    if (zoomVal == NaN) {
+      zoomVal = 0;
+    }
+    $('.inputImageScale').val(zoomVal);
+  } else {
+    $('.inputImageScale').val(100);
+  }
+  if ($('#suddenly').length > 0) {
+    if('Suddenly' in data && data.Suddenly.toUpperCase() == "TRUE") {
+      $('#suddenly')[0].checked = true;
+      suddenly = true;
+    } else {
+      $('#suddenly')[0].checked = false;
+      suddenly = false;
+    }
+  }
+  drawCardCanvas();
+}
+
+function outputJSONData() {
+  var imageURL = "";
+  if (cardArtImage != null) {
+    imageURL = cardArtImage.src;
+  }
+  var outputJSON = `{
+    "Title": ${JSON.stringify($('#inputTitle').val())},
+    "HP": ${JSON.stringify($('#inputHP').val())},
+    "Keywords": ${JSON.stringify($('#inputKeywords').val())},
+    "BoldedTerms": ${JSON.stringify($('#inputBoldWords').val())},
+    "GameText": ${JSON.stringify($('#inputEffect').val())},
+    "GameTextSize": ${JSON.stringify($('#inputEffectTextSize').val())},
+    "Quote": ${JSON.stringify($('#inputQuote').val())},
+    "QuoteTextSize": ${JSON.stringify($('#inputQuoteTextSize').val())},
+    "Attribution": ${JSON.stringify($('#inputAttribution').val())},
+    "ImageURL": ${JSON.stringify(imageURL)},
+    "ImageX": ${JSON.stringify($('.inputImageOffsetX').val())},
+    "ImageY": ${JSON.stringify($('.inputImageOffsetY').val())},
+    "ImageZoom": ${JSON.stringify($('.inputImageScale').val())},
+    "Suddenly": "${JSON.stringify($('#suddenly')[0].checked)}"
+  },`;
+  $('#jsonInput').val(outputJSON);
+}
+
+/*
+============================================================================
+Functions for rendering card quotes
+============================================================================
+*/
+
+function drawCardQuote() {
+  // Get input value
+  let inputValue = $('#inputQuote').prop('value');
+  // Quote style properties
+  ctx.fillStyle = colorBlack;
+  let quoteFontScale = $('#inputQuoteTextSize').prop('value') / 100;
+  let quoteFontSize = QUOTE_FONT_SIZE * quoteFontScale;
+  ctx.font = "400 normal " + quoteFontSize + "px Unmasked BB";
+  ctx.textAlign = "center";
+  let quoteMaxWidth = QUOTE_WIDTH;
+  let quoteCenterX = QUOTE_START_X;
+  let quoteCenterY = QUOTE_START_Y;
+  let quoteLineHeight = quoteFontSize * 0.93;
+
+  // Set the string of text to work with
+  let quoteString = inputValue;
+
+  // Extract all the words
+  let words = quoteString.split(' ');
+
+  // Detect when there should be a line break
+  let lines = [''];
+  let currentLineIndex = 0;
+  for (let i = 0; i < words.length; i++) {
+    // First word of quote is easy
+    if (i === 0) {
+      lines[currentLineIndex] = words[i];
+      continue;
+    }
+    // For all other words...
+    // Check if adding this word would cause the line width to exceed the maximum
+    let lineWithWordAdded = lines[currentLineIndex] + ' ' + words[i];
+    if (ctx.measureText(lineWithWordAdded).width < quoteMaxWidth) {
+      // Add word to current line
+      lines[currentLineIndex] += ' ' + words[i];
+    }
+    else {
+      // Break into new line
+      currentLineIndex++;
+      lines[currentLineIndex] = words[i];
+    }
+  }
+
+  // Iterate through lines
+  let quoteTotalHeight = quoteLineHeight * lines.length;
+  for (let i = 0; i < lines.length; i++) {
+    // Determine drawing origin
+    let drawX = quoteCenterX;
+    let drawY = quoteCenterY - (quoteTotalHeight / 2) + (quoteLineHeight * i);
+    // Draw the line of text
+    ctx.fillText(lines[i], drawX, drawY);
+  }
+}
+
+/*
+============================================================================
 Functions for rendering card bodies
 ============================================================================
 */
@@ -603,7 +810,7 @@ function parseReminderText() {
 /**
  * Given an array of parsed blocks, calculate the box height offset of a card.
  *
- * drawBodyText() alters the currentOffsetY, so we draw once and subtract that value from effectStartY to determine the height of the drawn body content. We add 137
+ * drawBodyText() alters the currentOffsetY, so we draw once and subtract that value from EFFECT_START_Y to determine the height of the drawn body content. We add 137
  * (the closest round number representing the height of 3 lines drawn in the same paragraph) to this in order to determine the offset that a hero body box would need in
  * order to fit all of the blocks that we parsed from the user input. Hero character card body boxes have a minimum size, so we min this value with 0 to determine the offset
  * of our box (increasing the offset moves our Y position *downwards*, so a positive number yields a smaller box).
@@ -611,7 +818,7 @@ function parseReminderText() {
 function adjustBoxHeightOffset(parsedBlocks, reminderOffset = 0) {
   boxHeightOffset = 0;
   drawBodyText(parsedBlocks);
-  boxHeightOffset = Math.min(Math.round(effectStartY - currentOffsetY + 85), reminderOffset);
+  boxHeightOffset = Math.min(Math.round(EFFECT_START_Y - currentOffsetY + 85), reminderOffset);
   currentOffsetY = 0;
 }
 
@@ -654,14 +861,14 @@ function drawCharacterBodyBox(reminderOffset = 0) {
 /** Given an array of blocks, draw the body of a card from a deck. */
 function drawBodyText(parsedBlocks) {
   // Initialize positioning values
-  currentOffsetX = effectStartX;
-  currentOffsetY = effectStartY + boxHeightOffset;
+  currentOffsetX = EFFECT_START_X;
+  currentOffsetY = EFFECT_START_Y + boxHeightOffset;
 
   // Get and apply the text scale the user chose
   effectFontScale = $('#inputEffectTextSize').prop('value') / 100; // Result is between 0 and 1
-  effectFontSize = effectBaseFontSize * effectFontScale;
-  lineHeight = effectBaseLineHeight * effectFontScale;
-  spaceWidth = effectFontSize * spaceWidthFactor;
+  effectFontSize = EFFECT_BASE_FONT_SIZE * effectFontScale;
+  lineHeight = BODY_BASE_LINE_HEIGHT * effectFontScale;
+  spaceWidth = effectFontSize * SPACE_WIDTH_FACTOR;
 
   // Draw the blocks
   parsedBlocks.forEach((block, index) => {
@@ -674,7 +881,7 @@ function drawBodyText(parsedBlocks) {
 /** Draws a single block from the array of parsed blocks. */
 function drawBlock(block, isFirstBlock) {
   // Reset indentation to default
-  currentIndentX = effectStartX;
+  currentIndentX = EFFECT_START_X;
 
   if (block.type === SPACE_BLOCK) {
     drawSpaceBlock(isFirstBlock);
@@ -705,7 +912,7 @@ function drawPhaseBlock(phase, isFirstBlock) {
   const phaseText = PHASE_TEXT_MAP.get(phase);
 
   // Adjust line height based on whether this is the first block
-  currentOffsetY = isFirstBlock ? effectStartY : currentOffsetY - lineHeight + lineHeight * prePhaseLineHeightFactor;
+  currentOffsetY = isFirstBlock ? EFFECT_START_Y : currentOffsetY + lineHeight * PRE_PHASE_LINE_HEIGHT_FACTOR;
 
   // Get the phase icon to use
   const phaseIconKey = PHASE_ICON_MAP.get(phase) + (useHighContrastPhaseLabels ? " High Contrast" : "");
@@ -732,14 +939,14 @@ function drawPhaseBlock(phase, isFirstBlock) {
   ctx.fillText(phaseText, currentOffsetX, currentOffsetY);
 
   // Prepare for next block
-  currentOffsetY = currentOffsetY + lineHeight * postPhaseLineHeightFactor;
+  currentOffsetY = currentOffsetY + lineHeight * POST_PHASE_LINE_HEIGHT_FACTOR;
 }
 
 /** Draws a block that uses identation, such as power and reaction effects. */
 function drawIndentBlock(indentLabel, indentContent, isFirstBlock) {
   // If this is the first block, adjust the Y position, bringing the text up a little more if the font is smaller.
   if (isFirstBlock) {
-    currentOffsetY = currentOffsetY - effectBaseFontSize + effectFontSize;
+    currentOffsetY = currentOffsetY - EFFECT_BASE_FONT_SIZE + effectFontSize;
   }
 
   // Set shared characteristics for all labels:
@@ -753,7 +960,7 @@ function drawIndentBlock(indentLabel, indentContent, isFirstBlock) {
      //   - This spacing looks correct at a casual glance. We should check it more closely.
      //   - This does NOT render the special bullet point character in hero character incap text, because we can't find the thing. It might be a custom graphic.
     labelContent = `${CARD_FORM === DECK ? "     " : ""}${indentLabel}`;
-    ctx.font = `400 ${effectFontSize}px ${effectFontFamily}`;
+    ctx.font = `400 ${effectFontSize}px ${EFFECT_FONT_FAMILY}`;
   } else {
     labelContent = indentLabel;
     ctx.font = `900 ${effectFontSize * INDENT_LABEL_SIZE_FACTOR}px ${INDENT_LABEL_FONT_FAMILY}`
@@ -774,7 +981,7 @@ function drawIndentBlock(indentLabel, indentContent, isFirstBlock) {
 function drawSimpleBlock(simpleContent, isFirstBlock) {
   // If this is the first block, adjust the Y position, bringing the text up a little more if the font is smaller
   if (isFirstBlock) {
-    currentOffsetY = currentOffsetY - effectBaseFontSize + effectBaseFontSize;
+    currentOffsetY = currentOffsetY - EFFECT_BASE_FONT_SIZE + effectFontSize;
   }
 
   // Replace spaces after numbers (and X variables) with non-breaking spaces
@@ -830,11 +1037,11 @@ function drawSimpleBlock(simpleContent, isFirstBlock) {
     let thisWord = getWordProperties(word); // returns an object: {text, isBold, isItalics}
 
     // Set drawing styles
-    let weightValue = effectFontWeight;
+    let weightValue = EFFECT_FONT_WEIGHT;
     let styleValue = "normal";
     if (thisWord.isBold) { weightValue = "600" }
     if (thisWord.isItalics) { styleValue = "italic" }
-    ctx.font = weightValue + ' ' + styleValue + ' ' + effectFontSize + 'px ' + effectFontFamily;
+    ctx.font = weightValue + ' ' + styleValue + ' ' + effectFontSize + 'px ' + EFFECT_FONT_FAMILY;
     ctx.fillStyle = colorBlack;
 
     // Break up special bold/italics phrases into their component words
@@ -847,7 +1054,7 @@ function drawSimpleBlock(simpleContent, isFirstBlock) {
       // Check to see if the line should wrap
       let wrapped = false;
       // Looks forward to see if adding this word to the current line would make the line exceed the maximum x position
-      if (currentOffsetX + spaceWidth + wordWidth > effectEndX) {
+      if (currentOffsetX + spaceWidth + wordWidth > EFFECT_END_X) {
         // If it would, then start the next line
         currentOffsetY += lineHeight;
         currentOffsetX = currentIndentX;
@@ -880,7 +1087,7 @@ function drawSimpleBlock(simpleContent, isFirstBlock) {
         // Get width of word without ending punctuation
         let mainWordWidth = ctx.measureText(stringToDraw).width;
         // Set the font styles to effect text default
-        ctx.font = effectFontWeight + ' ' + 'normal' + ' ' + effectFontSize + 'px ' + effectFontFamily;
+        ctx.font = EFFECT_FONT_WEIGHT + ' ' + 'normal' + ' ' + effectFontSize + 'px ' + EFFECT_FONT_FAMILY;
         // Draw the punctuation
         let drawX = currentOffsetX + mainWordWidth;
         ctx.fillText(endingPunctuation, drawX, currentOffsetY);
@@ -894,8 +1101,8 @@ function drawSimpleBlock(simpleContent, isFirstBlock) {
   });
 
   // After drawing all the words, prepare for the next block
-  currentOffsetX = effectStartX;
-  currentOffsetY += lineHeight * blockSpacingFactor;
+  currentOffsetX = EFFECT_START_X;
+  currentOffsetY += lineHeight * BLOCK_SPACING_FACTOR;
 }
 
 /** Draws a block of simple text. The name is deceiving, this function is very complex! */

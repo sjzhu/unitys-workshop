@@ -160,6 +160,13 @@
 
         <button style="margin-top: 10px;" data-image-purpose="mainArt" class="adjustmentResetButton">Reset Adjustments</button>
       </div>
+      <div class="inputGroup">
+        <details>
+          <summary>Advanced Formatting</summary>
+          <label for="inputQuoteTextSize" style="margin-top: 10px;">Quote Text Size</label>
+          <input type="range" class="contentInput" id="inputQuoteTextSize" min="80" max="100" value="100">
+        </details>
+      </div>
     </div>
     <div>
       <div class="inputGroup">
@@ -169,6 +176,10 @@
           <input type="checkbox" class="contentInput" id="suddenly">
           <label for="suddenly"> Suddenly toggle </label>
         </div>
+      </div>
+      <div class="inputGroup">
+        <label for="inputBoldWords">Bolded Terms</label>
+        <input type="text" class="contentInput" id="inputBoldWords">
       </div>
       <div class="inputGroup">
         <label for="inputEffect">Game Text</label>
@@ -193,10 +204,11 @@
       </div>
     </div>
     <div class="inputGroup">
-      <label for="jsonInput">JSON Input</label>
+      <label for="jsonInput">JSON Input/Output</label>
       <div id="jsonError" class="errorMessage"></div>
       <textarea rows="10" class="contentInput" id="jsonInput"></textarea>
       <button style="margin-top: 10px;" id="parseJsonInputButton">Parse JSON</button>
+      <button style="margin-top: 10px;" id="outputJsonButton">Output JSON</button>
     </div>
   </div>
 
@@ -210,6 +222,7 @@
   <script>
     const CARD_FORM = "deck";
     const ORIENTATION = "horizontal";
+    const FACE = "front";
     const DEFAULT_DOWNLOAD_NAME = "environment-deck-front";
   </script>
   <!-- Common script -->

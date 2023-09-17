@@ -117,9 +117,10 @@ function drawCardCanvas() {
   // === Draw the background art
   drawArtInCroppedArea('hccf_backgroundArt');
 
-  // === Draw the card border
-  ctx.drawImage(loadedGraphics['Border'], 0, 0, canvas.width, canvas.height);
-
+  if (showBorder) {
+    // === Draw the card border
+    ctx.drawImage(loadedGraphics['Border'], 0, 0, canvas.width, canvas.height);
+  }
   // Draw the foreground art
   drawArtInCroppedArea('hccf_foregroundArt');
   drawArtInCroppedArea('hccf_heroNameArt');
@@ -280,82 +281,4 @@ function drawHP() {
   ctx.fillText(inputHP, hpTextX, hpTextY);
   // Reset
   ctx.textAlign = "left";
-}
-
-
-/*
-============================================================================
-Effect text values
-============================================================================
-*/
-const effectBaseFontSize = pw(3.95); // Font size for most effect text
-let effectFontScale = 1; // This will update with the user input value
-let effectFontSize = effectBaseFontSize; // The font size that will be used (modifiable) ('px' unit is added later);
-const effectFontWeight = 400; // Font weight for most effect text
-const effectFontFamily = 'Noto Sans'; // Font family for most effect text
-const effectPowerFontFamily = 'Work Sans'; // Font family for POWER: and REACTION:
-const effectPowerFontSizeFactor = 1.08; // POWER: will be drawn at effectFontSize times this value
-const effectPhaseFontFamily = 'Avengeance Mightiest Avenger';
-const effectPhaseFontSizeFactor = 1;
-
-// Space between words
-const spaceWidthFactor = 0.26;
-let spaceWidth = effectFontSize * spaceWidthFactor;
-
-const effectMarginXPercent = 12.5; // Percent of width on each side of text
-const effectStartX = pw(effectMarginXPercent); // Left boundary of effect text
-const effectEndX = pw(100 - effectMarginXPercent + 1); // Right boundary of effect text
-const effectStartY = ph(85.5); // Top boundary of effect text
-const effectPhaseStartX = pw(6.5); // Left boundary of phase label images
-
-const effectBaseLineHeight = pw(5);
-let lineHeight = effectBaseLineHeight * effectFontScale; // Distance between two lines in the same paragraph
-const blockSpacingFactor = 1.3; // Multiply lineHeight by this to get the distance between two blocks
-const prePhaseLineHeightFactor = 1.2; // Spacing above phase block
-const postPhaseLineHeightFactor = 1.05; // Spacing below phase block
-
-let currentIndentX = effectStartX; // Different x position to reset to when drawing a block with an indent (such as a POWER:)
-let currentOffsetX = 0; // Current x position for draw commands
-let currentOffsetY = 0; // Current y position for draw commands
-let reminderOffsetY = 0; // Size of the margin we draw for reminder text on the CC
-
-const reminderMarginXPercent = 10;
-const reminderStartX = pw(reminderMarginXPercent);
-const reminderEndX = pw(100 - reminderMarginXPercent + 1);
-const reminderStartY = ph(95);
-const reminderBaseFontSize = pw(3.5);
-let reminderFontSize = reminderBaseFontSize;
-let reminderFontScale = 1;
-
-// Set of default bolded terms
-const defaultBoldList = new Set(["START PHASE", "PLAY PHASE", "POWER PHASE", "DRAW PHASE", "END PHASE", "PERFORM", "ACCOMPANY"]);
-// Set of default italicized terms
-const defaultItalicsList = new Set(["PERFORM", "ACCOMPANY"]);
-
-// These phrases will be automatically bolded
-var effectBoldList = Array.from(defaultBoldList);
-// These phrases will be automatically italicized
-var effectItalicsList = Array.from(defaultItalicsList);
-
-// load custom effect list if it exists
-function loadEffectList() {
-  let customEffectList = $('#inputBoldWords').prop('value');
-  if (customEffectList) {
-    customEffectList = customEffectList.toUpperCase();
-    customEffectList = customEffectList.split(",").map(x => x.trim());
-    customEffectList = customEffectList.filter(effect => effect != "");
-  } else {
-    customEffectList = [];
-  }
-  // reset the lists
-  let newBoldList = new Set(defaultBoldList);
-  let newItalicsList = new Set(defaultItalicsList);
-  // add new elements
-  customEffectList.forEach((effect) => {
-    newBoldList.add(effect);
-    newItalicsList.add(effect);
-  });
-  // change back to arrays
-  effectBoldList = Array.from(newBoldList);
-  effectItalicsList = Array.from(newItalicsList);
 }
