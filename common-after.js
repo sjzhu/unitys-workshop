@@ -1165,11 +1165,11 @@ function drawReminderBlock(simpleContent, isFirstBlock) {
     let thisWord = getWordProperties(word); // returns an object: {text, isBold, isItalics}
 
     // Set drawing styles
-    let weightValue = effectFontWeight;
+    let weightValue = EFFECT_FONT_WEIGHT;
     let styleValue = "normal";
     if (thisWord.isBold) { weightValue = "600" }
     if (thisWord.isItalics) { styleValue = "italic" }
-    ctx.font = weightValue + ' ' + styleValue + ' ' + reminderFontSize + 'px ' + effectFontFamily;
+    ctx.font = weightValue + ' ' + styleValue + ' ' + reminderFontSize + 'px ' + EFFECT_FONT_FAMILY;
     ctx.fillStyle = "white";
 
     // Break up special bold/italics phrases into their component words
@@ -1215,7 +1215,7 @@ function drawReminderBlock(simpleContent, isFirstBlock) {
         // Get width of word without ending punctuation
         let mainWordWidth = ctx.measureText(stringToDraw).width;
         // Set the font styles to effect text default
-        ctx.font = effectFontWeight + ' ' + 'normal' + ' ' + reminderFontSize + 'px ' + effectFontFamily;
+        ctx.font = EFFECT_FONT_WEIGHT + ' ' + 'normal' + ' ' + reminderFontSize + 'px ' + EFFECT_FONT_FAMILY;
         // Draw the punctuation
         let drawX = currentOffsetX + mainWordWidth;
         ctx.fillText(endingPunctuation, drawX, currentOffsetY);

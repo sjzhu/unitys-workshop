@@ -3,7 +3,13 @@
 Loading and app prep-work
 ============================================================================
 */
-
+const reminderMarginXPercent = 10;
+const reminderStartX = pw(reminderMarginXPercent);
+const reminderEndX = pw(100 - reminderMarginXPercent + 1);
+const reminderStartY = ph(95);
+const reminderBaseFontSize = pw(3.5);
+let reminderFontSize = reminderBaseFontSize;
+let reminderFontScale = 1;
 
 // Get and load graphics
 // Note: Google Drive simple view link: https://drive.google.com/uc?id=FILE_ID
