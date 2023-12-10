@@ -129,6 +129,16 @@ const BACKGROUND_ART = "backgroundArt";
 const FOREGROUND_ART = "foregroundArt";
 const NEMESIS_ICON = "nemesisIcon";
 const HERO_NAME_ART = "heroNameArt";
+const BACK_TOP_ART = "topArt";
+const BACK_LEFT_ART = "leftArt";
+const BACK_RIGHT_ART = "rightArt";
+const BACK_BOTTOM_ART = "bottomArt";
+const VILLAIN_NAME_ART = "villainNameArt";
+
+// Common image style classes
+const IMAGE_X = "inputImageOffsetX"
+const IMAGE_Y = "inputImageOffsetY"
+const IMAGE_ZOOM = "inputImageScale"
 
 /*
 ============================================================================

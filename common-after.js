@@ -162,10 +162,10 @@ imageAreas = {
     scaleStyle: 'fit',
     vAlign: 'top',
     getImage: function () {
-      return getUserImage('heroNameArt');
+      return getUserImage(HERO_NAME_ART);
     },
     getAdjustments: function () {
-      return getUserImageAdjustments('heroNameArt');
+      return getUserImageAdjustments(HERO_NAME_ART);
     }
   },
   // Art in Foreground
@@ -179,10 +179,10 @@ imageAreas = {
     scaleStyle: 'fill',
     vAlign: 'center',
     getImage: function () {
-      return getUserImage('foregroundArt');
+      return getUserImage(FOREGROUND_ART);
     },
     getAdjustments: function () {
-      return getUserImageAdjustments('foregroundArt');
+      return getUserImageAdjustments(FOREGROUND_ART);
     }
   },
   hccf_backgroundArt: {
@@ -196,10 +196,10 @@ imageAreas = {
     vAlign: 'center',
     getImage: function () {
       //return loadedGraphics['test_gyrosaur cc front'];
-      return getUserImage('backgroundArt');
+      return getUserImage(BACKGROUND_ART);
     },
     getAdjustments: function () {
-      return getUserImageAdjustments('backgroundArt');
+      return getUserImageAdjustments(BACKGROUND_ART);
     }
   },
   hccf_nemesisIcon: {
@@ -216,10 +216,10 @@ imageAreas = {
     scaleStyle: 'fill',
     vAlign: 'center',
     getImage: function () {
-      return getUserImage('nemesisIcon');
+      return getUserImage(NEMESIS_ICON);
     },
     getAdjustments: function () {
-      return getUserImageAdjustments('nemesisIcon');
+      return getUserImageAdjustments(NEMESIS_ICON);
     }
   },
   /*==========================================================
@@ -236,10 +236,10 @@ imageAreas = {
     scaleStyle: 'fit',
     vAlign: 'top',
     getImage: function () {
-      return getUserImage('heroNameArt');
+      return getUserImage(HERO_NAME_ART);
     },
     getAdjustments: function () {
-      return getUserImageAdjustments('heroNameArt');
+      return getUserImageAdjustments(HERO_NAME_ART);
     }
   },
   // Left Art
@@ -253,10 +253,10 @@ imageAreas = {
     scaleStyle: 'fill',
     vAlign: 'center',
     getImage: function () {
-      return getUserImage('leftArt');
+      return getUserImage(BACK_LEFT_ART);
     },
     getAdjustments: function () {
-      return getUserImageAdjustments('leftArt');
+      return getUserImageAdjustments(BACK_LEFT_ART);
     }
   },
   // Right Art
@@ -270,10 +270,10 @@ imageAreas = {
     scaleStyle: 'fill',
     vAlign: 'center',
     getImage: function () {
-      return getUserImage('rightArt');
+      return getUserImage(BACK_RIGHT_ART);
     },
     getAdjustments: function () {
-      return getUserImageAdjustments('rightArt');
+      return getUserImageAdjustments(BACK_RIGHT_ART);
     }
   },
   // Bottom Art
@@ -287,10 +287,10 @@ imageAreas = {
     scaleStyle: 'fill',
     vAlign: 'center',
     getImage: function () {
-      return getUserImage('bottomArt');
+      return getUserImage(BACK_BOTTOM_ART);
     },
     getAdjustments: function () {
-      return getUserImageAdjustments('bottomArt');
+      return getUserImageAdjustments(BACK_BOTTOM_ART);
     }
   },
   /*==========================================================
@@ -307,10 +307,10 @@ imageAreas = {
     scaleStyle: 'fit',
     vAlign: 'top',
     getImage: function () {
-      return getUserImage('villainNameArt');
+      return getUserImage(VILLAIN_NAME_ART);
     },
     getAdjustments: function () {
-      return getUserImageAdjustments('villainNameArt');
+      return getUserImageAdjustments(VILLAIN_NAME_ART);
     }
   },
   // Top Art
@@ -325,10 +325,10 @@ imageAreas = {
     scaleStyle: 'fill',
     vAlign: 'center',
     getImage: function () {
-      return getUserImage('topArt');
+      return getUserImage(BACK_TOP_ART);
     },
     getAdjustments: function () {
-      return getUserImageAdjustments('topArt');
+      return getUserImageAdjustments(BACK_TOP_ART);
     }
   },
   // Right Art
@@ -342,10 +342,10 @@ imageAreas = {
     scaleStyle: 'fill',
     vAlign: 'center',
     getImage: function () {
-      return getUserImage('rightArt');
+      return getUserImage(BACK_RIGHT_ART);
     },
     getAdjustments: function () {
-      return getUserImageAdjustments('rightArt');
+      return getUserImageAdjustments(BACK_RIGHT_ART);
     }
   },
   // Left Art
@@ -359,10 +359,10 @@ imageAreas = {
     scaleStyle: 'fill',
     vAlign: 'center',
     getImage: function () {
-      return getUserImage('leftArt');
+      return getUserImage(BACK_LEFT_ART);
     },
     getAdjustments: function () {
-      return getUserImageAdjustments('leftArt');
+      return getUserImageAdjustments(BACK_LEFT_ART);
     }
   }
 }
@@ -376,9 +376,9 @@ function getUserImage(areaName) {
 function getUserImageAdjustments(areaName) {
   let xOffset, yOffset, scale;
   // Get the user input percentages
-  xOffset = $(`.inputImageOffsetX[data-image-purpose="${areaName}"]`).val() / 100;
-  yOffset = $(`.inputImageOffsetY[data-image-purpose="${areaName}"]`).val() / 100 * -1;
-  scale = $(`.inputImageScale[data-image-purpose="${areaName}"]`).val() / 100;
+  xOffset = $(getImagePurposeSelector(IMAGE_X, areaName)).val() / 100;
+  yOffset = $(getImagePurposeSelector(IMAGE_Y, areaName)).val() / 100 * -1;
+  scale = $(getImagePurposeSelector(IMAGE_ZOOM, areaName)).val() / 100;
   // Return a nice object with those values
   let adjustments = {
     xOffset: xOffset,
@@ -386,6 +386,15 @@ function getUserImageAdjustments(areaName) {
     scale: scale
   }
   return adjustments;
+}
+
+// Helper function to get selection strings for input image variables
+function getImagePurposeSelector(className, purpose = "") {
+  if(purpose == "") {
+    return `.${className}`;
+  } else {
+    return `.${className}[data-image-purpose="${purpose}"]`;
+  }
 }
 
 // Function to handle creating and providing information about a region to draw an image inside
@@ -581,14 +590,14 @@ function parseJSONData(data) {
     cardArtImage = null;
   }
   if('ImageX' in data) {
-    $('.inputImageOffsetX').val(data.ImageX);
+    $(getImagePurposeSelector(IMAGE_X)).val(data.ImageX);
   } else {
-    $('.inputImageOffsetX').val(0);
+    $(getImagePurposeSelector(IMAGE_X)).val(0);
   }
   if('ImageY' in data) {
-    $('.inputImageOffsetY').val(data.ImageY);
+    $(getImagePurposeSelector(IMAGE_Y)).val(data.ImageY);
   } else {
-    $('.inputImageOffsetY').val(0);
+    $(getImagePurposeSelector(IMAGE_Y)).val(0);
   }
   if('ImageZoom' in data) {
     // special parsing for the zoom value, as if it's fed a non-number, it will
@@ -597,9 +606,9 @@ function parseJSONData(data) {
     if (zoomVal == NaN) {
       zoomVal = 0;
     }
-    $('.inputImageScale').val(zoomVal);
+    $(getImagePurposeSelector(IMAGE_ZOOM)).val(zoomVal);
   } else {
-    $('.inputImageScale').val(0);
+    $(getImagePurposeSelector(IMAGE_ZOOM)).val(0);
   }
   if ($('#suddenly').length > 0) {
     if('Suddenly' in data && data.Suddenly.toUpperCase() == "TRUE") {
@@ -617,120 +626,120 @@ function parseJSONData(data) {
     $('#inputPowerName').val('');
   }
   if('NemesisIconURL' in data && data.NemesisIconURL.length != 0) {
-    loadedUserImages['nemesisIcon'] = new Image();
-    loadedUserImages['nemesisIcon'].src = data.NemesisIconURL;
-    loadedUserImages['nemesisIcon'].onload = function () {
+    loadedUserImages[NEMESIS_ICON] = new Image();
+    loadedUserImages[NEMESIS_ICON].src = data.NemesisIconURL;
+    loadedUserImages[NEMESIS_ICON].onload = function () {
       // Once the Image has loaded, redraw the canvas so it immediately appears
       drawCardCanvas();
     }
   } else {
-    loadedUserImages['nemesisIcon'] = null;
+    loadedUserImages[NEMESIS_ICON] = null;
   }
   if('NemesisX' in data) {
-    $('.inputImageOffsetX[data-image-purpose=nemesisIcon]').val(data.NemesisX);
+    $(getImagePurposeSelector(IMAGE_X, NEMESIS_ICON)).val(data.NemesisX);
   } else {
-    $('.inputImageOffsetX[data-image-purpose=nemesisIcon]').val(0);
+    $(getImagePurposeSelector(IMAGE_X, NEMESIS_ICON)).val(0);
   }
   if('NemesisY' in data) {
-    $('.inputImageOffsetY[data-image-purpose=nemesisIcon]').val(data.NemesisY);
+    $(getImagePurposeSelector(IMAGE_Y, NEMESIS_ICON)).val(data.NemesisY);
   } else {
-    $('.inputImageOffsetY[data-image-purpose=nemesisIcon]').val(0);
+    $(getImagePurposeSelector(IMAGE_Y, NEMESIS_ICON)).val(0);
   }
   if('NemesisZoom' in data) {
     let zoomVal = parseInt(data.NemesisZoom);
     if (zoomVal == NaN) {
       zoomVal = 0;
     }
-    $('.inputImageScale[data-image-purpose=nemesisIcon]').val(zoomVal);
+    $(getImagePurposeSelector(IMAGE_ZOOM, NEMESIS_ICON)).val(zoomVal);
   } else {
-    $('.inputImageScale[data-image-purpose=nemesisIcon]').val(0);
+    $(getImagePurposeSelector(IMAGE_ZOOM, NEMESIS_ICON)).val(0);
   }
   if('BackgroundArtURL' in data && data.BackgroundArtURL.length != 0) {
-    loadedUserImages['backgroundArt'] = new Image();
-    loadedUserImages['backgroundArt'].src = data.BackgroundArtURL;
-    loadedUserImages['backgroundArt'].onload = function () {
+    loadedUserImages[BACKGROUND_ART] = new Image();
+    loadedUserImages[BACKGROUND_ART].src = data.BackgroundArtURL;
+    loadedUserImages[BACKGROUND_ART].onload = function () {
       // Once the Image has loaded, redraw the canvas so it immediately appears
       drawCardCanvas();
     }
   } else {
-    loadedUserImages['backgroundArt'] = null;
+    loadedUserImages[BACKGROUND_ART] = null;
   }
   if('BackgroundArtX' in data) {
-    $('.inputImageOffsetX[data-image-purpose=backgroundArt]').val(data.BackgroundArtX);
+    $(getImagePurposeSelector(IMAGE_X, BACKGROUND_ART)).val(data.BackgroundArtX);
   } else {
-    $('.inputImageOffsetX[data-image-purpose=backgroundArt]').val(0);
+    $(getImagePurposeSelector(IMAGE_X, BACKGROUND_ART)).val(0);
   }
   if('BackgroundArtY' in data) {
-    $('.inputImageOffsetY[data-image-purpose=backgroundArt]').val(data.BackgroundArtY);
+    $(getImagePurposeSelector(IMAGE_Y, BACKGROUND_ART)).val(data.BackgroundArtY);
   } else {
-    $('.inputImageOffsetY[data-image-purpose=backgroundArt]').val(0);
+    $(getImagePurposeSelector(IMAGE_Y, BACKGROUND_ART)).val(0);
   }
   if('BackgroundArtZoom' in data) {
     let zoomVal = parseInt(data.BackgroundArtZoom);
     if (zoomVal == NaN) {
       zoomVal = 0;
     }
-    $('.inputImageScale[data-image-purpose=backgroundArt]').val(zoomVal);
+    $(getImagePurposeSelector(IMAGE_ZOOM, BACKGROUND_ART)).val(zoomVal);
   } else {
-    $('.inputImageScale[data-image-purpose=backgroundArt]').val(0);
+    $(getImagePurposeSelector(IMAGE_ZOOM, BACKGROUND_ART)).val(0);
   }
   if('ForegroundArtURL' in data && data.ForegroundArtURL.length != 0) {
-    loadedUserImages['foregroundArt'] = new Image();
-    loadedUserImages['foregroundArt'].src = data.ForegroundArtURL;
-    loadedUserImages['foregroundArt'].onload = function () {
+    loadedUserImages[FOREGROUND_ART] = new Image();
+    loadedUserImages[FOREGROUND_ART].src = data.ForegroundArtURL;
+    loadedUserImages[FOREGROUND_ART].onload = function () {
       // Once the Image has loaded, redraw the canvas so it immediately appears
       drawCardCanvas();
     }
   } else {
-    loadedUserImages['foregroundArt'] = null;
+    loadedUserImages[FOREGROUND_ART] = null;
   }
   if('ForegroundArtX' in data) {
-    $('.inputImageOffsetX[data-image-purpose=foregroundArt]').val(data.ForegroundArtX);
+    $(getImagePurposeSelector(IMAGE_X, FOREGROUND_ART)).val(data.ForegroundArtX);
   } else {
-    $('.inputImageOffsetX[data-image-purpose=foregroundArt]').val(0);
+    $(getImagePurposeSelector(IMAGE_X, FOREGROUND_ART)).val(0);
   }
   if('ForegroundArtY' in data) {
-    $('.inputImageOffsetY[data-image-purpose=foregroundArt]').val(data.ForegroundArtY);
+    $(getImagePurposeSelector(IMAGE_Y, FOREGROUND_ART)).val(data.ForegroundArtY);
   } else {
-    $('.inputImageOffsetY[data-image-purpose=foregroundArt]').val(0);
+    $(getImagePurposeSelector(IMAGE_Y, FOREGROUND_ART)).val(0);
   }
   if('ForegroundArtZoom' in data) {
     let zoomVal = parseInt(data.ForegroundArtZoom);
     if (zoomVal == NaN) {
       zoomVal = 0;
     }
-    $('.inputImageScale[data-image-purpose=foregroundArt]').val(zoomVal);
+    $(getImagePurposeSelector(IMAGE_ZOOM, FOREGROUND_ART)).val(zoomVal);
   } else {
-    $('.inputImageScale[data-image-purpose=foregroundArt]').val(0);
+    $(getImagePurposeSelector(IMAGE_ZOOM, FOREGROUND_ART)).val(0);
   }
   if('CharacterLogoURL' in data && data.CharacterLogoURL.length != 0) {
-    loadedUserImages['heroNameArt'] = new Image();
-    loadedUserImages['heroNameArt'].src = data.CharacterLogoURL;
-    loadedUserImages['heroNameArt'].onload = function () {
+    loadedUserImages[HERO_NAME_ART] = new Image();
+    loadedUserImages[HERO_NAME_ART].src = data.CharacterLogoURL;
+    loadedUserImages[HERO_NAME_ART].onload = function () {
       // Once the Image has loaded, redraw the canvas so it immediately appears
       drawCardCanvas();
     }
   } else {
-    loadedUserImages['heroNameArt'] = null;
+    loadedUserImages[HERO_NAME_ART] = null;
   }
   if('CharacterLogoX' in data) {
-    $('.inputImageOffsetX[data-image-purpose=heroNameArt]').val(data.CharacterLogoX);
+    $(getImagePurposeSelector(IMAGE_X, HERO_NAME_ART)).val(data.CharacterLogoX);
   } else {
-    $('.inputImageOffsetX[data-image-purpose=heroNameArt]').val(0);
+    $(getImagePurposeSelector(IMAGE_X, HERO_NAME_ART)).val(0);
   }
   if('CharacterLogoY' in data) {
-    $('.inputImageOffsetY[data-image-purpose=heroNameArt]').val(data.CharacterLogoY);
+    $(getImagePurposeSelector(IMAGE_Y, HERO_NAME_ART)).val(data.CharacterLogoY);
   } else {
-    $('.inputImageOffsetY[data-image-purpose=heroNameArt]').val(0);
+    $(getImagePurposeSelector(IMAGE_Y, HERO_NAME_ART)).val(0);
   }
   if('CharacterLogoZoom' in data) {
     let zoomVal = parseInt(data.CharacterLogoZoom);
     if (zoomVal == NaN) {
       zoomVal = 0;
     }
-    $('.inputImageScale[data-image-purpose=heroNameArt]').val(zoomVal);
+    $(getImagePurposeSelector(IMAGE_ZOOM, HERO_NAME_ART)).val(zoomVal);
   } else {
-    $('.inputImageScale[data-image-purpose=heroNameArt]').val(0);
+    $(getImagePurposeSelector(IMAGE_ZOOM, HERO_NAME_ART)).val(0);
   }
   drawCardCanvas();
 }
@@ -749,9 +758,9 @@ function outputJSONData(type="deck") {
       "QuoteTextSize": ${JSON.stringify($('#inputQuoteTextSize').val())},
       "Attribution": ${JSON.stringify($('#inputAttribution').val())},
       "ImageURL": ${JSON.stringify(extractImageURL())},
-      "ImageX": ${JSON.stringify($('.inputImageOffsetX').val())},
-      "ImageY": ${JSON.stringify($('.inputImageOffsetY').val())},
-      "ImageZoom": ${JSON.stringify($('.inputImageScale').val())},
+      "ImageX": ${JSON.stringify($(getImagePurposeSelector(IMAGE_X)).val())},
+      "ImageY": ${JSON.stringify($(getImagePurposeSelector(IMAGE_Y)).val())},
+      "ImageZoom": ${JSON.stringify($(getImagePurposeSelector(IMAGE_ZOOM)).val())},
       "Suddenly": "${JSON.stringify($('#suddenly')[0].checked)}"
     },`;
   } else if (type == "character") {
@@ -762,22 +771,22 @@ function outputJSONData(type="deck") {
       "PowerName": ${JSON.stringify($('#inputPowerName').val())},
       "GameText": ${JSON.stringify($('#inputEffect').val())},
       "GameTextSize": ${JSON.stringify($('#inputEffectTextSize').val())},
-      "NemesisIconURL": ${JSON.stringify(extractImageURL("nemesisIcon"))},
-      "NemesisX": ${JSON.stringify($('.inputImageOffsetX[data-image-purpose=nemesisIcon]').val())},
-      "NemesisY": ${JSON.stringify($('.inputImageOffsetY[data-image-purpose=nemesisIcon]').val())},
-      "NemesisZoom": ${JSON.stringify($('.inputImageScale[data-image-purpose=nemesisIcon]').val())},
-      "BackgroundArtURL": ${JSON.stringify(extractImageURL("backgroundArt"))},
-      "BackgroundArtX": ${JSON.stringify($('.inputImageOffsetX[data-image-purpose=backgroundArt]').val())},
-      "BackgroundArtY": ${JSON.stringify($('.inputImageOffsetY[data-image-purpose=backgroundArt]').val())},
-      "BackgroundArtZoom": ${JSON.stringify($('.inputImageScale[data-image-purpose=backgroundArt]').val())},
-      "ForegroundArtURL": ${JSON.stringify(extractImageURL("foregroundArt"))},
-      "ForegroundArtX": ${JSON.stringify($('.inputImageOffsetX[data-image-purpose=foregroundArt]').val())},
-      "ForegroundArtY": ${JSON.stringify($('.inputImageOffsetY[data-image-purpose=foregroundArt]').val())},
-      "ForegroundArtZoom": ${JSON.stringify($('.inputImageScale[data-image-purpose=foregroundArt]').val())},
-      "CharacterLogoURL": ${JSON.stringify(extractImageURL("heroNameArt"))},
-      "CharacterLogoX": ${JSON.stringify($('.inputImageOffsetX[data-image-purpose=heroNameArt]').val())},
-      "CharacterLogoY": ${JSON.stringify($('.inputImageOffsetY[data-image-purpose=heroNameArt]').val())},
-      "CharacterLogoZoom": ${JSON.stringify($('.inputImageScale[data-image-purpose=heroNameArt]').val())}
+      "NemesisIconURL": ${JSON.stringify(extractImageURL(NEMESIS_ICON))},
+      "NemesisX": ${JSON.stringify($(getImagePurposeSelector(IMAGE_X, NEMESIS_ICON)).val())},
+      "NemesisY": ${JSON.stringify($(getImagePurposeSelector(IMAGE_Y, NEMESIS_ICON)).val())},
+      "NemesisZoom": ${JSON.stringify($(getImagePurposeSelector(IMAGE_ZOOM, NEMESIS_ICON)).val())},
+      "BackgroundArtURL": ${JSON.stringify(extractImageURL(BACKGROUND_ART))},
+      "BackgroundArtX": ${JSON.stringify($(getImagePurposeSelector(IMAGE_X, BACKGROUND_ART)).val())},
+      "BackgroundArtY": ${JSON.stringify($(getImagePurposeSelector(IMAGE_Y, BACKGROUND_ART)).val())},
+      "BackgroundArtZoom": ${JSON.stringify($(getImagePurposeSelector(IMAGE_ZOOM, BACKGROUND_ART)).val())},
+      "ForegroundArtURL": ${JSON.stringify(extractImageURL(FOREGROUND_ART))},
+      "ForegroundArtX": ${JSON.stringify($(getImagePurposeSelector(IMAGE_X, FOREGROUND_ART)).val())},
+      "ForegroundArtY": ${JSON.stringify($(getImagePurposeSelector(IMAGE_Y, FOREGROUND_ART)).val())},
+      "ForegroundArtZoom": ${JSON.stringify($(getImagePurposeSelector(IMAGE_ZOOM, FOREGROUND_ART)).val())},
+      "CharacterLogoURL": ${JSON.stringify(extractImageURL(HERO_NAME_ART))},
+      "CharacterLogoX": ${JSON.stringify($(getImagePurposeSelector(IMAGE_X, HERO_NAME_ART)).val())},
+      "CharacterLogoY": ${JSON.stringify($(getImagePurposeSelector(IMAGE_Y, HERO_NAME_ART)).val())},
+      "CharacterLogoZoom": ${JSON.stringify($(getImagePurposeSelector(IMAGE_ZOOM, HERO_NAME_ART)).val())}
     }`
   }
   $('#jsonInput').val(outputJSON);
