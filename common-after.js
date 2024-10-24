@@ -99,13 +99,11 @@ $('#downloadButton').on('click', function () {
 $(window).on('load', drawCardCanvas);
 $('.contentInput').on('input', drawCardCanvas);
 
-
 // Toggle high contrast phase labels and re-draw
 $('#inputUseHighConstrast').on('input', function () {
   useHighContrastPhaseLabels = this.checked;
   drawCardCanvas();
 });
-
 
 // Toggle Suddenly! and re-draw
 $('#suddenly').on('input', function () {
@@ -116,6 +114,18 @@ $('#suddenly').on('input', function () {
 // Toggle card border and re-draw
 $('#inputDisplayBorder').on('input', function () {
   showBorder = this.checked;
+  drawCardCanvas();
+});
+
+// Toggle variant
+$('#inputVariantToggle').on('input', function () {
+  isVariant = this.checked;
+  drawCardCanvas();
+});
+
+// Toggle variant text color
+$('#inputVariantColor').on('input', function () {
+  variantTextColor = this.checked;
   drawCardCanvas();
 });
 
@@ -195,7 +205,7 @@ imageAreas = {
     scaleStyle: 'fill',
     vAlign: 'center',
     getImage: function () {
-      //return loadedGraphics['test_gyrosaur cc front'];
+      //return loadedGraphics['test_herocc'];
       return getUserImage('backgroundArt');
     },
     getAdjustments: function () {
@@ -213,6 +223,80 @@ imageAreas = {
 
       [19, 96.25],
       [18, 96.25]
+    ]),
+    scaleStyle: 'fill',
+    vAlign: 'center',
+    getImage: function () {
+      return getUserImage('nemesisIcon');
+    },
+    getAdjustments: function () {
+      return getUserImageAdjustments('nemesisIcon');
+    }
+  },
+  /*==========================================================
+  Villain Character Card
+  ==========================================================*/
+  // Villain Name
+  vcc_nameLogo: {
+    pathShape: coordinatesToPathShape([
+      [50, 2],
+      [98.5, 2],
+      [98.5, 40],
+      [50, 40]
+    ]),
+    scaleStyle: 'fit',
+    vAlign: 'top',
+    getImage: function () {
+      return getUserImage('nameLogo');
+    },
+    getAdjustments: function () {
+      return getUserImageAdjustments('nameLogo');
+    }
+  },
+  // Art in Foreground
+  vcc_foregroundArt: {
+    pathShape: coordinatesToPathShape([
+      [0, 0],
+      [100, 0],
+      [100, 100],
+      [0, 100]
+    ]),
+    scaleStyle: 'fill',
+    vAlign: 'center',
+    getImage: function () {
+      return getUserImage('foregroundArt');
+    },
+    getAdjustments: function () {
+      return getUserImageAdjustments('foregroundArt');
+    }
+  },
+  vcc_backgroundArt: {
+    pathShape: coordinatesToPathShape([
+      [0, 0],
+      [100, 0],
+      [100, 100],
+      [0, 100]
+    ]),
+    scaleStyle: 'fill',
+    vAlign: 'center',
+    getImage: function () {
+      //return loadedGraphics['test_herocc'];
+      return getUserImage('backgroundArt');
+    },
+    getAdjustments: function () {
+      return getUserImageAdjustments('backgroundArt');
+    }
+  },
+  vcc_nemesisIcon: {
+    pathShape: coordinatesToPathShape([
+      [48.9, 89.8],
+      [49.4, 88.7],
+
+      [55.0, 88.7],
+      [55.5, 89.8],
+
+      [52.5, 96.5],
+      [51.9, 96.5]
     ]),
     scaleStyle: 'fill',
     vAlign: 'center',
@@ -453,22 +537,28 @@ function drawArtInCroppedArea(areaName) {
   // Get image area information
   let imageArea = imageAreas[areaName];
   let image = imageArea.getImage();
-  let pathShape = imageArea.pathShape;
+  let areaPathShape = imageArea.pathShape;
   let adjustments = imageArea.getAdjustments();
   let scaleStyle = imageArea.scaleStyle;
   let vAlign = imageArea.vAlign;
 
-  // Stroke path - useful when working on a new image area
-  // ctx.strokeStyle = 'green';
-  // ctx.lineWidth = pw(1);
-  // ctx.stroke(pathShape.pathShape);
+  // Stroke path - useful to toggle on when working on a new image area
+  // ctx.strokeStyle = 'red';
+  // ctx.lineWidth = ps(0.5);
+  // ctx.stroke(areaPathShape.pathShape);
 
   if (!image) { return } // Cancel function if there's no image to draw (placed here to allow test stroke to be drawn)
 
   // Save context before clip
   ctx.save();
+
+  // Dynamically adjust nemesis icon placement on villain character cards
+  if (areaName == 'vcc_nemesisIcon') {
+    ctx.translate(bodyWidthAdjustment, advancedBoxYAdjustment);
+  }
+
   // Clip path shape
-  ctx.clip(pathShape.pathShape);
+  ctx.clip(areaPathShape.pathShape);
 
   // Get image information
   let imageWidth = image.width;
@@ -477,14 +567,14 @@ function drawArtInCroppedArea(areaName) {
 
   // Determine default scale of image by comparing image ratio to area shape ratio
   let initialScale = 1;
-  if ((scaleStyle == 'fill' && imageRatio > pathShape.ratio) ||
-    (scaleStyle == 'fit' && imageRatio < pathShape.ratio)) {
+  if ((scaleStyle == 'fill' && imageRatio > areaPathShape.ratio) ||
+    (scaleStyle == 'fit' && imageRatio < areaPathShape.ratio)) {
     // If image ratio is wider than image area ratio, fit to height
-    initialScale = pathShape.height / imageHeight;
+    initialScale = areaPathShape.height / imageHeight;
   }
   else {
     // Otherwise, fit to width
-    initialScale = pathShape.width / imageWidth;
+    initialScale = areaPathShape.width / imageWidth;
   }
 
   // Determine final scale of image based on user input
@@ -495,17 +585,17 @@ function drawArtInCroppedArea(areaName) {
   let drawHeight = imageHeight * finalScale;
 
   // Determine draw X by centering, then adding user input offset
-  let drawX = pathShape.centerX - drawWidth / 2;
+  let drawX = areaPathShape.centerX - drawWidth / 2;
   drawX += adjustments.xOffset * drawWidth;
 
   // Align image to that area's starting alignment, then add user input offset
   let drawY = 0;
   if (vAlign == 'center') {
-    drawY = pathShape.topmostY + pathShape.height / 2 - drawHeight / 2;
+    drawY = areaPathShape.topmostY + areaPathShape.height / 2 - drawHeight / 2;
     drawY += adjustments.yOffset * drawHeight;
   }
   else if (vAlign == 'top') {
-    drawY = pathShape.topmostY;
+    drawY = areaPathShape.topmostY;
     drawY += adjustments.yOffset * drawHeight;
   }
 
@@ -630,9 +720,13 @@ function outputJSONData() {
     "ImageURL": ${JSON.stringify(imageURL)},
     "ImageX": ${JSON.stringify($('.inputImageOffsetX').val())},
     "ImageY": ${JSON.stringify($('.inputImageOffsetY').val())},
-    "ImageZoom": ${JSON.stringify($('.inputImageScale').val())},
-    "Suddenly": "${JSON.stringify($('#suddenly')[0].checked)}"
-  },`;
+    "ImageZoom": ${JSON.stringify($('.inputImageScale').val())}`;
+  if ($('#suddenly').length > 0) {
+    outputJSON += `,
+    "Suddenly": "${JSON.stringify($('#suddenly')[0].checked)}"`
+  }
+  outputJSON += `
+},`
   $('#jsonInput').val(outputJSON);
 }
 
@@ -783,7 +877,13 @@ function parseBodyText(originalLine) {
 /** Parses and returns the body text for a card. */
 function parseCardBody() {
   // Get the text the user entered into the textarea
-  const inputValue = $('#inputEffect').prop('value');
+  let inputValue;
+  if (drawingAdvanced) {
+    inputValue = $('#inputAdvanced').prop('value');
+  }
+  else {
+    inputValue = $('#inputEffect').prop('value');
+  }
 
   // Split at line returns, then iterate through the array to build an ordered list of blocks
   const parsedBlocks = inputValue
@@ -815,20 +915,54 @@ function parseReminderText() {
  * order to fit all of the blocks that we parsed from the user input. Hero character card body boxes have a minimum size, so we min this value with 0 to determine the offset
  * of our box (increasing the offset moves our Y position *downwards*, so a positive number yields a smaller box).
  */
-function adjustBoxHeightOffset(parsedBlocks, reminderOffset = 0) {
+
+function adjustBoxHeightOffset(parsedBlocks) {
+  // Draw on the invisible calculation canvas instead of the main canvas
+  ctx = calculationCanvas.getContext("2d");
   boxHeightOffset = 0;
   drawBodyText(parsedBlocks);
-  boxHeightOffset = Math.min(Math.round(EFFECT_START_Y - currentOffsetY + 85), reminderOffset);
+  let minimumSizeCap = 0;
+  if (drawingAdvanced) {
+    // Unique minimum size for advanced box (higher number = smaller)
+    minimumSizeCap = ph(10);
+  }
+  boxHeightOffset = Math.min(Math.round(EFFECT_START_Y - currentOffsetY + 137), minimumSizeCap);
   currentOffsetY = 0;
+  // Return to the main canvas
+  ctx = canvas.getContext("2d");
+}
+
+/** Updates the game text box width adjustment for villain character cards */
+let bodyWidthAdjustment = 1;
+function updateBodyWidthAdjustment() {
+  if (drawingAdvanced) {
+    if ($('#inputAdvancedBoxWidth').length > 0) {
+      bodyWidthAdjustment = pw($('#inputAdvancedBoxWidth').val());
+    }
+  }
+  else {
+    if ($('#inputEffectBoxWidth').length > 0) {
+      bodyWidthAdjustment = pw($('#inputEffectBoxWidth').val());
+    }
+  }
 }
 
 /** Draws the text box of a character card (but not the text inside it). */
-function drawCharacterBodyBox(reminderOffset = 0) {
+function drawCharacterBodyBox() {
+  // Check for width adjustment (for villain character cards)
+  updateBodyWidthAdjustment();
+
+  // Reset advanced adjustment
+  if (drawingAdvanced) {
+    advancedBoxYAdjustment = 0;
+  }
+
   // Sets the coordinates of the corners of the textbox. The bottom will never change, but the top can change based on boxHeightOffset
-  const topLeft = [pw(10), ph(79) + boxHeightOffset];
-  const topRight = [pw(90), ph(79) + boxHeightOffset];
-  const bottomLeft = [pw(10), ph(94) + reminderOffset];
-  const bottomRight = [pw(90), ph(93) + reminderOffset];
+  const boxValues = CHARACTER_BODY_BOX;
+  const topLeft = [boxValues.topLeft.x + bodyWidthAdjustment, boxValues.topLeft.y + boxHeightOffset + advancedBoxYAdjustment];
+  const topRight = [boxValues.topRight.x, boxValues.topRight.y + boxHeightOffset + advancedBoxYAdjustment];
+  const bottomRight = [boxValues.bottomRight.x, boxValues.bottomRight.y + advancedBoxYAdjustment];
+  const bottomLeft = [boxValues.bottomLeft.x + bodyWidthAdjustment, boxValues.bottomLeft.y + advancedBoxYAdjustment];
 
   // Determine the initial shape of the box.
   const boxShape = new Path2D();
@@ -838,31 +972,51 @@ function drawCharacterBodyBox(reminderOffset = 0) {
   boxShape.lineTo(bottomLeft[0], bottomLeft[1]);
   boxShape.closePath();
 
-  // Semi-transparent white fill
-  ctx.fillStyle = "#ffffffcc"; // Last two digits are transparency
+  // White background
+  ctx.fillStyle = boxValues.bgColor;
   ctx.fill(boxShape);
 
   // Black border
   ctx.fillStyle = colorBlack;
-  ctx.lineWidth = pw(0.5);
+  ctx.lineWidth = boxValues.borderThickness;
   ctx.stroke(boxShape);
 
   // Box shadow (top-left)
-  let shadowShape = new Path2D;
-  let shadowOffset = pw(-0.7);
-  shadowShape.moveTo(bottomLeft[0] + shadowOffset, bottomLeft[1] + shadowOffset);
-  shadowShape.lineTo(topLeft[0] + shadowOffset, topLeft[1] + shadowOffset);
-  shadowShape.lineTo(topRight[0] + shadowOffset, topRight[1] + shadowOffset);
-  ctx.fillStyle = colorBlack;
-  ctx.lineWidth = pw(1);
-  ctx.stroke(shadowShape);
+  if (drawingAdvanced) {
+    // Ignore
+  }
+  else {
+    let shadowShape = new Path2D;
+    let shadowOffset = boxValues.shadowThickness * -0.7;
+    shadowShape.moveTo(bottomLeft[0] + shadowOffset, bottomLeft[1] + shadowOffset);
+    shadowShape.lineTo(topLeft[0] + shadowOffset, topLeft[1] + shadowOffset);
+    shadowShape.lineTo(topRight[0] + shadowOffset, topRight[1] + shadowOffset);
+    ctx.fillStyle = colorBlack;
+    ctx.lineWidth = boxValues.shadowThickness;
+    ctx.stroke(shadowShape);
+  }
+
+  // Set advanced Y adjustment
+  if (drawingAdvanced) {
+    // It's the final height of the drawn advanced box, plus a gap
+    const gap = ph(1.8);
+    advancedBoxYAdjustment = (boxValues.bottomLeft.y - boxValues.topLeft.y - boxHeightOffset + gap) * -1;
+  }
 }
 
 /** Given an array of blocks, draw the body of a card from a deck. */
 function drawBodyText(parsedBlocks) {
+  // Check for width adjustment (for villain character cards)
+  updateBodyWidthAdjustment();
+
+  // Reset advanced adjustment
+  if (drawingAdvanced) {
+    advancedTextYAdjustment = 0;
+  }
+
   // Initialize positioning values
-  currentOffsetX = EFFECT_START_X;
-  currentOffsetY = EFFECT_START_Y + boxHeightOffset;
+  currentOffsetX = EFFECT_START_X + bodyWidthAdjustment;
+  currentOffsetY = EFFECT_START_Y + boxHeightOffset + advancedTextYAdjustment;
 
   // Get and apply the text scale the user chose
   effectFontScale = $('#inputEffectTextSize').prop('value') / 100; // Result is between 0 and 1
@@ -875,13 +1029,19 @@ function drawBodyText(parsedBlocks) {
     drawBlock(block, index == 0);
   });
 
+  // Set advanced Y adjustment
+  if (!drawingAdvanced) {
+    advancedTextYAdjustment = advancedBoxYAdjustment;
+    // (I'll be honest, I don't understand why this works here, but it does.)
+  }
+
   return currentOffsetY;
 }
 
 /** Draws a single block from the array of parsed blocks. */
 function drawBlock(block, isFirstBlock) {
   // Reset indentation to default
-  currentIndentX = EFFECT_START_X;
+  currentIndentX = EFFECT_START_X + bodyWidthAdjustment;
 
   if (block.type === SPACE_BLOCK) {
     drawSpaceBlock(isFirstBlock);
@@ -912,7 +1072,12 @@ function drawPhaseBlock(phase, isFirstBlock) {
   const phaseText = PHASE_TEXT_MAP.get(phase);
 
   // Adjust line height based on whether this is the first block
-  currentOffsetY = isFirstBlock ? EFFECT_START_Y : currentOffsetY + lineHeight * PRE_PHASE_LINE_HEIGHT_FACTOR;
+  if (isFirstBlock) {
+    currentOffsetY = currentOffsetY;
+  }
+  else {
+    currentOffsetY = currentOffsetY + lineHeight * PRE_PHASE_LINE_HEIGHT_FACTOR;
+  }
 
   // Get the phase icon to use
   const phaseIconKey = PHASE_ICON_MAP.get(phase) + (useHighContrastPhaseLabels ? " High Contrast" : "");
@@ -922,8 +1087,8 @@ function drawPhaseBlock(phase, isFirstBlock) {
   }
 
   // Draw the icon
-  const iconWidth = iconHeight = ps(5); // Icon graphics have 1:1 proportions
-  const iconX = PHASE_ICON_X - iconWidth / 2;
+  const iconWidth = iconHeight = PHASE_ICON_SIZE; // Icon graphics have 1:1 proportions
+  const iconX = PHASE_ICON_X + bodyWidthAdjustment - iconWidth / 2;
   const iconY = currentOffsetY - EFFECT_PHASE_FONT_SIZE; // == iconHeight / 2.
   ctx.drawImage(phaseIcon, iconX, iconY, iconWidth, iconHeight);
 
@@ -1018,6 +1183,12 @@ function drawSimpleBlock(simpleContent, isFirstBlock) {
   // Make minus signs more readable by replacing hyphens with en-dashes
   blockString = blockString.replaceAll('-', '–');
 
+  // Replace placeholder H and flip with custom symbols
+  // Valid: '(H)' - case sensitive
+  blockString = blockString.replaceAll('(H)', '҈____');
+  // Valid: '[flip]', '(flip)', '(F)' - not case sensitive
+  blockString = blockString.replaceAll(/\[flip\]|\(flip\)|\(F\)/gi, '҉____');
+
   // Extract all the words
   // add special processing for spaces after numbers
   let words = blockString.split(' ').flatMap((word) => {
@@ -1041,7 +1212,11 @@ function drawSimpleBlock(simpleContent, isFirstBlock) {
     let styleValue = "normal";
     if (thisWord.isBold) { weightValue = "600" }
     if (thisWord.isItalics) { styleValue = "italic" }
-    ctx.font = weightValue + ' ' + styleValue + ' ' + effectFontSize + 'px ' + EFFECT_FONT_FAMILY;
+    if (thisWord.isBold || thisWord.isItalics) {
+      ctx.font = weightValue + ' ' + styleValue + ' ' + effectFontSize + 'px ' + BACKUP_FONT_FAMILY;
+    } else {
+      ctx.font = weightValue + ' ' + styleValue + ' ' + effectFontSize + 'px ' + EFFECT_FONT_FAMILY;
+    }
     ctx.fillStyle = colorBlack;
 
     // Break up special bold/italics phrases into their component words
@@ -1101,7 +1276,7 @@ function drawSimpleBlock(simpleContent, isFirstBlock) {
   });
 
   // After drawing all the words, prepare for the next block
-  currentOffsetX = EFFECT_START_X;
+  currentOffsetX = EFFECT_START_X + bodyWidthAdjustment;
   currentOffsetY += lineHeight * BLOCK_SPACING_FACTOR;
 }
 
