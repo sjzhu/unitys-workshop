@@ -254,7 +254,7 @@ function parseHeroCharacterCards(tsvData) {
     card.incapOptions = [line[10], line[11], line[12]];
     card.incapFeaturedIssue = line[13];
     card.set = line[14];
-    card.complexity = line[15];
+    card.complexity = parseInt(line[15]);
     card.type = "hero";
     card.kind = "character";
     card.hasBack = true;
@@ -868,15 +868,15 @@ function expressiveSearch(queryString) {
     while (!s.hasTerminated()) {
       if (s.scan(/[\s,]+/i)) {
         // pass
-      } else if (s.scan(/(?:g|gametext)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+      } else if (s.scan(/(?:g|gt|gametext)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
         conds.push(new GameTextCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:t|title)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+      } else if (s.scan(/(?:t|ti|title)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
         conds.push(new TitleCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:k|keyword)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+      } else if (s.scan(/(?:k|kw|keyword)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
         conds.push(new KeywordCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
       } else if (s.scan(/(?:p|power|innatePowerEffect)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
         conds.push(new InnatePowerEffectCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:deck)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+      } else if (s.scan(/(?:d|deck)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
         conds.push(new DeckNameCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
       } else if (s.scan(/(?:c|character)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
         conds.push(new CharacterNameCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
@@ -895,7 +895,7 @@ function expressiveSearch(queryString) {
       } else if (s.scan(/(?:date)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
         conds.push(new DateCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
       } else if (s.scan(/(?:l|limit|collectionLimit)\s*(>=|>|<=|<|=|:)\s*(\d+)/i)) {
-        conds.push(new CollectionLimitCond(s.getCapture(1), s.getCapture(0)));
+        conds.push(new CollectionLimitCond(s.getCapture(2), s.getCapture(1)));
       } else if (s.scan(/(?:nemesisIcon|nemesisIcons)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
         conds.push(new NemesisIconCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
       } else if (s.scan(/(?:innatePowerTitle)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
@@ -925,16 +925,16 @@ function expressiveSearch(queryString) {
       } else if (s.scan(/(?:rewardGameText)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
         conds.push(new RewardGameTextCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
       } else if (s.scan(/(q|quantity)\s*(>=|>|<=|<|=|:)\s*(\d+)/i)) {
-        conds.push(new QuantityCond(s.getCapture(1), s.getCapture(0)))
-      } else if (s.scan(/(?:rewardGameText)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+        conds.push(new QuantityCond(s.getCapture(2), s.getCapture(1)))
+      } else if (s.scan(/(?:set)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
         conds.push(new SetCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
       } else if (s.scan(/(c|complexity)\s*(>=|>|<=|<|=|:)\s*(\d+)/i)) {
-        conds.push(new ComplexityCond(s.getCapture(1), s.getCapture(0)));
-      } else if (s.scan(/(difficulty)\s*(>=|>|<=|<|=|:)\s*(\d+)/i)) {
+        conds.push(new ComplexityCond(s.getCapture(2), s.getCapture(1)));
+      } else if (s.scan(/(diff|difficulty)\s*(>=|>|<=|<|=|:)\s*(\d+)/i)) {
         conds.push(new DifficultyCond(s.getCapture(1), s.getCapture(0)));
-      } else if (s.scan(/(?:t|type)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+      } else if (s.scan(/(?:ty|type)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
         conds.push(new TypeCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:k|kind)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+      } else if (s.scan(/(?:ki|kind)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
         conds.push(new KindCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
       } else if (s.scan(/back\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
         conds.push(new HasBackCond(parseBoolean(s.getCapture(0) || s.getCapture(1))));
