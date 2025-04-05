@@ -219,6 +219,10 @@ function loadCards(tsvData, dataGroup) {
     $(".cardFlexDisplay").append(newHTML);
   }
 
+  // Expressive search requires more fancy structured data.
+  // TODO: this should be done once per set release / spreadsheet update and stored as a JSON file instead of us re-parsing the TSV every time someone loads the page.
+  awesomeParser(tsvData, dataGroup);
+
   // Start loading next card category
   currentCardCategory++;
   const nextCategoryName = cardCategories[currentCardCategory];
@@ -242,12 +246,10 @@ function loadCards(tsvData, dataGroup) {
       $(this).parent().toggleClass('flipped');
       // Toggle image
       $(this).parent().children('.cardImage').toggle();
-    })
+    });
+    // If there's already something in the search bar, do a search
+    submitSearch();
   }
-
-  // Expressive search requires more fancy structured data.
-  // TODO: this should be done once per set release / spreadsheet update and stored as a JSON file instead of us re-parsing the TSV every time someone loads the page.
-  awesomeParser(tsvData, dataGroup);
 }
 
 // Submit search as user types, if enabled
@@ -260,6 +262,7 @@ $(".searchInput").on("input", function (e) {
 
 // Filter display based on search input
 function submitSearch() {
+  console.info("Searching...");
   // Check if regex checkbox is checked
   if ($("#regex").is(":checked")) {
     // Create new RegExp from search value, catch errors and do nothing will malformed RegExp
@@ -283,7 +286,7 @@ function submitSearch() {
   }
   
   // Try to perform an expressive search. If that fails (not out of the question), fall back to legacy search.
-  if(expressiveSearch($(".searchInput").val().toLowerCase())) {
+  if (expressiveSearch($(".searchInput").val().toLowerCase())) {
     return;
   }
 
@@ -303,3 +306,10 @@ function submitSearch() {
     }
   })
 }
+
+window.addEventListener("load", () => {
+  let query = (new URLSearchParams(document.location.search)).get("q");
+  if (query) {
+    $(".searchInput").val(query);
+  }
+});
