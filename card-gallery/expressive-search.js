@@ -23,27 +23,28 @@ class Card {
     // ==========
     // Deck, character, and title are distinct depending on the circumstances. Here are some examples:
     //  - The Morrigan
-    //    - deckName:       The Fey Court
-    //    - characterName:  The Morrigan
-    //    - title:          The Morrigan
+    //    - crunchedDeckName:       [The, Fey, Court]
+    //    - crunchedCharacterName:  [The, Morrigan]
+    //    - title:                  The Morrigan
     //  - Play the System
-    //    - deckName:       The Operative
-    //    - characterName:  The Operative
-    //    - title:          Play the System
+    //    - crunchedDeckName:       [The, Organization]
+    //    - crunchedCharacterName:  [The, Operative]
+    //    - title:                  Play the System
     //  - FA Absolute Zero
-    //    - deckName:       Absolute Zero
-    //    - characterName:  Absolute Zero
-    //    - title:          Absolute Zero
+    //    - crunchedDeckName:       [Absolute, Zero]
+    //    - crunchedCharacterName:  [Absolute, Zero]
+    //    - title:                  Absolute Zero
     //  - Hostage Situation
-    //    - deckName:       Megalopolis
-    //    - characterName:  (null)
-    //    - title:          Hostage Situation
-    // String, non-null
-    this.deckName = "";
+    //    - crunchedDeckName:       [Megalopolis]
+    //    - crunchedCharacterName:  []
+    //    - title:                  Hostage Situation
+    // Array of strings, non-null
+    // Should always have at least one element.
+    this.crunchedDeckName = [];
 
-    // String, nullable
-    // This is only null for environment decks
-    this.characterName = "";
+    // Array of strings, non-null
+    // This is only empty for environment decks.
+    this.crunchedCharacterName = [];
 
     // String, non-null
     this.title = "";
@@ -240,8 +241,8 @@ function parseHeroCharacterCards(tsvData) {
     let card = new Card();
     card.id = buildUniqueId("hc", lineIndex);
     card.variant = line[0];
-    card.deckName = line[1];
-    card.characterName = line[1];
+    card.crunchedDeckName = extractCrunchedName(line[1]);
+    card.crunchedCharacterName = extractCrunchedName(line[1]);
     card.title = line[1];
     card.keywords = extractKeywords(line[2]);
     card.hp = parseInt(line[3]);
@@ -269,8 +270,8 @@ function parseHeroDeckCards(tsvData) {
     let line = getLine(dataLines, lineIndex);
     let card = new Card();
     card.id = buildUniqueId("hd", lineIndex);
-    card.deckName = line[0];
-    card.characterName = line[0];
+    card.crunchedDeckName = extractCrunchedName(line[0]);
+    card.crunchedCharacterName = extractCrunchedName(line[0]);
     card.title = line[1];
     card.hp = extractHp(line[2]);
     card.keywords = extractKeywords(line[3]);
@@ -293,8 +294,8 @@ function parseVillainCharacterCards(tsvData) {
     let line = getLine(dataLines, lineIndex);
     let card = new Card();
     card.id = buildUniqueId("vc", lineIndex);
-    card.deckName = line[0];
-    card.characterName = line[1];
+    card.crunchedDeckName = extractCrunchedName(line[0]);
+    card.crunchedCharacterName = extractCrunchedName(line[1]);
     card.title = line[1];
     card.description = line[2];
     card.keywords = extractKeywords(line[3]);
@@ -330,8 +331,8 @@ function parseStandardEventCards(tsvData) {
     card.featuredIssue = line[2];
     card.flavorText = line[3];
     card.collectionLimit = parseInt(line[4]);
-    card.deckName = line[5];
-    card.characterName = line[5];
+    card.crunchedDeckName = extractCrunchedName(line[5]);
+    card.crunchedCharacterName = extractCrunchedName(line[5]);
     card.eventRuleTitle = line[6];
     card.eventRuleEffect = line[7];
     card.collectionFlavorText = line[8];
@@ -363,8 +364,9 @@ function parseCriticalEventCards(tsvData) {
     card.featuredIssue = line[2];
     card.flavorText = line[3];
     card.collectionLimit = line[4];
-    card.deckName = "[MISSING]";
-    card.characterName = line[5];
+    // TODO: someone needs to update the spreadsheet with these or do it by hand, because the original villain character isn't present
+    card.crunchedDeckName = ["TODO"];
+    card.crunchedCharacterName = extractCrunchedName(line[5]);
     card.title = line[5];
     card.description = line[6];
     card.keywords = extractKeywords(line[7]);
@@ -388,8 +390,8 @@ function parseVillainDeckCards(tsvData) {
     let line = getLine(dataLines, lineIndex);
     let card = new Card();
     card.id = buildUniqueId("vd", lineIndex);
-    card.deckName = line[0];
-    card.characterName = line[1];
+    card.crunchedDeckName = extractCrunchedName(line[0]);
+    card.crunchedCharacterName = extractCrunchedName(line[1]);
     card.title = line[2];
     card.hp = extractHp(line[3]);
     card.keywords = extractKeywords(line[4]);
@@ -412,8 +414,8 @@ function parseEnvironmentDeckCards(tsvData) {
     let line = getLine(dataLines, lineIndex);
     let card = new Card();
     card.id = buildUniqueId("ed", lineIndex);
-    card.deckName = line[0];
-    card.characterName = null;
+    card.crunchedDeckName = extractCrunchedName(line[0]);
+    card.crunchedCharacterName = [];
     card.title = line[1];
     card.hp = extractHp(line[2]);
     card.nemesisIcons = extractNemesisIcons(line[3]);
@@ -436,6 +438,10 @@ function getDataLines(tsvData) {
 
 function getLine(dataLines, lineIndex) {
   return dataLines[lineIndex].split("\t");
+}
+
+function extractCrunchedName(nameString) {
+  return nameString.split(" ");
 }
 
 function extractKeywords(keywordsString) {
@@ -522,20 +528,20 @@ Expressive Search Queries
 ============================================================================
 */
 class DeckNameCond {
-  constructor(regexp) {
-    this.regexp = regexp;
+  constructor(str) {
+    this.regexp = new RegExp("^" + str, "i");
   }
   match(c) {
-    return regexMatch(c.deckName, this.regexp);
+    return listRegexMatch(c.crunchedDeckName, this.regexp);
   }
 }
 
 class CharacterNameCond {
-  constructor(regexp) {
-    this.regexp = regexp;
+  constructor(exp) {
+    this.regexp = new RegExp("^" + exp, "i");
   }
   match(c) {
-    return regexMatch(c.characterName, this.regexp);
+    return listRegexMatch(c.crunchedCharacterName, this.regexp);
   }
 }
 
@@ -877,9 +883,9 @@ function expressiveSearch(queryString) {
       } else if (s.scan(/(?:p|power|innatePowerEffect)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
         conds.push(new InnatePowerEffectCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
       } else if (s.scan(/(?:d|deck)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new DeckNameCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        conds.push(new DeckNameCond(s.getCapture(0) || s.getCapture(1)));
       } else if (s.scan(/(?:c|character)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new CharacterNameCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        conds.push(new CharacterNameCond(s.getCapture(0) || s.getCapture(1)));
       } else if (s.scan(/(?:f|flavorText)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
         conds.push(new FlavorTextCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
       } else if (s.scan(/(?:s|setup)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
