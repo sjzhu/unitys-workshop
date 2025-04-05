@@ -63,7 +63,7 @@
     <div style="margin-bottom:5px;"><a href="/">Home</a></div>
     <div style="margin-bottom:5px;">&nbsp;&gt;&nbsp;<a href="/card-gallery">Card Gallery</a></div>
     <form class="searchForm" action="javascript:redirectToSearch()">
-      <input type="text" class="searchInput" placeholder='Search for a string of text in the details of a card.' />
+      <input type="text" class="searchInput" placeholder='Search for a string of text in the details of a card, or with expressive search.' />
       <input type="submit" class="searchSubmit" value="Search"/>
     </form>
     <p>
@@ -72,8 +72,8 @@
     <p>Try these examples.</p>
     <ul id="search-examples">
       <li><code>type:hero gt:"each non-hero target" q&gt;=3</code> <a href='/card-gallery?q=type:hero%20gt:%22each non-hero target%22%20q%3E=3'>Try it!</a></li>
-      <li><code>ki:deck ty:villain hp&gt;3 hp&lt;10</code> <a href="/card-gallery?q=ki:deck%20ty:villain%20hp%3E3%20hp%3C10">Try it!</a></li>
-      <li><code>p:damage c&lt;=4 set:core</code> <a href="/card-gallery?q=p:damage%20c%3C=4%20set:core">Try it!</a></li>
+      <li><code>kind:deck type:villain hp&gt;3 hp&lt;10</code> <a href="/card-gallery?q=ki:deck%20ty:villain%20hp%3E3%20hp%3C10">Try it!</a></li>
+      <li><code>power:damage complexity&lt;=4 set:core</code> <a href="/card-gallery?q=p:damage%20c%3C=4%20set:core">Try it!</a></li>
     </ul>
     <p>
       This doesn't include negated queries or "or" queries. If that's something you want, let us know in the Realm of Discord.
