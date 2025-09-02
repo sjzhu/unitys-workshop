@@ -29,7 +29,9 @@ let imagesToPreload = [
   ['Draw Phase Icon High Contrast', '../_resources/phase icon draw - high contrast.svg'],
   ['End Phase Icon High Contrast', '../_resources/phase icon end - high contrast.svg'],
   ['HP Graphic', '../_resources/HP Graphic.svg'],
-  ['Base Villain Card', '../_resources/villain deck card front frame.png']
+  ['Base Villain Card', '../_resources/villain deck card front frame.png'],
+  ['Suddenly Villain Card', '../_resources/villain deck card front frame suddenly.png'],
+  ['Suddenly Tag', '../_resources/suddenly-tag.png']
 ]
 let loadedGraphics = {};
 imagesToPreload.forEach((image) => {
@@ -91,7 +93,12 @@ function drawCardCanvas() {
   ctx.restore();
   ctx.save();
 
-  ctx.drawImage(loadedGraphics['Base Villain Card'], 0, 0, canvas.width, canvas.height);
+  // Draw the card frame, check if suddenly
+  if (suddenly) {
+    ctx.drawImage(loadedGraphics['Suddenly Villain Card'], 0, 0, canvas.width, canvas.height);
+  } else {
+    ctx.drawImage(loadedGraphics['Base Villain Card'], 0, 0, canvas.width, canvas.height);
+  }
 
   // Draw the card title and HP
   drawCardTitle();
@@ -243,7 +250,7 @@ function drawCardKeywords() {
     keywords = keywords.replaceAll(' ', String.fromCharCode(8202) + String.fromCharCode(8202));
     // add whitespace to make room for suddenly tag
     if (suddenly) {
-      keywords = 'SUDDENLY  ' + keywords
+      keywords = 'SUDDENLY ' + keywords
     }
     // Keyword font
     let keywordFontSize = pw(4.5);
