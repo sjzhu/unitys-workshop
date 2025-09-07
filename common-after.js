@@ -692,23 +692,29 @@ function parseJSONData(data) {
   if('ImageZoom' in data) {
     // special parsing for the zoom value, as if it's fed a non-number, it will
     // default to the middle of the bar, which is not the default
+    // ImageZoom is used for card fronts, so it defaults to 100
     let zoomVal = parseInt(data.ImageZoom);
     if (zoomVal == NaN) {
-      zoomVal = 0;
+      zoomVal = 100;
     }
     $('.inputImageScale').val(zoomVal);
   } else {
-    $('.inputImageScale').val(0);
+    $('.inputImageScale').val(100);
   }
+
+  // this is complicated to allow for the fact that suddenly can be either a string or a boolean, depending on how people input it
   if ($('#suddenly').length > 0) {
-    if('Suddenly' in data && data.Suddenly.toUpperCase() == "TRUE") {
-      $('#suddenly')[0].checked = true;
-      suddenly = true;
+    if ('Suddenly' in data) {
+      const isSuddenlyTrue = (typeof data.Suddenly === 'boolean' && data.Suddenly) ||
+                             (typeof data.Suddenly === 'string' && data.Suddenly.toUpperCase() === 'TRUE');
+      $('#suddenly')[0].checked = isSuddenlyTrue;
+      suddenly = isSuddenlyTrue;
     } else {
       $('#suddenly')[0].checked = false;
       suddenly = false;
     }
   }
+
   // Hero Character card fields
   if('PowerName' in data) {
     $('#inputPowerName').val(data.PowerName);

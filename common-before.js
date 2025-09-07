@@ -137,6 +137,13 @@ const BACK_RIGHT_ART = "rightArt";
 const BACK_BOTTOM_ART = "bottomArt";
 const NAME_LOGO = "nameLogo";
 
+// Common Image Sets
+const CC_FRONT_IMAGES = new Set([BACKGROUND_ART, FOREGROUND_ART, NEMESIS_ICON, NAME_LOGO]);
+const CC_BACK_IMAGES = new Set([BACKGROUND_ART]);
+const VCC_IMAGES = new Set([BACKGROUND_ART, FOREGROUND_ART, NEMESIS_ICON, NAME_LOGO]);
+const HERO_DECK_BACK_IMAGES = new Set([BACK_LEFT_ART, BACK_RIGHT_ART, BACK_BOTTOM_ART, NAME_LOGO]);
+const VILLAIN_DECK_BACK_IMAGES = new Set([BACK_TOP_ART, BACK_LEFT_ART, BACK_RIGHT_ART, NAME_LOGO]);
+
 // Common image style classes
 const IMAGE_X = "inputImageOffsetX"
 const IMAGE_Y = "inputImageOffsetY"
@@ -460,6 +467,11 @@ const _quoteWidthMap = new Map([
 ]);
 const QUOTE_WIDTH = _quoteWidthMap.get(CARD_FORM)?.get(ORIENTATION)?.get(FACE);
 
+// This object is where user input images (specifically Image objects) are stored
+// currently unused for deck fronts, but needs to exist for JSON parsing to function correctly
+const loadedUserImages = {
+};
+
 
 /*
 ============================================================================
@@ -494,7 +506,13 @@ let effectBoldList = Array.from(DEFAULT_BOLD_LIST);
 let effectItalicsList = Array.from(DEFAULT_ITALICS_LIST);
 
 // The indentation of the X-position cursor when drawing indented blocks (such as Power, Reaction, and Bullet point blocks).
-let currentIndentX = EFFECT_START_X;
+var currentIndentX = EFFECT_START_X;
+/*
+Using "var" instead of "let" above to fix a bug that started happening within drawSimpleBlock(),
+where executing [currentOffsetX = currentIndentX;] caused both variables to then return as NaN,
+even though both logged as valid numbers immediately before.
+This bug randomly started occuring around 3/19/2025, in Google Chrome but not Firefox.
+*/
 
 // The X position for draw commands.
 let currentOffsetX = 0;
