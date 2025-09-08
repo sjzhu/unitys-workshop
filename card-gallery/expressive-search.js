@@ -527,8 +527,23 @@ function escapeRegex(string) {
 Expressive Search Queries
 ============================================================================
 */
-class DeckNameCond {
+const Instruction = Object.freeze({
+  AND:    "AND", // not used in querying, included for completeness
+  OR:     "OR",
+  NOT:    "NOT",
+  OPEN:   "OPEN",
+  CLOSE:  "CLOSE",
+});
+
+class Condition {
+  match(c) {
+    throw new Error("You must override the match method!");
+  }
+}
+
+class DeckNameCond extends Condition {
   constructor(str) {
+    super();
     this.regexp = new RegExp("^" + str, "i");
   }
   match(c) {
@@ -536,8 +551,9 @@ class DeckNameCond {
   }
 }
 
-class CharacterNameCond {
+class CharacterNameCond extends Condition {
   constructor(exp) {
+    super();
     this.regexp = new RegExp("^" + exp, "i");
   }
   match(c) {
@@ -545,8 +561,9 @@ class CharacterNameCond {
   }
 }
 
-class TitleCond {
+class TitleCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -554,8 +571,9 @@ class TitleCond {
   }
 }
 
-class VariantCond {
+class VariantCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -563,8 +581,9 @@ class VariantCond {
   }
 }
 
-class DescriptionCond {
+class DescriptionCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -572,8 +591,9 @@ class DescriptionCond {
   }
 }
 
-class DateCond {
+class DateCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -581,8 +601,9 @@ class DateCond {
   }
 }
 
-class KeywordCond {
+class KeywordCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -590,8 +611,9 @@ class KeywordCond {
   }
 }
 
-class HpCond {
+class HpCond extends Condition {
   constructor(num, relationship) {
+    super();
     this.num = num;
     this.relationship = relationship;
   }
@@ -600,8 +622,9 @@ class HpCond {
   }
 }
 
-class CollectionLimitCond {
+class CollectionLimitCond extends Condition {
   constructor(num, relationship) {
+    super();
     this.num = num;
     this.relationship = relationship;
   }
@@ -610,8 +633,9 @@ class CollectionLimitCond {
   }
 }
 
-class NemesisIconCond {
+class NemesisIconCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -619,8 +643,9 @@ class NemesisIconCond {
   }
 }
 
-class InnatePowerNameCond {
+class InnatePowerNameCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -628,8 +653,9 @@ class InnatePowerNameCond {
   }
 }
 
-class InnatePowerEffectCond {
+class InnatePowerEffectCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -637,8 +663,9 @@ class InnatePowerEffectCond {
   }
 }
 
-class EventRuleTitleCond {
+class EventRuleTitleCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -646,8 +673,9 @@ class EventRuleTitleCond {
   }
 }
 
-class EventRuleEffectCond {
+class EventRuleEffectCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -655,8 +683,9 @@ class EventRuleEffectCond {
   }
 }
 
-class SetupCond {
+class SetupCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -664,8 +693,9 @@ class SetupCond {
   }
 }
 
-class GameTextCond {
+class GameTextCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -673,8 +703,9 @@ class GameTextCond {
   }
 }
 
-class AdvancedGameTextCond {
+class AdvancedGameTextCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -682,8 +713,9 @@ class AdvancedGameTextCond {
   }
 }
 
-class FeaturedIssueCond {
+class FeaturedIssueCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -691,8 +723,9 @@ class FeaturedIssueCond {
   }
 }
 
-class FlavorTextCond {
+class FlavorTextCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -700,8 +733,9 @@ class FlavorTextCond {
   }
 }
 
-class FlavorTextAttributionCond {
+class FlavorTextAttributionCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -709,8 +743,9 @@ class FlavorTextAttributionCond {
   }
 }
 
-class IncapCaptionCond {
+class IncapCaptionCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -718,8 +753,9 @@ class IncapCaptionCond {
   }
 }
 
-class IncapOptionCond {
+class IncapOptionCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -727,8 +763,9 @@ class IncapOptionCond {
   }
 }
 
-class IncapFeaturedIssueCond {
+class IncapFeaturedIssueCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -736,8 +773,9 @@ class IncapFeaturedIssueCond {
   }
 }
 
-class CollectionFlavorTextCond {
+class CollectionFlavorTextCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -745,8 +783,9 @@ class CollectionFlavorTextCond {
   }
 }
 
-class CollectionFeaturedIssueCond {
+class CollectionFeaturedIssueCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -754,8 +793,9 @@ class CollectionFeaturedIssueCond {
   }
 }
 
-class RewardTitleCond {
+class RewardTitleCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -763,8 +803,9 @@ class RewardTitleCond {
   }
 }
 
-class RewardFlavorTextCond {
+class RewardFlavorTextCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -772,8 +813,9 @@ class RewardFlavorTextCond {
   }
 }
 
-class RewardGameTextCond {
+class RewardGameTextCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -781,8 +823,9 @@ class RewardGameTextCond {
   }
 }
 
-class CollectionIssuesCond {
+class CollectionIssuesCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -790,8 +833,9 @@ class CollectionIssuesCond {
   }
 }
 
-class QuantityCond {
+class QuantityCond extends Condition {
   constructor(num, relationship) {
+    super();
     this.num = num;
     this.relationship = relationship;
   }
@@ -800,8 +844,9 @@ class QuantityCond {
   }
 }
 
-class SetCond {
+class SetCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -809,8 +854,9 @@ class SetCond {
   }
 }
 
-class ComplexityCond {
+class ComplexityCond extends Condition {
   constructor(num, relationship) {
+    super();
     this.num = num;
     this.relationship = relationship;
   }
@@ -819,8 +865,9 @@ class ComplexityCond {
   }
 }
 
-class DifficultyCond {
+class DifficultyCond extends Condition {
   constructor(num, relationship) {
+    super();
     this.num = num;
     this.relationship = relationship;
   }
@@ -829,8 +876,9 @@ class DifficultyCond {
   }
 }
 
-class TypeCond {
+class TypeCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -838,8 +886,9 @@ class TypeCond {
   }
 }
 
-class KindCond {
+class KindCond extends Condition {
   constructor(regexp) {
+    super();
     this.regexp = regexp;
   }
   match(c) {
@@ -847,12 +896,285 @@ class KindCond {
   }
 }
 
-class HasBackCond {
+class HasBackCond extends Condition {
   constructor(flag) {
+    super();
     this.flag = flag;
   }
   match(c) {
     return xnor(this.flag, c.hasBack);
+  }
+}
+
+class AndCond extends Condition {
+  constructor(children) {
+    super();
+    this.children = children || [];
+  }
+  push(cond) {
+    this.children.push(cond);
+  }
+  match(c) {
+    for (let cond of this.children) {
+      if (!cond.match(c)) {
+        return false;
+      }
+    }
+    return true;
+  }
+}
+
+class OrCond extends Condition {
+  constructor(cond1, cond2) {
+    super();
+    this.cond1 = cond1;
+    this.cond2 = cond2;
+  }
+  match(c) {
+    return this.cond1.match(c) || this.cond2.match(c);
+  }
+}
+
+class NotCond extends Condition {
+  constructor(cond) {
+    super();
+    this.cond = cond;
+  }
+  match(c) {
+    return !this.cond.match(c);
+  }
+}
+
+/** A class for performing expressive searches. Each searcher is used for a single search. */
+class ExpressiveSearcher {
+  /** The query string is the string provided by the user when they submit a search. */
+  queryString = "";
+
+  /** Tokens are an ordered array of instructions (from the Instruction enum) and Conditions (inheriting from the Condition) class. */
+  queryTokens = [];
+
+  constructor(queryString) {
+    this.queryString = queryString;
+  }
+
+  /**
+   * Performs the search, showing / hiding card images based on the user's search query.
+   * @returns whether expressive search ran on the query. If a search is invalid for some reason (like parsing the search fails), expressive search will return false and not make any changes
+   *          to the page. This is used to determine whether to use legacy search as a fallback.
+  */
+  search() {
+    // Searches without query parameters should be handled in the future, but for now we can just bail and let legacy search handle it. Do a quick check for that.
+    if (!this.queryString.match(/[:=<>]/i)) {
+      return false;
+    }
+    // Reads the queryString into a token array, capturing low-hanging fruit and identifying instructions. If parsing fails: logs and terminates early.
+    if (!this.parseQueryStringIntoTokens()) {
+      return false;
+    }
+    // Converts Instruction tokens into Conditions so we can actually do a full match
+    const queryCond = this.parseTokenList();
+    // Filters the cards based on our fancy new query
+    filterCards(queryCond);
+    return true;
+  }
+
+  /**
+   * Parses a query string from a user into an array of non-nested tokens and saves it to {@link #queryTokens}.
+   * @returns whether an error was encountered during parsing
+   */
+  parseQueryStringIntoTokens() {
+    const tokens = [];
+    const s = new StringScanner(this.queryString);
+    try {
+      while (!s.hasTerminated()) {
+        if (s.scan(/[\s,]+/i)) {
+          // skip whitespace
+        } else if (s.scan(/and\b/i)) {
+          // AND is the default join for conditions, skip it as well
+        } else if (s.scan(/or\b/i)) {
+          tokens.push(Instruction.OR);
+        } else if (s.scan(/-/i)) {
+          tokens.push(Instruction.NOT);
+        } else if (s.scan(/\(/i)) {
+          tokens.push(Instruction.OPEN);
+        } else if (s.scan(/\)/i)) {
+          tokens.push(Instruction.CLOSE);
+        } else if (s.scan(/(?:g|gt|gametext)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new GameTextCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:t|ti|title)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new TitleCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:k|kw|keyword)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new KeywordCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:p|power|innatePowerEffect)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new InnatePowerEffectCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:d|deck)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new DeckNameCond(s.getCapture(0) || s.getCapture(1)));
+        } else if (s.scan(/(?:c|character)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new CharacterNameCond(s.getCapture(0) || s.getCapture(1)));
+        } else if (s.scan(/(?:f|flavorText)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new FlavorTextCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:s|setup)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new SetupCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:a|advanced)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new AdvancedGameTextCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/hp\s*(>=|>|<=|<|=|:)\s*(\d+)/i)) {
+          tokens.push(new HpCond(s.getCapture(1), s.getCapture(0)))
+        } else if (s.scan(/(?:v|variant)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new VariantCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:desc|description)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new DescriptionCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:date)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new DateCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:l|limit|collectionLimit)\s*(>=|>|<=|<|=|:)\s*(\d+)/i)) {
+          tokens.push(new CollectionLimitCond(s.getCapture(2), s.getCapture(1)));
+        } else if (s.scan(/(?:nemesisIcon|nemesisIcons)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new NemesisIconCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:innatePowerTitle)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new InnatePowerNameCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:eventRuleTitle)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new EventRuleTitleCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:eventRuleEffect)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new EventRuleEffectCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:featuredIssue)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new FeaturedIssueCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:flavorTextAttribution)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new FlavorTextAttributionCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:incapCaption)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new IncapCaptionCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:incapFeaturedIssue)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new IncapFeaturedIssueCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:option|incapOption)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new IncapOptionCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:collectionFlavor|collectionFlavorText)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new CollectionFlavorTextCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:collectionFeaturedIssue)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new CollectionFeaturedIssueCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:rewardTitle)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new RewardTitleCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:rewardFlavor)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new RewardFlavorTextCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:rewardGameText)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new RewardGameTextCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(q|quantity)\s*(>=|>|<=|<|=|:)\s*(\d+)/i)) {
+          tokens.push(new QuantityCond(s.getCapture(2), s.getCapture(1)))
+        } else if (s.scan(/(?:set)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new SetCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(c|complexity)\s*(>=|>|<=|<|=|:)\s*(\d+)/i)) {
+          tokens.push(new ComplexityCond(s.getCapture(2), s.getCapture(1)));
+        } else if (s.scan(/(diff|difficulty)\s*(>=|>|<=|<|=|:)\s*(\d+)/i)) {
+          tokens.push(new DifficultyCond(s.getCapture(1), s.getCapture(0)));
+        } else if (s.scan(/(?:ty|type)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new TypeCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:ki|kind)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new KindCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/back\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new HasBackCond(parseBoolean(s.getCapture(0) || s.getCapture(1))));
+        } else {
+          throw new Error(`Couldn't identify query string: ${this.queryString}`);
+        }
+      }
+    } catch (ex) {
+      console.error(`Caught an error attempting to parse an expressive query.`, ex);
+      return false;
+    }
+    this.queryTokens = tokens;
+    return true;
+  }
+
+  /**
+   * Parses the tokens in {@link #queryTokens} into a single {@link Condition}. Can be called from other methods to parse sub-queries of the token list (such as when handling "or" or "()")
+   * @returns a single {@link Condition} that will be used for filtering search results.
+   */
+  parseTokenList() {
+    // Build up a list of conditions to apply the query to.
+    const queryConditions = [];
+    while (this.queryTokens.length > 0) {
+      const token = this.queryTokens[0];
+      if (token == Instruction.CLOSE) {
+        // A closed bracket ends a token. There's nothing left to read in this statement. Bear in mind that parseCondList() can be called recursively from inside parseCond(), so this can be the
+        // end of the entire query (if we're at the topmost call on the stack) or some nested parenthetical (if we're in a lower call).
+        this.queryTokens.shift();
+        break;
+      } else if (token == Instruction.OR) {
+        // ORs get broken into 2 separate queries and returned
+        this.queryTokens.shift();
+        if (queryConditions.length > 0) {
+          const rightQuery = this.parseTokenList();
+          if (rightQuery) {
+            return new OrCond(this.condsToQuery(queryConditions), rightQuery);
+          } else {
+            // If you don't have anything on the right, there's nothing to OR against, so this conditional isn't used. We can treat it as a terminator.
+            break;
+          }
+          //If you don't have anything on the left, there's nothing to OR against, so we ignore this.
+        }
+      } else {
+        // This is the normal case. Just parse the next condition and add it to our array.
+        const nextCond = this.parseNextToken();
+        if (nextCond) {
+          queryConditions.push(nextCond);
+        } else {
+          // If there's nothing left to parse, we're done with this call.
+          break;
+        }
+      }
+    }
+    return this.condsToQuery(queryConditions);
+  }
+
+  /**
+   * Parses the next token in the {@link #queryTokens} array. This name is a misnomer but I don't have a better one. This method will parse a single {@link Condition} and return it, but it can
+   * parse open braces (reading up to 2 tokens), closed braces (reading zero tokens), or not instructions (reading up to 2 tokens) by making subsequent calls to
+   * {@link ExpressiveSearcher#parseTokenList()} or {@link ExpressiveSearcher#parseNextToken()}.
+   * @returns a single parsed {@link Condition}
+   */
+  parseNextToken() {
+    if (this.queryTokens.length == 0) {
+      return null;
+    }
+    const token = this.queryTokens[0];
+    if (token === Instruction.OPEN) {
+      this.queryTokens.shift();
+      const subQuery = this.parseTokenList();
+      if (this.queryTokens[0] === this.queryTokens.CLOSE) {
+        this.queryTokens.shift();
+      }
+      return subQuery;
+    }
+    if (token === Instruction.CLOSE) {
+      return null;
+    }
+    if (token === Instruction.NOT) {
+      this.queryTokens.shift();
+      const cond = this.parseNextToken();
+      if (cond instanceof Condition) {
+        return new NotCond(cond);
+      } else {
+        return null;
+      }
+    }
+    if (token === Instruction.OR) {
+      // The only way to get here is if the query has some kind of invalid syntax, like "-or", so just ignore it.
+      this.queryTokens.shift();
+      this.parseNextToken();
+    }
+    if (token instanceof Condition) {
+      return this.queryTokens.shift();
+    }
+  }
+
+  /** 
+   * Consolidates a potential array of {@link Condition}s into one.
+   * @return a single {@link Condition}. If the input is falsey or empty, this returns null. A single condition is just returned. More than 1 condition in an array gets anded together.
+   */
+  condsToQuery(conds) {
+    if (!conds || conds.length == 0) {
+      return null;
+    } else if (conds.length == 1) {
+      return conds[0];
+    } else {
+      return new AndCond(conds);
+    }
   }
 }
 
@@ -861,111 +1183,13 @@ class HasBackCond {
  * @returns true if the search was successful. Returns false if any errors occurred parsing / resolving the query, or if the query doesn't use the expressive syntax. 
  */
 function expressiveSearch(queryString) {
-  queryString = escapeRegex(queryString);
-
-  // Searches without query parameters should be handled in the future, but for now we can just bail and let legacy search handle it. Do a quick check for that.
-  if (!queryString.match(/[:=<>]/i)) {
-    return false;
-  }
-
-  const conds = [];
-  const s = new StringScanner(queryString);
-  try {
-    while (!s.hasTerminated()) {
-      if (s.scan(/[\s,]+/i)) {
-        // pass
-      } else if (s.scan(/(?:g|gt|gametext)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new GameTextCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:t|ti|title)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new TitleCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:k|kw|keyword)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new KeywordCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:p|power|innatePowerEffect)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new InnatePowerEffectCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:d|deck)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new DeckNameCond(s.getCapture(0) || s.getCapture(1)));
-      } else if (s.scan(/(?:c|character)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new CharacterNameCond(s.getCapture(0) || s.getCapture(1)));
-      } else if (s.scan(/(?:f|flavorText)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new FlavorTextCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:s|setup)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new SetupCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:a|advanced)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new AdvancedGameTextCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/hp\s*(>=|>|<=|<|=|:)\s*(\d+)/i)) {
-        conds.push(new HpCond(s.getCapture(1), s.getCapture(0)))
-      } else if (s.scan(/(?:v|variant)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new VariantCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:desc|description)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new DescriptionCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:date)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new DateCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:l|limit|collectionLimit)\s*(>=|>|<=|<|=|:)\s*(\d+)/i)) {
-        conds.push(new CollectionLimitCond(s.getCapture(2), s.getCapture(1)));
-      } else if (s.scan(/(?:nemesisIcon|nemesisIcons)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new NemesisIconCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:innatePowerTitle)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new InnatePowerNameCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:eventRuleTitle)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new EventRuleTitleCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:eventRuleEffect)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new EventRuleEffectCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:featuredIssue)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new FeaturedIssueCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:flavorTextAttribution)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new FlavorTextAttributionCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:incapCaption)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new IncapCaptionCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:incapFeaturedIssue)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new IncapFeaturedIssueCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:option|incapOption)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new IncapOptionCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:collectionFlavor|collectionFlavorText)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new CollectionFlavorTextCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:collectionFeaturedIssue)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new CollectionFeaturedIssueCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:rewardTitle)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new RewardTitleCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:rewardFlavor)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new RewardFlavorTextCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:rewardGameText)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new RewardGameTextCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(q|quantity)\s*(>=|>|<=|<|=|:)\s*(\d+)/i)) {
-        conds.push(new QuantityCond(s.getCapture(2), s.getCapture(1)))
-      } else if (s.scan(/(?:set)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new SetCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(c|complexity)\s*(>=|>|<=|<|=|:)\s*(\d+)/i)) {
-        conds.push(new ComplexityCond(s.getCapture(2), s.getCapture(1)));
-      } else if (s.scan(/(diff|difficulty)\s*(>=|>|<=|<|=|:)\s*(\d+)/i)) {
-        conds.push(new DifficultyCond(s.getCapture(1), s.getCapture(0)));
-      } else if (s.scan(/(?:ty|type)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new TypeCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/(?:ki|kind)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new KindCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-      } else if (s.scan(/back\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-        conds.push(new HasBackCond(parseBoolean(s.getCapture(0) || s.getCapture(1))));
-      } else {
-        throw new Error(`Couldn't identify query string: ${queryString}`);
-      }
-    }
-    filterByExpressiveConditions(conds);
-  } catch (ex) {
-    console.error(`Caught an error attempting to parse an expressive query.`, ex);
-    return false;
-  }
-  return true;
+  return (new ExpressiveSearcher(queryString)).search();
 }
 
-function filterByExpressiveConditions(conds) {
+/** Shows or hides cards on the gallery page based on whether they match the input {@link Condition}. */
+function filterCards(query) {
   for (let card of cards) {
-    let matches = true;
-    for (let cond of conds) {
-      if (!cond.match(card)) {
-        matches = false;
-        break;
-      }
-    }
-    if (matches) {
+    if (query.match(card)) {
       $(`#${card.id}`).show()
     } else {
       $(`#${card.id}`).hide()
