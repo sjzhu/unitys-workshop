@@ -567,7 +567,7 @@ class TitleCond extends Condition {
     this.regexp = regexp;
   }
   match(c) {
-    return regexMatch(c.title, this.regexp);
+    return regexMatch(c.title, this.regexp) || regexMatch(c.eventRuleTitle, this.regexp);
   }
 }
 
@@ -663,26 +663,6 @@ class InnatePowerEffectCond extends Condition {
   }
 }
 
-class EventRuleTitleCond extends Condition {
-  constructor(regexp) {
-    super();
-    this.regexp = regexp;
-  }
-  match(c) {
-    return regexMatch(c.eventRuleTitle, this.regexp);
-  }
-}
-
-class EventRuleEffectCond extends Condition {
-  constructor(regexp) {
-    super();
-    this.regexp = regexp;
-  }
-  match(c) {
-    return regexMatch(c.eventRuleEffect, this.regexp);
-  }
-}
-
 class SetupCond extends Condition {
   constructor(regexp) {
     super();
@@ -699,7 +679,9 @@ class GameTextCond extends Condition {
     this.regexp = regexp;
   }
   match(c) {
-    return regexMatch(c.gameText, this.regexp) || regexMatch(c.backGameText, this.regexp);
+    return regexMatch(c.gameText, this.regexp) ||
+      regexMatch(c.backGameText, this.regexp) ||
+      regexMatch(c.eventRuleEffect, this.regexp);
   }
 }
 
@@ -1031,10 +1013,6 @@ class ExpressiveSearcher {
           tokens.push(new NemesisIconCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
         } else if (s.scan(/(?:innatePowerTitle)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
           tokens.push(new InnatePowerNameCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-        } else if (s.scan(/(?:eventRuleTitle)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-          tokens.push(new EventRuleTitleCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
-        } else if (s.scan(/(?:eventRuleEffect)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
-          tokens.push(new EventRuleEffectCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
         } else if (s.scan(/(?:featuredIssue)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
           tokens.push(new FeaturedIssueCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
         } else if (s.scan(/(?:flavorTextAttribution)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
