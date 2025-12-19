@@ -88,12 +88,12 @@ function loadCards(tsvData, dataGroup) {
       case 'Environment Cards':
         folderName = cardData[0];
         fileName = cardData[1];
-        imagePath1 = "/_resources/Scans/" + dataGroup + "/" + folderName + "/" + fileName + ".webp";
+        imagePath1 = "../_resources/Scans/" + dataGroup + "/" + folderName + "/" + fileName + ".webp";
         // Strip out quotation marks and question marks because the files name's can't have them
         imagePath1 = imagePath1.replaceAll('"', '').replaceAll('?', '');
         // Deck Back
         fileName = folderName;
-        imagePath2 = "/_resources/Scans/Deck Backs/" + fileName + ".webp";
+        imagePath2 = "../_resources/Scans/Deck Backs/" + fileName + ".webp";
         // Strip out quotation marks and question marks because the files name's can't have them
         imagePath2 = imagePath2.replaceAll('"', '').replaceAll('?', '');
         break;
@@ -101,60 +101,60 @@ function loadCards(tsvData, dataGroup) {
       case 'Villain Cards':
         folderName = cardData[1];
         fileName = cardData[2];
-        imagePath1 = "/_resources/Scans/" + dataGroup + "/" + folderName + "/" + fileName + ".webp";
+        imagePath1 = "../_resources/Scans/" + dataGroup + "/" + folderName + "/" + fileName + ".webp";
         // Strip out quotation marks and question marks because the files name's can't have them
         imagePath1 = imagePath1.replaceAll('"', '').replaceAll('?', '');
         // Deck Back
         fileName = folderName;
-        imagePath2 = "/_resources/Scans/Deck Backs/" + fileName + ".webp";
+        imagePath2 = "../_resources/Scans/Deck Backs/" + fileName + ".webp";
         // Strip out quotation marks and question marks because the files name's can't have them
         imagePath2 = imagePath2.replaceAll('"', '').replaceAll('?', '');
         break;
 
       case 'Hero Character Cards':
         fileName = `${cardData[1]}/${cardData[0]} Front`;
-        imagePath1 = "/_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
+        imagePath1 = "../_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
         // Strip out quotation marks and question marks because the files name's can't have them
         imagePath1 = imagePath1.replaceAll('"', '').replaceAll('?', '');
         // Then repeat for the back side
         fileName = `${cardData[1]}/${cardData[0]} Back`;
-        imagePath2 = "/_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
+        imagePath2 = "../_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
         // Strip out quotation marks and question marks because the files name's can't have them
         imagePath2 = imagePath2.replaceAll('"', '').replaceAll('?', '');
         break;
 
       case 'Villain Character Cards':
         fileName = `${cardData[1]} Front`;
-        imagePath1 = "/_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
+        imagePath1 = "../_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
         // Strip out quotation marks and question marks because the files name's can't have them
         imagePath1 = imagePath1.replaceAll('"', '').replaceAll('?', '');
         // Then repeat for the back side
         fileName = `${cardData[1]} Back`;
-        imagePath2 = "/_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
+        imagePath2 = "../_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
         // Strip out quotation marks and question marks because the files name's can't have them
         imagePath2 = imagePath2.replaceAll('"', '').replaceAll('?', '');
         break;
 
       case 'Events':
         fileName = `${cardData[0]} Front`;
-        imagePath1 = "/_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
+        imagePath1 = "../_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
         // Strip out quotation marks and question marks because the files name's can't have them
         imagePath1 = imagePath1.replaceAll('"', '').replaceAll('?', '');
         // Then repeat for the back side
         fileName = `${cardData[0]} Back`;
-        imagePath2 = "/_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
+        imagePath2 = "../_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
         // Strip out quotation marks and question marks because the files name's can't have them
         imagePath2 = imagePath2.replaceAll('"', '').replaceAll('?', '');
         break;
 
       case 'Critical Events':
         fileName = `${cardData[0]} Front`;
-        imagePath1 = "/_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
+        imagePath1 = "../_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
         // Strip out quotation marks and question marks because the files name's can't have them
         imagePath1 = imagePath1.replaceAll('"', '').replaceAll('?', '');
         // Then repeat for the back side
         fileName = `${cardData[0]} Back`;
-        imagePath2 = "/_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
+        imagePath2 = "../_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
         // Strip out quotation marks and question marks because the files name's can't have them
         imagePath2 = imagePath2.replaceAll('"', '').replaceAll('?', '');
         break;
