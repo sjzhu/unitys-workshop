@@ -14,7 +14,7 @@ let currentCardCategory = 0;
 // Load first set of card data (the rest will follow)
 setTimeout(function () {
   $.ajax({
-    url: `/card-gallery/${cardCategories[0]}.tsv`,
+    url: `${cardCategories[0]}.tsv`,
     success: function (data) {
       loadCards(data, cardCategories[0]);
     }
@@ -218,7 +218,7 @@ function loadCards(tsvData, dataGroup) {
     // Load card data
     setTimeout(function () {
       $.ajax({
-        url: `/card-gallery/${nextCategoryName}.tsv`,
+        url: `${nextCategoryName}.tsv`,
         success: function (data) {
           loadCards(data, nextCategoryName);
         }
