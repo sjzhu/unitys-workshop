@@ -388,6 +388,9 @@ const _characterBodyBoxMap = new Map([
 ]);
 const CHARACTER_BODY_BOX = _characterBodyBoxMap.get(CARD_FORM)?.get(ORIENTATION);
 
+// Reminder text vertical effect variable
+const REMINDER_EFFECT_START_Y = ph(95);
+
 
 // Values for quotes:
 // NOTE: All quote values have been left null for characters, given that no character card currently
@@ -534,6 +537,9 @@ let variantTextColor = $('#inputVariantColor').length > 0 ? $('#inputVariantColo
 
 // Whether an Advanced game text box is being drawn
 let drawingAdvanced = false;
+
+// Whether character reminder text is being drawn
+let drawingReminder = false;
 
 // Variable for adjusting the normal game text Y values based on the advanced game text Y values
 let advancedBoxYAdjustment = 0;

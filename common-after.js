@@ -1152,6 +1152,26 @@ function parseCardBody() {
   return parsedBlocks;
 }
 
+/** Parses and returns the reminder text for a character card. */
+function parseReminderText() {
+  // Get the text the user entered into the textarea
+  let inputValue = $('#reminderEffect').prop('value');
+
+  // Split at line returns, then iterate through the array to build an ordered list of blocks
+  const parsedBlocks = inputValue
+    .split("\n")
+    .map(line => parseBodyText(line))
+    .flat();
+  
+  if (parsedBlocks.length === 1) {
+    // If the only block is a space block, return an empty array instead
+    if (parsedBlocks[0].type === SPACE_BLOCK) {
+      return [];
+    }
+  }
+  return parsedBlocks;
+}
+
 /**
  * Given an array of parsed blocks, calculate the box height offset of a card.
  *
@@ -1171,7 +1191,21 @@ function adjustBoxHeightOffset(parsedBlocks) {
     minimumSizeCap = ph(10);
   }
   boxHeightOffset = Math.min(Math.round(EFFECT_START_Y - currentOffsetY + 137), minimumSizeCap);
-  boxHeightOffset += boxHeightBelowOffset; // Apply any user-defined offset below the box
+  // boxHeightOffset += boxHeightBelowOffset; // Apply any user-defined offset below the box
+  currentOffsetY = 0;
+  // Return to the main canvas
+  ctx = canvas.getContext("2d");
+}
+
+/** Calculates the height of the reminder text for a character card. */
+function adjustBoxHeightBelowOffset(reminderBlocks) {
+  // Draw on the invisible calculation canvas instead of the main canvas
+  ctx = calculationCanvas.getContext("2d");
+  boxHeightBelowOffset = 0;
+  drawBodyText(reminderBlocks);
+  console.log("TESTING BELOW OFFSET");
+  console.log(currentOffsetY);
+  boxHeightBelowOffset = Math.round(REMINDER_EFFECT_START_Y - currentOffsetY);
   currentOffsetY = 0;
   // Return to the main canvas
   ctx = canvas.getContext("2d");
@@ -1206,8 +1240,8 @@ function drawCharacterBodyBox() {
   // boxHeightBelowOffset is already added into boxHeightOffset elsewhere.
   // This may need to be reworked later if that proves to be too confusing.
   const boxValues = CHARACTER_BODY_BOX;
-  const topLeft = [boxValues.topLeft.x + bodyWidthAdjustment, boxValues.topLeft.y + boxHeightOffset + advancedBoxYAdjustment];
-  const topRight = [boxValues.topRight.x, boxValues.topRight.y + boxHeightOffset + advancedBoxYAdjustment];
+  const topLeft = [boxValues.topLeft.x + bodyWidthAdjustment, boxValues.topLeft.y + boxHeightOffset + boxHeightBelowOffset + advancedBoxYAdjustment];
+  const topRight = [boxValues.topRight.x, boxValues.topRight.y + boxHeightOffset + boxHeightBelowOffset + advancedBoxYAdjustment];
   const bottomRight = [boxValues.bottomRight.x, boxValues.bottomRight.y + boxHeightBelowOffset + advancedBoxYAdjustment];
   const bottomLeft = [boxValues.bottomLeft.x + bodyWidthAdjustment, boxValues.bottomLeft.y + boxHeightBelowOffset + advancedBoxYAdjustment];
 
@@ -1263,7 +1297,12 @@ function drawBodyText(parsedBlocks) {
 
   // Initialize positioning values
   currentOffsetX = EFFECT_START_X + bodyWidthAdjustment;
-  currentOffsetY = EFFECT_START_Y + boxHeightOffset + advancedTextYAdjustment;
+  if (drawingReminder) {
+    currentOffsetY = REMINDER_EFFECT_START_Y;
+  }
+  else {
+    currentOffsetY = EFFECT_START_Y + boxHeightOffset + boxHeightBelowOffset + advancedTextYAdjustment;
+  }
 
   // Get and apply the text scale the user chose
   effectFontScale = $('#inputEffectTextSize').prop('value') / 100; // Result is between 0 and 1

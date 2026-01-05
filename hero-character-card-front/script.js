@@ -92,6 +92,16 @@ Drawing the canvas
 
 // Draw the canvas from scratch (this function gets called whenever an input changes)
 function drawCardCanvas() {
+  drawingReminder = true;
+  const reminderBlocks = parseReminderText();
+  if (reminderBlocks.length > 0) {
+    // If we have reminder text, add to the box height below offset.
+    adjustBoxHeightBelowOffset(reminderBlocks);
+  } else {
+    boxHeightBelowOffset = 0;
+  }
+  drawingReminder = false;
+
   // First, parse the blocks of this card's body text.
   const parsedBlocks = parseCardBody();
 
@@ -123,6 +133,10 @@ function drawCardCanvas() {
   drawCharacterBodyBox();
   drawBodyText(parsedBlocks);
 
+  drawingReminder = true;
+  drawBodyText(reminderBlocks);
+  drawingReminder = false;
+
   // Draw the variant tag if it's enabled
   if (isVariant) {
     drawVariantTag();
@@ -130,7 +144,7 @@ function drawCardCanvas() {
 
   // == Draw the power name
   const powerNameX = pw(12.5);
-  const powerNameY = ph(82.5) + boxHeightOffset;
+  const powerNameY = ph(82.5) + boxHeightOffset + boxHeightBelowOffset;
   const powerNameFontSize = pw(4);
 
   ctx.font = "400 " + powerNameFontSize + "px Avengeance Mightiest Avenger";
@@ -186,7 +200,7 @@ function drawKeywords() {
   // Box dimensions
   let boxMargin = pw(2); // Left and right margin between text and box border
   let boxX = pw(84); // Right side of box
-  let boxY = ph(79) + boxHeightOffset; // Bottom of box
+  let boxY = ph(79) + boxHeightOffset + boxHeightBelowOffset; // Bottom of box
   let boxHeight = ph(3); // Height of box
   let boxExtraRight = pw(4);
   let boxWidth = keywordsWidth * keywordSquish + boxMargin * 2 + boxExtraRight;
@@ -222,7 +236,7 @@ function drawHP() {
   // Draw the HP graphic
   let hpGraphicSize = pw(17);
   let hpGraphicX = pw(78);
-  let hpGraphicY = ph(72) + boxHeightOffset;
+  let hpGraphicY = ph(72) + boxHeightOffset + boxHeightBelowOffset;
   ctx.drawImage(loadedGraphics['HP Graphic'], hpGraphicX, hpGraphicY, hpGraphicSize * 1.1, hpGraphicSize);
   // Draw the HP text
   let hpFontSize = pw(7.3);
