@@ -159,7 +159,8 @@ function drawCardCanvas() {
 
     // Draw the nemesis icon frame
     let frameSize = pw(15);
-    ctx.drawImage(loadedGraphics['Nemesis Icon Frame'], pw(11), ph(89), frameSize, frameSize);
+    // Adjust for box height below offset
+    ctx.drawImage(loadedGraphics['Nemesis Icon Frame'], pw(11), ph(89) + boxHeightBelowOffset, frameSize, frameSize);
   }
 }
 

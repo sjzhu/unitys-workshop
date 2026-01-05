@@ -481,6 +481,9 @@ Modifiable Global Variables
 // The offset to apply to the height at which the body of a card is drawn.
 let boxHeightOffset = 0;
 
+// The offset to apply to the bottom of the body text box to allow for character card reminders/setup.
+let boxHeightBelowOffset = 0;
+
 // Whether to use high contrast phase labels
 let useHighContrastPhaseLabels = $('#inputUseHighConstrast').length > 0 ? $('#inputUseHighConstrast')[0].checked : false;
 

@@ -565,6 +565,11 @@ function drawArtInCroppedArea(areaName) {
     ctx.translate(bodyWidthAdjustment, advancedBoxYAdjustment);
   }
 
+  // Dynamically adjust nemesis icon placement on villain character cards
+  if (areaName == 'hccf_nemesisIcon') {
+    ctx.translate(0, boxHeightBelowOffset);
+  }
+
   // Clip path shape
   ctx.clip(areaPathShape.pathShape);
 
@@ -1166,6 +1171,7 @@ function adjustBoxHeightOffset(parsedBlocks) {
     minimumSizeCap = ph(10);
   }
   boxHeightOffset = Math.min(Math.round(EFFECT_START_Y - currentOffsetY + 137), minimumSizeCap);
+  boxHeightOffset += boxHeightBelowOffset; // Apply any user-defined offset below the box
   currentOffsetY = 0;
   // Return to the main canvas
   ctx = canvas.getContext("2d");
@@ -1196,12 +1202,14 @@ function drawCharacterBodyBox() {
     advancedBoxYAdjustment = 0;
   }
 
-  // Sets the coordinates of the corners of the textbox. The bottom will never change, but the top can change based on boxHeightOffset
+  // Sets the coordinates of the corners of the textbox. 
+  // boxHeightBelowOffset is already added into boxHeightOffset elsewhere.
+  // This may need to be reworked later if that proves to be too confusing.
   const boxValues = CHARACTER_BODY_BOX;
   const topLeft = [boxValues.topLeft.x + bodyWidthAdjustment, boxValues.topLeft.y + boxHeightOffset + advancedBoxYAdjustment];
   const topRight = [boxValues.topRight.x, boxValues.topRight.y + boxHeightOffset + advancedBoxYAdjustment];
-  const bottomRight = [boxValues.bottomRight.x, boxValues.bottomRight.y + advancedBoxYAdjustment];
-  const bottomLeft = [boxValues.bottomLeft.x + bodyWidthAdjustment, boxValues.bottomLeft.y + advancedBoxYAdjustment];
+  const bottomRight = [boxValues.bottomRight.x, boxValues.bottomRight.y + boxHeightBelowOffset + advancedBoxYAdjustment];
+  const bottomLeft = [boxValues.bottomLeft.x + bodyWidthAdjustment, boxValues.bottomLeft.y + boxHeightBelowOffset + advancedBoxYAdjustment];
 
   // Determine the initial shape of the box.
   const boxShape = new Path2D();
