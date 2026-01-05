@@ -1179,7 +1179,6 @@ function parseReminderText() {
     .split("\n")
     .map(line => parseBodyText(line))
     .flat();
-  
   if (parsedBlocks.length === 1) {
     // If the only block is a space block, return an empty array instead
     if (parsedBlocks[0].type === SPACE_BLOCK) {
@@ -1253,7 +1252,7 @@ function drawCharacterBodyBox() {
     advancedBoxYAdjustment = 0;
   }
 
-  // Sets the coordinates of the corners of the textbox. 
+  // Sets the coordinates of the corners of the textbox.
   // boxHeightBelowOffset is already added into boxHeightOffset elsewhere.
   // This may need to be reworked later if that proves to be too confusing.
   const boxValues = CHARACTER_BODY_BOX;
@@ -1341,7 +1340,7 @@ function drawBodyText(parsedBlocks, options = {}) {
   // Initialize positioning values
   currentOffsetX = EFFECT_START_X + bodyWidthAdjustment;
   if (drawingReminder) {
-    currentOffsetY = REMINDER_EFFECT_START_Y;
+    currentOffsetY = REMINDER_EFFECT_START_Y + boxHeightOffset;
   }
   else {
     currentOffsetY = EFFECT_START_Y + boxHeightOffset + boxHeightBelowOffset + advancedTextYAdjustment;
