@@ -37,6 +37,7 @@ let loadedGraphics = {};
 for (let i = 0; i < imagesToPreload.length; i++) {
   let imageInfo = imagesToPreload[i];
   let newImage = new Image();
+  newImage.crossOrigin = "Anonymous";
   newImage.src = imageInfo[1];
   loadedGraphics[imageInfo[0]] = newImage;
   // Draw the canvas once the final image has loaded
@@ -58,6 +59,7 @@ $('#inputImageFile').on('input', function (e) {
     // Turn that file into a useable Image object
     var url = URL.createObjectURL(cardImage);
     cardArtImage = new Image();
+    cardArtImage.crossOrigin = "Anonymous";
     cardArtImage.src = url;
     cardArtImage.onload = function (e) {
       // Once the Image has loaded, redraw the canvas so it immediately appears
@@ -78,6 +80,7 @@ $('.inputImageFile').on('input', function () {
     // Turn that file into a useable Image object
     let imagePurpose = this.dataset.imagePurpose;
     loadedUserImages[imagePurpose] = new Image();
+    loadedUserImages[imagePurpose].crossOrigin = "Anonymous";
     loadedUserImages[imagePurpose].src = URL.createObjectURL(uploadedImage);
     loadedUserImages[imagePurpose].onload = function () {
       // Once the Image has loaded, redraw the canvas so it immediately appears
