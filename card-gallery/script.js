@@ -8,6 +8,15 @@ const cardCategories = [
   'Villain Cards',
   'Environment Cards'
 ]
+const CARD_CATEGORY_TO_ID_PREFIX = new Map([
+  ['Hero Character Cards',      'hc'],
+  ['Hero Cards',                'hd'],
+  ['Villain Character Cards',   'vc'],
+  ['Events',                    'es'],
+  ['Critical Events',           'ec'],
+  ['Villain Cards',             'vd'],
+  ['Environment Cards',         'ed']
+]);
 
 let currentCardCategory = 0;
 
@@ -25,7 +34,7 @@ setTimeout(function () {
 function loadCards(tsvData, dataGroup) {
 
   // Get each row of card data
-  dataLines = tsvData.split('\n');
+  let dataLines = tsvData.split('\n');
 
   // Get data labels (headings in the spreadsheet) and number of first data line
   let labels = [], firstDataLine = 0;
@@ -48,7 +57,7 @@ function loadCards(tsvData, dataGroup) {
   else {
     // It's a two-row heading
 
-    // First data line is 3nd row in spreadsheet
+    // First data line is 3rd row in spreadsheet
     firstDataLine = 2;
 
     // To get labels, split the first and second row by tabs and combine when needed
@@ -77,7 +86,7 @@ function loadCards(tsvData, dataGroup) {
   }
 
   // Iterate through each data line
-  for (i = firstDataLine; i < dataLines.length; i++) {
+  for (let i = firstDataLine; i < dataLines.length; i++) {
     // Separate out the values by splitting the line by tabs
     const cardData = dataLines[i].split('\t');
 
@@ -164,7 +173,7 @@ function loadCards(tsvData, dataGroup) {
 
     // Create details element
     let detailsElement = '';
-    for (ii = 0; ii < cardData.length - 1; ii++) {
+    for (let ii = 0; ii < cardData.length - 1; ii++) {
       detailsElement += `<p><strong>${labels[ii]}:</strong> ${cardData[ii]}</p>`;
     }
 
@@ -196,7 +205,7 @@ function loadCards(tsvData, dataGroup) {
 
     // Assemble a card element with the image(s) and the details
     let newHTML = `
-<div class="card${extraClasses}">
+<div id="${buildUniqueId(CARD_CATEGORY_TO_ID_PREFIX.get(dataGroup), i)}" class="card${extraClasses}">
   <img class="cardImage" src="${imagePath1}" loading="lazy" />
   ${imagePath2 ? `<img class="cardImage" src="${imagePath2}" loading="lazy" style="display: none;" />` : ''}
   <details class="cardDetails">
@@ -209,6 +218,10 @@ function loadCards(tsvData, dataGroup) {
     // Add the card element to the display
     $(".cardFlexDisplay").append(newHTML);
   }
+
+  // Expressive search requires more fancy structured data.
+  // TODO: this should be done once per set release / spreadsheet update and stored as a JSON file instead of us re-parsing the TSV every time someone loads the page.
+  awesomeParser(tsvData, dataGroup);
 
   // Start loading next card category
   currentCardCategory++;
@@ -233,9 +246,10 @@ function loadCards(tsvData, dataGroup) {
       $(this).parent().toggleClass('flipped');
       // Toggle image
       $(this).parent().children('.cardImage').toggle();
-    })
+    });
+    // If there's already something in the search bar, do a search
+    submitSearch();
   }
-
 }
 
 // Submit search as user types, if enabled
@@ -248,6 +262,7 @@ $(".searchInput").on("input", function (e) {
 
 // Filter display based on search input
 function submitSearch() {
+  console.info("Searching...");
   // Check if regex checkbox is checked
   if ($("#regex").is(":checked")) {
     // Create new RegExp from search value, catch errors and do nothing will malformed RegExp
@@ -263,23 +278,38 @@ function submitSearch() {
           $(this).hide();
         }
       })
-    } catch(e){}
+    } catch (ex) {
+      // If we catch an error with the regex, swallow it
+      console.log("Caught an exception when performing a regex search", ex);
+    }
+    return;
   }
-  else {
-    // Get the query and make it not case-sensitive
-    const query = $(".searchInput").val().toLowerCase();
+  
+  // Try to perform an expressive search. If that fails (not out of the question), fall back to legacy search.
+  if (expressiveSearch($(".searchInput").val().toLowerCase())) {
+    return;
+  }
 
-    // Show or hide each card
-    $(".card").each(function (index, element) {
-      // Get card content (text of cardDetails element basically) and make it not case-sensitive
-      let cardContent = $(this).text().toLowerCase();
-      // See if the card content contains the query
-      if (cardContent.includes(query)) {
-        $(this).show();
-      }
-      else {
-        $(this).hide();
-      }
-    })
-  }
+  // Get the query and make it not case-sensitive
+  const query = $(".searchInput").val().toLowerCase();
+
+  // Show or hide each card
+  $(".card").each(function (index, element) {
+    // Get card content (text of cardDetails element basically) and make it not case-sensitive
+    let cardContent = $(this).text().toLowerCase();
+    // See if the card content contains the query
+    if (cardContent.includes(query)) {
+      $(this).show();
+    }
+    else {
+      $(this).hide();
+    }
+  })
 }
+
+window.addEventListener("load", () => {
+  let query = (new URLSearchParams(document.location.search)).get("q");
+  if (query) {
+    $(".searchInput").val(query);
+  }
+});
