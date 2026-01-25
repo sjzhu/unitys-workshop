@@ -9,6 +9,7 @@ Loading and app prep-work
 var cardFrameImageURL = "https://by3302files.storage.live.com/y4mhWQwi5poV1KRuT-IOCVunYPBbQh4xFdXUFvUcwTA1AglOPKKB_DVlkFWevg_arOLVEA4QcyFpwJJw4Gf5cPA9ZQkp9HWKv8cmKU-qQCsaTFLZxdu-tMZXQppvTNPzEUezInBZeMjRY3WuIdDD8pqYuSXaXJClB2YjL3yA3ihvecCW8hkfaCPdZwQjK3ARg88?width=586&height=823&cropmode=none";
 var cardFrameImage = new Image();
 //cardFrameImage.src = cardFrameImageURL;
+cardFrameImage.crossOrigin = "Anonymous";
 cardFrameImage.src = '../_resources/villain deck card front frame.png'
 cardFrameImage.onload = function (e) {
   // Once the Image has loaded, redraw the canvas so it immediately appears
@@ -34,6 +35,7 @@ let imagesToPreload = [
 let loadedGraphics = {};
 imagesToPreload.forEach((image) => {
   let newImage = new Image();
+  newImage.crossOrigin = "Anonymous";
   newImage.src = image[1];
   loadedGraphics[image[0]] = newImage;
 })
@@ -48,6 +50,7 @@ $('#inputImageFile').on('input', function (e) {
     // Turn that file into a useable Image object
     var url = URL.createObjectURL(cardImage);
     cardArtImage = new Image();
+    cardArtImage.crossOrigin = "Anonymous";
     cardArtImage.src = url;
     cardArtImage.onload = function (e) {
       // Once the Image has loaded, redraw the canvas so it immediately appears
