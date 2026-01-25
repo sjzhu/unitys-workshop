@@ -12,6 +12,11 @@ const HORIZONTAL = "horizontal";
 // Faces. This should be declared in the page's script configurations as FACE.
 const FRONT = "front";
 const BACK = "back";
+// Card categories. This should be declared in the page's script configurations as CARD_CATEGORY.
+const BASIC = "basic";
+const ENVIRONMENT = "environment";
+const HERO_CHAR = "hero_character";
+const VILLAIN_CHAR = "villain_character";
 // Card preview sizes. These should match the text content of buttons on the page.
 const SMALL = "Small";
 const MEDIUM = "Medium";
@@ -235,122 +240,94 @@ Initialization-Dependent Global Variables
 
 // Font size for phase labels
 const _phaseFontSizeMap = new Map([
-    [DECK, new Map([
-        [VERTICAL, pw(4.1)],
-        [HORIZONTAL, ph(4.1)],
-    ])],
-    [CHARACTER, new Map([
-        [VERTICAL, pw(4)],
-        [HORIZONTAL, ph(3.2)],
-    ])],
+    [BASIC, pw(4.1)],
+    [ENVIRONMENT, pw(4.1)],
+    [HERO_CHAR, pw(4)],
+    [VILLAIN_CHAR, pw(3.2)],
 ]);
-const EFFECT_PHASE_FONT_SIZE = _phaseFontSizeMap.get(CARD_FORM)?.get(ORIENTATION);
+const EFFECT_PHASE_FONT_SIZE = _phaseFontSizeMap.get(CARD_CATEGORY);
 
 // X position of the icons next to phase labels
 const _phaseIconXMap = new Map([
-    [DECK, new Map([
-        [VERTICAL, pw(8.9)],
-        [HORIZONTAL, pw(54)],
-    ])],
-    [CHARACTER, new Map([
-        [VERTICAL, pw(9.2)],
-        [HORIZONTAL, pw(58.5)],
-    ])],
+    [BASIC, pw(8.9)],
+    [ENVIRONMENT, pw(54)],
+    [HERO_CHAR, pw(9.2)],
+    [VILLAIN_CHAR, pw(58.5)],
 ]);
-const PHASE_ICON_X = _phaseIconXMap.get(CARD_FORM)?.get(ORIENTATION);
+const PHASE_ICON_X = _phaseIconXMap.get(CARD_CATEGORY);
 
 // Size of the icons next to phase labels
 const _phaseIconSizeMap = new Map([
-    [DECK, new Map([
-        [VERTICAL, ps(5)],
-        [HORIZONTAL, ps(5)],
-    ])],
-    [CHARACTER, new Map([
-        [VERTICAL, ps(5)],
-        [HORIZONTAL, ps(3.8)],
-    ])],
+    [BASIC, ps(5)],
+    [ENVIRONMENT, ps(5)],
+    [HERO_CHAR, ps(5)],
+    [VILLAIN_CHAR, ps(3.8)],
 ]);
-const PHASE_ICON_SIZE = _phaseIconSizeMap.get(CARD_FORM)?.get(ORIENTATION);
+const PHASE_ICON_SIZE = _phaseIconSizeMap.get(CARD_CATEGORY);
 
 // Font size for most effect text
 const _baseFontSizeMap = new Map([
-    [DECK, new Map([
-        [VERTICAL, pw(4.05)],
-        [HORIZONTAL, ph(4.05)],
-    ])],
-    [CHARACTER, new Map([
-        [VERTICAL, pw(3.95)],
-        [HORIZONTAL, ph(2.9)],
-    ])],
+    [BASIC, pw(4.05)],
+    [ENVIRONMENT, ph(4.05)],
+    [HERO_CHAR, pw(3.95)],
+    [VILLAIN_CHAR, ph(2.9)],
 ]);
-const EFFECT_BASE_FONT_SIZE = _baseFontSizeMap.get(CARD_FORM)?.get(ORIENTATION);
+const EFFECT_BASE_FONT_SIZE = _baseFontSizeMap.get(CARD_CATEGORY);
 
 // The X position to begin drawing effect text
 const _effectStartXMap = new Map([
-    [DECK, new Map([
-        [VERTICAL, new Map([
-            [FRONT, pw(12.5)],
-            // Deck backs don't have effect text
-            [BACK, null],
-        ])],
-        [HORIZONTAL, new Map([
-            [FRONT, pw(57)],
-            // Deck backs don't have effect text
-            [BACK, null],
-        ])],
+    [BASIC, new Map([
+        [FRONT, pw(12.5)],
+        // Deck backs don't have effect text
+        [BACK, null],
     ])],
-    [CHARACTER, new Map([
-        [VERTICAL, new Map([
-            [FRONT, pw(12.5)],
-            [BACK, pw(14.5)]
-        ])],
-        [HORIZONTAL, new Map([
-            [FRONT, pw(60.25)],
-            [BACK, null],
-        ])],
+    [ENVIRONMENT, new Map([
+        [FRONT, pw(57)],
+        // Deck backs don't have effect text
+        [BACK, null],
+    ])],
+    [HERO_CHAR, new Map([
+        [FRONT, pw(12.5)],
+        [BACK, pw(14.5)]
+    ])],
+    [VILLAIN_CHAR, new Map([
+        [FRONT, pw(60.25)],
+        [BACK, null],
     ])],
 ]);
-const EFFECT_START_X = _effectStartXMap.get(CARD_FORM)?.get(ORIENTATION)?.get(FACE);
+const EFFECT_START_X = _effectStartXMap.get(CARD_CATEGORY)?.get(FACE);
 
 // The X position to stop drawing effect text
 const _effectEndXMap = new Map([
-    [DECK, new Map([
-        [VERTICAL, pw(88.5)],
-        [HORIZONTAL, pw(94)],
-    ])],
-    [CHARACTER, new Map([
-        [VERTICAL, pw(86.5)],
-        [HORIZONTAL, pw(96.75)],
-    ])],
+    [BASIC, pw(88.5)],
+    [ENVIRONMENT, pw(94)],
+    [HERO_CHAR, pw(86.5)],
+    [VILLAIN_CHAR, pw(96.75)],
 ]);
-const EFFECT_END_X =  _effectEndXMap.get(CARD_FORM)?.get(ORIENTATION);
+const EFFECT_END_X =  _effectEndXMap.get(CARD_CATEGORY);
 
 // The Y position to begin drawing effect text
 const _effectStartYMap = new Map([
-    [DECK, new Map([
-        [VERTICAL, new Map([
-            [FRONT, ph(61.5)],
-            // Deck backs don't have effect text
-            [BACK, null],
-        ])],
-        [HORIZONTAL, new Map([
-            [FRONT, ph(28)],
-            // Deck backs don't have effect text
-            [BACK, null],
-        ])],
+    [BASIC, new Map([
+        [FRONT, ph(61.5)],
+        // Deck backs don't have effect text
+        [BACK, null],
     ])],
-    [CHARACTER, new Map([
-        [VERTICAL, new Map([
-            [FRONT, ph(85.5)],
-            [BACK, ph(86)],
-        ])],
-        [HORIZONTAL, new Map([
-            [FRONT, ph(86.1)],
-            [BACK, null],
-        ])],
+    [ENVIRONMENT, new Map([
+        [FRONT, ph(28)],
+        // Deck backs don't have effect text
+        [BACK, null],
+    ])],
+    [HERO_CHAR, new Map([
+        [FRONT, ph(85.5)],
+        [BACK, ph(86)],
+    ])],
+    [VILLAIN_CHAR, new Map([
+        [FRONT, ph(86.1)],
+        [BACK, null],
     ])],
 ]);
-const EFFECT_START_Y = _effectStartYMap.get(CARD_FORM)?.get(ORIENTATION)?.get(FACE);
+const EFFECT_START_Y = _effectStartYMap.get(CARD_CATEGORY)?.get(FACE);
 
 // The base line height. Used to set the line height for body text.
 const BODY_BASE_LINE_HEIGHT = EFFECT_BASE_FONT_SIZE * 1.2345;
@@ -359,34 +336,28 @@ const BODY_BASE_LINE_HEIGHT = EFFECT_BASE_FONT_SIZE * 1.2345;
 // Default coordinates for character card game text box
 // NOTE: Deck values have intentionally been left null, since this does not apply to deck cards
 const _characterBodyBoxMap = new Map([
-    [DECK, new Map([
-        [VERTICAL, null],
-        [HORIZONTAL, null],
-    ])],
-    [CHARACTER, new Map([
-        // Hero character cards
-        [VERTICAL, {
-            topLeft: {x: pw(10), y: ph(79)},
-            topRight: {x: pw(90), y: ph(79)},
-            bottomRight: {x: pw(90), y: ph(93.3)},
-            bottomLeft: {x: pw(10), y: ph(94)},
-            bgColor: '#ffffffcc',  // Last two digits are transparency
-            borderThickness: pw(0.5),
-            shadowThickness: pw(1),
-        }],
-        // Villain character cards
-        [HORIZONTAL, {
-            topLeft: {x: pw(58), y: ph(81.5)},
-            topRight: {x: pw(98), y: ph(81.5)},
-            bottomRight: {x: pw(98), y: ph(97)},
-            bottomLeft: {x: pw(58), y: ph(97)},
-            bgColor: '#ffffffff',  // Last two digits are transparency,
-            borderThickness: pw(0.25),
-            shadowThickness: pw(0.5),
-        }],
-    ])],
+    [BASIC, null],
+    [ENVIRONMENT, null],
+    [HERO_CHAR, {
+        topLeft: {x: pw(10), y: ph(79)},
+        topRight: {x: pw(90), y: ph(79)},
+        bottomRight: {x: pw(90), y: ph(93.3)},
+        bottomLeft: {x: pw(10), y: ph(94)},
+        bgColor: '#ffffffcc',  // Last two digits are transparency
+        borderThickness: pw(0.5),
+        shadowThickness: pw(1),
+    }],
+    [VILLAIN_CHAR, {
+        topLeft: {x: pw(58), y: ph(81.5)},
+        topRight: {x: pw(98), y: ph(81.5)},
+        bottomRight: {x: pw(98), y: ph(97)},
+        bottomLeft: {x: pw(58), y: ph(97)},
+        bgColor: '#ffffffff',  // Last two digits are transparency,
+        borderThickness: pw(0.25),
+        shadowThickness: pw(0.5),
+    }],
 ]);
-const CHARACTER_BODY_BOX = _characterBodyBoxMap.get(CARD_FORM)?.get(ORIENTATION);
+const CHARACTER_BODY_BOX = _characterBodyBoxMap.get(CARD_CATEGORY);
 
 
 // Values for quotes:
@@ -394,78 +365,62 @@ const CHARACTER_BODY_BOX = _characterBodyBoxMap.get(CARD_FORM)?.get(ORIENTATION)
 // has quote text.
 // Font size for quote text
 const _quoteFontSizeMap = new Map([
-    [DECK, new Map([
-        [VERTICAL, pw(3.5)],
-        [HORIZONTAL, ph(3.4)],
-    ])],
-    [CHARACTER, new Map([
-        [VERTICAL, null],
-        [HORIZONTAL, null],
-    ])],
+    [BASIC, pw(3.5)],
+    [ENVIRONMENT, ph(3.4)],
+    [HERO_CHAR, null],
+    [VILLAIN_CHAR, null],
 ]);
-const QUOTE_FONT_SIZE = _quoteFontSizeMap.get(CARD_FORM)?.get(ORIENTATION);
+const QUOTE_FONT_SIZE = _quoteFontSizeMap.get(CARD_CATEGORY);
 
 // These values assume quotes are centered horizontally.
 const _quoteStartXMap = new Map([
-    [DECK, new Map([
-        [VERTICAL, new Map([
-            [FRONT, pw(50)],
-            // Deck backs don't have quotes
-            [BACK, null],
-        ])],
-        [HORIZONTAL, new Map([
-            [FRONT, pw(72)],
-            // Deck backs don't have quotes
-            [BACK, null],
-        ])],
+    [BASIC, new Map([
+        [FRONT, pw(50)],
+        // Deck backs don't have quotes
+        [BACK, null],
     ])],
-    [CHARACTER, new Map([
-        [VERTICAL, null],
-        [HORIZONTAL, null],
+    [ENVIRONMENT, new Map([
+        [FRONT, pw(72)],
+        // Deck backs don't have quotes
+        [BACK, null],
     ])],
+    [HERO_CHAR, null],
+    [VILLAIN_CHAR, null],
 ]);
-const QUOTE_START_X = _quoteStartXMap.get(CARD_FORM)?.get(ORIENTATION)?.get(FACE);
+const QUOTE_START_X = _quoteStartXMap.get(CARD_CATEGORY)?.get(FACE);
 
 // These values assume quotes are centered vertically.
 const _quoteStartYMap = new Map([
-    [DECK, new Map([
-        [VERTICAL, new Map([
-            [FRONT, ph(92.3)],
-            // Deck backs don't have quotes
-            [BACK, null],
-        ])],
-        [HORIZONTAL, new Map([
-            [FRONT, ph(87)],
-            // Deck backs don't have quotes
-            [BACK, null],
-        ])],
+    [BASIC, new Map([
+        [FRONT, ph(92.3)],
+        // Deck backs don't have quotes
+        [BACK, null],
     ])],
-    [CHARACTER, new Map([
-        [VERTICAL, null],
-        [HORIZONTAL, null],
+    [ENVIRONMENT, new Map([
+        [FRONT, ph(87)],
+        // Deck backs don't have quotes
+        [BACK, null],
     ])],
+    [HERO_CHAR, null],
+    [VILLAIN_CHAR, null],
 ]);
-const QUOTE_START_Y = _quoteStartYMap.get(CARD_FORM)?.get(ORIENTATION)?.get(FACE);
+const QUOTE_START_Y = _quoteStartYMap.get(CARD_CATEGORY)?.get(FACE);
 
 const _quoteWidthMap = new Map([
-    [DECK, new Map([
-        [VERTICAL, new Map([
-            [FRONT, pw(75)],
-            // Deck backs don't have quotes
-            [BACK, null],
-        ])],
-        [HORIZONTAL, new Map([
-            [FRONT, ph(68)],
-            // Deck backs don't have quotes
-            [BACK, null],
-        ])],
+    [BASIC, new Map([
+        [FRONT, pw(75)],
+        // Deck backs don't have quotes
+        [BACK, null],
     ])],
-    [CHARACTER, new Map([
-        [VERTICAL, null],
-        [HORIZONTAL, null],
+    [ENVIRONMENT, new Map([
+        [FRONT, ph(68)],
+        // Deck backs don't have quotes
+        [BACK, null],
     ])],
+    [HERO_CHAR, null],
+    [VILLAIN_CHAR, null],
 ]);
-const QUOTE_WIDTH = _quoteWidthMap.get(CARD_FORM)?.get(ORIENTATION)?.get(FACE);
+const QUOTE_WIDTH = _quoteWidthMap.get(CARD_CATEGORY)?.get(FACE);
 
 // This object is where user input images (specifically Image objects) are stored
 // currently unused for deck fronts, but needs to exist for JSON parsing to function correctly
