@@ -1489,8 +1489,6 @@ function drawSimpleBlock(simpleContent, isFirstBlock) {
       // Check if there's a punctuation mark at the end of a bold/italicized word
       let endingPunctuation = '';
       if ((thisWord.isBold || thisWord.isItalics) && wordString[wordString.length - 1].match(/[.,!;:\?]/g)) {
-        console.log("Inputted word: " + thisWord.text + " | Word to draw: " + wordString);
-        console.log("Bolded words list: " + effectBoldList)
         endingPunctuation = wordString.charAt(wordString.length - 1); // Get the punctuation at the end of the string
         wordString = wordString.slice(0, wordString.length - 1); // Remove the punctuation from the main string
       }
