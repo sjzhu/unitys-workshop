@@ -671,6 +671,7 @@ function parseJSONData(data) {
   }
   if('ImageURL' in data && data.ImageURL.length != 0) {
     cardArtImage = new Image();
+    cardArtImage.crossOrigin = "Anonymous";
     cardArtImage.src = data.ImageURL;
     cardArtImage.onload = function (e) {
       // Once the Image has loaded, redraw the canvas so it immediately appears
@@ -725,6 +726,7 @@ function parseJSONData(data) {
   // Common Character card fields
   if('NemesisIconURL' in data && data.NemesisIconURL.length != 0) {
     loadedUserImages[NEMESIS_ICON] = new Image();
+    loadedUserImages[NEMESIS_ICON].crossOrigin = "Anonymous";
     loadedUserImages[NEMESIS_ICON].src = data.NemesisIconURL;
     loadedUserImages[NEMESIS_ICON].onload = function () {
       // Once the Image has loaded, redraw the canvas so it immediately appears
@@ -754,6 +756,7 @@ function parseJSONData(data) {
   }
   if('BackgroundArtURL' in data && data.BackgroundArtURL.length != 0) {
     loadedUserImages[BACKGROUND_ART] = new Image();
+    loadedUserImages[BACKGROUND_ART].crossOrigin = "Anonymous";
     loadedUserImages[BACKGROUND_ART].src = data.BackgroundArtURL;
     loadedUserImages[BACKGROUND_ART].onload = function () {
       // Once the Image has loaded, redraw the canvas so it immediately appears
@@ -783,6 +786,7 @@ function parseJSONData(data) {
   }
   if('ForegroundArtURL' in data && data.ForegroundArtURL.length != 0) {
     loadedUserImages[FOREGROUND_ART] = new Image();
+    loadedUserImages[FOREGROUND_ART].crossOrigin = "Anonymous";
     loadedUserImages[FOREGROUND_ART].src = data.ForegroundArtURL;
     loadedUserImages[FOREGROUND_ART].onload = function () {
       // Once the Image has loaded, redraw the canvas so it immediately appears
@@ -812,6 +816,7 @@ function parseJSONData(data) {
   }
   if('NameLogoURL' in data && data.NameLogoURL.length != 0) {
     loadedUserImages[NAME_LOGO] = new Image();
+    loadedUserImages[NAME_LOGO].crossOrigin = "Anonymous";
     loadedUserImages[NAME_LOGO].src = data.NameLogoURL;
     loadedUserImages[NAME_LOGO].onload = function () {
       // Once the Image has loaded, redraw the canvas so it immediately appears
@@ -1484,6 +1489,8 @@ function drawSimpleBlock(simpleContent, isFirstBlock) {
       // Check if there's a punctuation mark at the end of a bold/italicized word
       let endingPunctuation = '';
       if ((thisWord.isBold || thisWord.isItalics) && wordString[wordString.length - 1].match(/[.,!;:\?]/g)) {
+        console.log("Inputted word: " + thisWord.text + " | Word to draw: " + wordString);
+        console.log("Bolded words list: " + effectBoldList)
         endingPunctuation = wordString.charAt(wordString.length - 1); // Get the punctuation at the end of the string
         wordString = wordString.slice(0, wordString.length - 1); // Remove the punctuation from the main string
       }

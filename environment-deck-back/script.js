@@ -18,6 +18,7 @@ let imagesToPreload = [
 let loadedGraphics = {};
 imagesToPreload.forEach((image) => {
   let newImage = new Image();
+  newImage.crossOrigin = "Anonymous";
   newImage.src = image[1];
   loadedGraphics[image[0]] = newImage;
 })
@@ -32,6 +33,7 @@ $('#inputImageFile').on('input', function (e) {
     // Turn that file into a useable Image object
     var url = URL.createObjectURL(uploadedImage);
     cardArtImage = new Image();
+    cardArtImage.crossOrigin = "Anonymous";
     cardArtImage.src = url;
     cardArtImage.onload = function (e) {
       // Once the Image has loaded, redraw the canvas so it immediately appears
