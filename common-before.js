@@ -243,7 +243,7 @@ const _phaseFontSizeMap = new Map([
     [BASIC, pw(4.1)],
     [ENVIRONMENT, pw(4.1)],
     [HERO_CHAR, pw(4)],
-    [VILLAIN_CHAR, pw(3.2)],
+    [VILLAIN_CHAR, ph(3.2)],
 ]);
 const EFFECT_PHASE_FONT_SIZE = _phaseFontSizeMap.get(CARD_CATEGORY);
 
