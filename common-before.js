@@ -241,7 +241,7 @@ Initialization-Dependent Global Variables
 // Font size for phase labels
 const _phaseFontSizeMap = new Map([
     [BASIC, pw(4.1)],
-    [ENVIRONMENT, pw(4.1)],
+    [ENVIRONMENT, ph(4.1)],
     [HERO_CHAR, pw(4)],
     [VILLAIN_CHAR, ph(3.2)],
 ]);
