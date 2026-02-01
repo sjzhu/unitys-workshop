@@ -14,7 +14,7 @@ class Card {
     // Unique ID
     // ==========
     // Some day this might not be necessary, but right now it's a nice way to help identify which card on the webpage corresponds to a which card in memory without needing to track
-    // a billion DOM references. JavaScript doesn't guarantee uniqeness, but this *should* be unique because of the way we calculate it. 
+    // a billion DOM references. JavaScript doesn't guarantee uniqeness, but this *should* be unique because of the way we calculate it.
     // String, non-null
     this.id = "";
 
@@ -124,8 +124,13 @@ class Card {
     this.incapFeaturedIssue = null;
 
     // String, nullable
+    // A possible second character name. Currently only for Villain characters that have different names
+    // depending on what side they're on
+    this.backCharacterName = null;
+
+    // String, nullable
     this.backDescription = null;
-    
+
     // String, nullable
     // A hypothetical card with a back side but not keywords on it would be an empty array
     this.backKeywords = null;
@@ -140,7 +145,7 @@ class Card {
     this.backGameText = null;
 
     // String, nullable
-    this.backAdvancedGameText = null; 
+    this.backAdvancedGameText = null;
 
     // String, nullable
     this.collectionFlavorText = null;
@@ -204,6 +209,10 @@ class Card {
     //  - event
     this.kind = "";
 
+    // String, nullable
+    // Special display properties because we have exceptions
+    this.displayType = null;
+
     // Boolean, non-null
     this.hasBack = false;
   }
@@ -218,8 +227,12 @@ function awesomeParser(tsvData, dataGroup) {
       parseHeroCharacterCards(tsvData);
   } else if (dataGroup === 'Hero Cards') {
       parseHeroDeckCards(tsvData);
+  } else if (dataGroup === 'Principle Cards') {
+      parsePrincipleCards(tsvData);
   } else if (dataGroup === 'Villain Character Cards') {
       parseVillainCharacterCards(tsvData);
+  } else if (dataGroup === 'Ennead Character Cards') {
+      parseEnneadCharacterCards(tsvData);
   } else if (dataGroup === 'Events') {
       parseStandardEventCards(tsvData);
   } else if (dataGroup === 'Critical Events') {
@@ -235,8 +248,8 @@ function awesomeParser(tsvData, dataGroup) {
 
 function parseHeroCharacterCards(tsvData) {
   let dataLines = getDataLines(tsvData)
-  // The hero character sheet has 2 header rows
-  for (let lineIndex = 2; lineIndex < dataLines.length; lineIndex++) {
+  // The hero character sheet has 1 header row
+  for (let lineIndex = 1; lineIndex < dataLines.length; lineIndex++) {
     let line = getLine(dataLines, lineIndex);
     let card = new Card();
     card.id = buildUniqueId("hc", lineIndex);
@@ -270,16 +283,16 @@ function parseHeroDeckCards(tsvData) {
     let line = getLine(dataLines, lineIndex);
     let card = new Card();
     card.id = buildUniqueId("hd", lineIndex);
-    card.crunchedDeckName = extractCrunchedName(line[0]);
     card.crunchedCharacterName = extractCrunchedName(line[0]);
-    card.title = line[1];
-    card.hp = extractHp(line[2]);
-    card.keywords = extractKeywords(line[3]);
-    card.gameText = line[4];
-    card.flavorText = line[5];
-    card.flavorTextAttribution = line[6];
-    card.quantity = parseInt(line[7]);
-    card.set = line[8];
+    card.crunchedDeckName = extractCrunchedName(line[1]);
+    card.title = line[2];
+    card.hp = extractHp(line[3]);
+    card.keywords = extractKeywords(line[4]);
+    card.gameText = line[5];
+    card.flavorText = line[6];
+    card.flavorTextAttribution = line[7];
+    card.quantity = parseInt(line[8]);
+    card.set = line[9];
     card.type = "hero";
     card.kind = "deck";
     card.hasBack = false;
@@ -289,8 +302,8 @@ function parseHeroDeckCards(tsvData) {
 
 function parseVillainCharacterCards(tsvData) {
   let dataLines = getDataLines(tsvData)
-  // The villain character card sheet has 2 header rows
-  for (let lineIndex = 2; lineIndex < dataLines.length; lineIndex++) {
+  // The villain character card sheet has 1 header rows
+  for (let lineIndex = 1; lineIndex < dataLines.length; lineIndex++) {
     let line = getLine(dataLines, lineIndex);
     let card = new Card();
     card.id = buildUniqueId("vc", lineIndex);
@@ -304,16 +317,52 @@ function parseVillainCharacterCards(tsvData) {
     card.setup = line[6];
     card.gameText = line[7];
     card.advancedGameText = line[8];
-    card.backDescription = line[9];
-    card.backKeywords = extractKeywords(line[10]);
-    card.backHp = extractHp(line[11]);
-    card.backNemesisIcons = extractNemesisIcons(line[12]);
-    card.backGameText = line[13];
-    card.backAdvancedGameText = line[14];
-    card.set = line[15];
-    card.difficulty = line[16];
+    card.backCharacterName = extractCrunchedName(line[9]);
+    card.backDescription = line[10];
+    card.backKeywords = extractKeywords(line[11]);
+    card.backHp = extractHp(line[12]);
+    card.backNemesisIcons = extractNemesisIcons(line[13]);
+    card.backGameText = line[14];
+    card.backAdvancedGameText = line[15];
+    card.set = line[16];
+    card.difficulty = line[17];
     card.type = "villain";
     card.kind = "character";
+    card.displayType = line[18];
+    card.hasBack = true;
+    cards.push(card);
+  }
+}
+
+function parseEnneadCharacterCards(tsvData) {
+    let dataLines = getDataLines(tsvData)
+  // The villain character card sheet has 1 header rows
+  for (let lineIndex = 1; lineIndex < dataLines.length; lineIndex++) {
+    let line = getLine(dataLines, lineIndex);
+    let card = new Card();
+    card.id = buildUniqueId("vce", lineIndex);
+    card.crunchedDeckName = extractCrunchedName(line[0]);
+    card.crunchedCharacterName = extractCrunchedName(line[1]);
+    card.title = line[1];
+    card.description = line[2];
+    card.keywords = extractKeywords(line[3]);
+    card.hp = extractHp(line[4]);
+    card.nemesisIcons = extractNemesisIcons(line[5]);
+    card.setup = line[6];
+    card.gameText = line[7];
+    card.advancedGameText = line[8];
+    card.backCharacterName = extractCrunchedName(line[9]);
+    card.backDescription = line[10];
+    card.backKeywords = extractKeywords(line[11]);
+    card.backHp = extractHp(line[12]);
+    card.backNemesisIcons = extractNemesisIcons(line[13]);
+    card.backGameText = line[14];
+    card.backAdvancedGameText = line[15];
+    card.set = line[16];
+    card.difficulty = line[17];
+    card.type = "villain";
+    card.kind = "character";
+    card.displayType = line[18];
     card.hasBack = true;
     cards.push(card);
   }
@@ -321,8 +370,8 @@ function parseVillainCharacterCards(tsvData) {
 
 function parseStandardEventCards(tsvData) {
   let dataLines = getDataLines(tsvData)
-  // The standard event card sheet has 2 header rows
-  for (let lineIndex = 2; lineIndex < dataLines.length; lineIndex++) {
+  // The standard event card sheet has 1 header rows
+  for (let lineIndex = 1; lineIndex < dataLines.length; lineIndex++) {
     let line = getLine(dataLines, lineIndex);
     let card = new Card();
     card.id = buildUniqueId("es", lineIndex);
@@ -426,6 +475,27 @@ function parseEnvironmentDeckCards(tsvData) {
     card.quantity = parseInt(line[8]);
     card.set = line[9];
     card.type = "environment";
+    card.kind = "deck";
+    card.hasBack = false;
+    cards.push(card);
+  }
+}
+
+function parsePrincipleCards(tsvData) {
+  let dataLines = getDataLines(tsvData)
+  // The principle card sheet has 1 header row
+  for (let lineIndex = 1; lineIndex < dataLines.length; lineIndex++) {
+    let line = getLine(dataLines, lineIndex);
+    let card = new Card();
+    card.id = buildUniqueId("pd", lineIndex);
+    card.crunchedDeckName = extractCrunchedName(line[0]);
+    card.crunchedCharacterName = [];
+    card.title = line[1];
+    card.gameText = line[2];
+    card.flavorText = line[3];
+    card.quantity = parseInt(line[4]);
+    card.set = line[5];
+    card.type = "principle";
     card.kind = "deck";
     card.hasBack = false;
     cards.push(card);
@@ -557,7 +627,7 @@ class CharacterNameCond extends Condition {
     this.regexp = new RegExp("^" + exp, "i");
   }
   match(c) {
-    return listRegexMatch(c.crunchedCharacterName, this.regexp);
+    return listRegexMatch(c.crunchedCharacterName, this.regexp) || listRegexMatch(c.backCharacterName, this.regexp);
   }
 }
 
@@ -1141,7 +1211,7 @@ class ExpressiveSearcher {
     }
   }
 
-  /** 
+  /**
    * Consolidates a potential array of {@link Condition}s into one.
    * @return a single {@link Condition}. If the input is falsey or empty, this returns null. A single condition is just returned. More than 1 condition in an array gets anded together.
    */
@@ -1158,7 +1228,7 @@ class ExpressiveSearcher {
 
 /**
  * Performs an expressive search by decomposing the provided query string into an ANDed set of query conditions.
- * @returns true if the search was successful. Returns false if any errors occurred parsing / resolving the query, or if the query doesn't use the expressive syntax. 
+ * @returns true if the search was successful. Returns false if any errors occurred parsing / resolving the query, or if the query doesn't use the expressive syntax.
  */
 function expressiveSearch(queryString) {
   return (new ExpressiveSearcher(queryString)).search();

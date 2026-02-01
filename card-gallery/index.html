@@ -55,6 +55,10 @@
       width: 400px;
     }
 
+    .principleCard {
+      width: 400px;
+    }
+
     .event, .criticalEvent {
       width: 350px;
     }
@@ -100,6 +104,9 @@
     .environmentCard {
       min-height: 280px;
     }
+    .principleCard {
+      min-height: 280px;
+    }
     .heroCharacterCard {
       min-height: 490px;
     }
@@ -109,12 +116,18 @@
     .event.flipped, .criticalEvent.flipped, .villainCharacterCard {
       min-height: 360px;
     }
+    .enneadCharacterCard {
+      min-height: 490px;
+    }
     /* Different min-height for mobile */
     @media (max-width: 660px) {
       .heroCard, .villainCard {
         min-height: 210px;
       }
       .environmentCard {
+        min-height: 230px;
+      }
+      .principleCard {
         min-height: 230px;
       }
       .heroCharacterCard {
@@ -125,6 +138,9 @@
       }
       .event.flipped, .criticalEvent.flipped, .villainCharacterCard {
         min-height: 210px;
+      }
+      .enneadCharacterCard {
+        min-height: 260px;
       }
     }
   </style>
@@ -162,8 +178,8 @@
     </details>
     <p class="tips">Want to search something more complicated? Learn about our new <a href="/card-gallery/search-reference">expressive search</a>!</p>
   </div>
-    
-   
+
+
   <!-- Cards get loaded here -->
   <div class="cardFlexDisplay"></div>
 

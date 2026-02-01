@@ -3,19 +3,23 @@ const cardCategories = [
   'Hero Character Cards',
   'Hero Cards',
   'Villain Character Cards',
+  'Ennead Character Cards',
   'Events',
   'Critical Events',
   'Villain Cards',
-  'Environment Cards'
+  'Environment Cards',
+  'Principle Cards'
 ]
 const CARD_CATEGORY_TO_ID_PREFIX = new Map([
   ['Hero Character Cards',      'hc'],
   ['Hero Cards',                'hd'],
   ['Villain Character Cards',   'vc'],
+  ['Ennead Character Cards',    'vce'],
   ['Events',                    'es'],
   ['Critical Events',           'ec'],
   ['Villain Cards',             'vd'],
-  ['Environment Cards',         'ed']
+  ['Environment Cards',         'ed'],
+  ['Principle Cards',           'pd']
 ]);
 
 let currentCardCategory = 0;
@@ -42,7 +46,7 @@ function loadCards(tsvData, dataGroup) {
   // Check if it's a one-row heading spreadsheet or two-row heading spreadsheet
   const firstRow = dataLines[0].split('\t');
   const secondRow = dataLines[1].split('\t');
-  
+
   // If the first cell of the second row isn't blank...
   if (secondRow[0] != '') {
     // It's a one-row heading
@@ -93,7 +97,6 @@ function loadCards(tsvData, dataGroup) {
     // Get image path differently depending on the category (due to spreadsheet formatting)
     let imagePath1, imagePath2, folderName, fileName;
     switch (dataGroup) {
-      case 'Hero Cards':
       case 'Environment Cards':
         folderName = cardData[0];
         fileName = cardData[1];
@@ -107,6 +110,20 @@ function loadCards(tsvData, dataGroup) {
         imagePath2 = imagePath2.replaceAll('"', '').replaceAll('?', '');
         break;
 
+      case 'Principle Cards':
+        folderName = cardData[0];
+        fileName = cardData[1];
+        imagePath1 = "../_resources/Scans/" + dataGroup + "/" + folderName + "/" + fileName + ".webp";
+        // Strip out quotation marks and question marks because the files name's can't have them
+        imagePath1 = imagePath1.replaceAll('"', '').replaceAll('?', '');
+        // Deck Back
+        fileName = folderName;
+        imagePath2 = "../_resources/Scans/Deck Backs/" + fileName + ".webp";
+        // Strip out quotation marks and question marks because the files name's can't have them
+        imagePath2 = imagePath2.replaceAll('"', '').replaceAll('?', '');
+        break;
+
+      case 'Hero Cards':
       case 'Villain Cards':
         folderName = cardData[1];
         fileName = cardData[2];
@@ -121,18 +138,22 @@ function loadCards(tsvData, dataGroup) {
         break;
 
       case 'Hero Character Cards':
-        fileName = `${cardData[1]}/${cardData[0]} Front`;
+        // Directories can't end in periods, so remove any trailing periods from the Nemesis Icon
+        const nemesisIcon = cardData[4].replace(/\.+$/,'');
+        // Use Nemesis Icon instead of Deck to support multi-character decks
+        fileName = `${nemesisIcon}/${cardData[0]} Front`;
         imagePath1 = "../_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
         // Strip out quotation marks and question marks because the files name's can't have them
         imagePath1 = imagePath1.replaceAll('"', '').replaceAll('?', '');
         // Then repeat for the back side
-        fileName = `${cardData[1]}/${cardData[0]} Back`;
+        fileName = `${nemesisIcon}/${cardData[0]} Back`;
         imagePath2 = "../_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
         // Strip out quotation marks and question marks because the files name's can't have them
         imagePath2 = imagePath2.replaceAll('"', '').replaceAll('?', '');
         break;
 
       case 'Villain Character Cards':
+      case 'Ennead Character Cards':
         fileName = `${cardData[1]} Front`;
         imagePath1 = "../_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
         // Strip out quotation marks and question marks because the files name's can't have them
@@ -189,11 +210,17 @@ function loadCards(tsvData, dataGroup) {
       case 'Environment Cards':
         extraClasses += ' environmentCard flippable';
         break;
+      case 'Principle Cards':
+        extraClasses += ' principleCard flippable';
+        break;
       case 'Hero Character Cards':
         extraClasses += ' heroCharacterCard flippable';
         break;
       case 'Villain Character Cards':
         extraClasses += ' villainCharacterCard flippable';
+        break;
+      case 'Ennead Character Cards':
+        extraClasses += ' enneadCharacterCard flippable';
         break;
       case 'Events':
         extraClasses += ' event flippable';
@@ -284,7 +311,7 @@ function submitSearch() {
     }
     return;
   }
-  
+
   // Try to perform an expressive search. If that fails (not out of the question), fall back to legacy search.
   if (expressiveSearch($(".searchInput").val().toLowerCase())) {
     return;
