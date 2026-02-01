@@ -125,7 +125,8 @@ function loadCards(tsvData, dataGroup) {
 
       case 'Hero Cards':
       case 'Villain Cards':
-        folderName = cardData[1];
+        // Directories can't end in periods, so remove any trailing periods
+        folderName = cardData[1].replace(/\.+$/,'');
         fileName = cardData[2];
         imagePath1 = "../_resources/Scans/" + dataGroup + "/" + folderName + "/" + fileName + ".webp";
         // Strip out quotation marks and question marks because the files name's can't have them
