@@ -301,7 +301,7 @@ const _effectStartXMap = new Map([
     ])],
     [PRINCIPLES, new Map([
         [FRONT, pw(6.5)],
-        // Deck backs don't have effect text
+        // Principle deck backs don't have effect text
         [BACK, null],
     ])],
 ]);
@@ -339,7 +339,7 @@ const _effectStartYMap = new Map([
     ])],
     [PRINCIPLES, new Map([
         [FRONT, ph(23)],
-        // Deck backs don't have effect text
+        // Principle deck backs don't have effect text
         [BACK, null],
     ])],
 ]);
@@ -406,7 +406,7 @@ const _quoteStartXMap = new Map([
     [VILLAIN_CHAR, null],
     [PRINCIPLES, new Map([
         [FRONT, pw(27)],
-        // Deck backs don't have quotes
+        // Principle deck backs don't have quotes
         [BACK, null],
     ])],
 ]);
@@ -428,7 +428,7 @@ const _quoteStartYMap = new Map([
     [VILLAIN_CHAR, null],
     [PRINCIPLES, new Map([
         [FRONT, ph(89)],
-        // Deck backs don't have quotes
+        // Principle deck backs don't have quotes
         [BACK, null],
     ])],
 ]);
@@ -449,7 +449,7 @@ const _quoteWidthMap = new Map([
     [VILLAIN_CHAR, null],
     [PRINCIPLES, new Map([
         [FRONT, ph(63)],
-        // Deck backs don't have quotes
+        // Principle deck backs don't have quotes
         [BACK, null],
     ])],
 ]);
