@@ -1077,7 +1077,7 @@ class ExpressiveSearcher {
         } else if (s.scan(/(?:date)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
           tokens.push(new DateCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
         } else if (s.scan(/(?:l|limit|collectionLimit)\s*(>=|>|<=|<|=|:)\s*(\d+)/i)) {
-          tokens.push(new CollectionLimitCond(s.getCapture(2), s.getCapture(1)));
+          tokens.push(new CollectionLimitCond(s.getCapture(1), s.getCapture(0)));
         } else if (s.scan(/(?:nemesisIcon|nemesisIcons)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
           tokens.push(new NemesisIconCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
         } else if (s.scan(/(?:innatePowerTitle)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
