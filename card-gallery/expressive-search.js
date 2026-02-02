@@ -442,11 +442,12 @@ function parseVillainDeckCards(tsvData) {
     card.title = line[2];
     card.hp = extractHp(line[3]);
     card.keywords = extractKeywords(line[4]);
-    card.gameText = line[5];
-    card.flavorText = line[6];
-    card.flavorTextAttribution = line[7];
-    card.quantity = parseInt(line[8]);
-    card.set = line[9];
+    card.nemesisIcons = extractNemesisIcons(line[5]);
+    card.gameText = line[6];
+    card.flavorText = line[7];
+    card.flavorTextAttribution = line[8];
+    card.quantity = parseInt(line[9]);
+    card.set = line[10];
     card.type = "villain";
     card.kind = "deck";
     card.hasBack = false;
