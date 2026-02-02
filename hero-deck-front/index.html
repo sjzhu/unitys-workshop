@@ -145,6 +145,7 @@
       </div>
       <div class="inputGroup">
         <label for="inputImageFile">Art</label>
+        <!-- TODO: Add the ability to put a URL here to load external images, along with appropriate guard rails -->
         <input type="file" accept="image/*" class="contentInput" id="inputImageFile">
         <!-- These ranges all represent percents, ex: 50 = 50% or times 0.5 -->
         <label for="inputImageOffsetX" style="margin-top: 10px;">X Position</label>
@@ -224,6 +225,7 @@
   <!-- Declarations -->
   <script>
     const CARD_FORM = "deck";
+    const CARD_CATEGORY = "basic";
     const ORIENTATION = "vertical";
     const FACE = "front";
     const DEFAULT_DOWNLOAD_NAME = "hero-deck-front";
