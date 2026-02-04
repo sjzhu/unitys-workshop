@@ -291,6 +291,7 @@ $(".searchInput").on("input", function (e) {
 // Filter display based on search input
 function submitSearch() {
   console.info("Searching...");
+  // Regex will be entirely literal, no replacements
   // Check if regex checkbox is checked
   if ($("#regex").is(":checked")) {
     // Create new RegExp from search value, catch errors and do nothing will malformed RegExp
@@ -313,13 +314,13 @@ function submitSearch() {
     return;
   }
 
+  // Get the query, make it not case-sensitive and do any necessary replacements
+  const query = sentinelsReplacements($(".searchInput").val().toLowerCase());
+
   // Try to perform an expressive search. If that fails (not out of the question), fall back to legacy search.
-  if (expressiveSearch($(".searchInput").val().toLowerCase())) {
+  if (expressiveSearch(query)) {
     return;
   }
-
-  // Get the query and make it not case-sensitive
-  const query = $(".searchInput").val().toLowerCase();
 
   // Show or hide each card
   $(".card").each(function (index, element) {
@@ -333,6 +334,17 @@ function submitSearch() {
       $(this).hide();
     }
   })
+}
+
+// Handle any text replacement for weird text characters in SOTM
+function sentinelsReplacements(query) {
+  let modifiedQuery = query;
+
+  // Replace ae with æ when it is at the beginning of a word
+  // this should already be entirely lowercase
+  modifiedQuery = modifiedQuery.replace(/\bae/g, "æ");
+
+  return modifiedQuery;
 }
 
 window.addEventListener("load", () => {
