@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Card Gallery</title>
+  <link rel="icon" type="image/x-icon" href="../_resources/favicon.png">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="../style.css">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Noto+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Work+Sans:ital,wght@0,100;0,200;0,300;0,350;0,370;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+  <!-- Other fonts -->
+  <link href="https://fonts.cdnfonts.com/css/unmasked-bb" rel="stylesheet">
+  <link href="https://fonts.cdnfonts.com/css/avengeance-mightiest-avenger" rel="stylesheet">
+
+
+  <style>
+    .searchForm {
+      width: 100%;
+      display: flex;
+    }
+
+    .searchSubmit {
+      flex: 0;
+      margin-left: 10px;
+    }
+
+    .cardFlexDisplay {
+      display: flex;
+      flex-flow: row wrap;
+      align-items: flex-start;
+    }
+
+    .card {
+      width: 300px;
+      position: relative;
+      margin: 5px;
+    }
+
+    @media (max-width: 660px) {
+      .card {
+        width: 48%;
+        margin: 1%;
+      }
+    }
+
+    .environmentCard {
+      width: 400px;
+    }
+
+    .event, .criticalEvent {
+      width: 350px;
+    }
+
+    .event.flipped, .criticalEvent.flipped, .villainCharacterCard {
+      width: 550px;
+    }
+
+    .cardImage {
+      width: 100%;
+      display: block;
+    }
+
+    .flippable .cardImage {
+      cursor: pointer;
+    }
+
+    .cardDetails {
+      position: absolute;
+      bottom: -5px;
+      left: -5px;
+      padding: 3px 5px;
+      background-color: white;
+      border: 2px solid black;
+      font-size: 12px;
+    }
+
+    .cardDetails[open] {
+      position: static;
+    }
+
+    .tips {
+      font-size: 14px;
+    }
+    .tips ul {
+      margin: 0;
+    }
+
+    /* Set min-height of card types for better loading */
+    .heroCard, .villainCard {
+      min-height: 400px;
+    }
+    .environmentCard {
+      min-height: 280px;
+    }
+    .heroCharacterCard {
+      min-height: 490px;
+    }
+    .event, .criticalEvent {
+      min-height: 500px;
+    }
+    .event.flipped, .criticalEvent.flipped, .villainCharacterCard {
+      min-height: 360px;
+    }
+    /* Different min-height for mobile */
+    @media (max-width: 660px) {
+      .heroCard, .villainCard {
+        min-height: 210px;
+      }
+      .environmentCard {
+        min-height: 230px;
+      }
+      .heroCharacterCard {
+        min-height: 260px;
+      }
+      .event, .criticalEvent {
+        min-height: 470px;
+      }
+      .event.flipped, .criticalEvent.flipped, .villainCharacterCard {
+        min-height: 210px;
+      }
+    }
+  </style>
+
+</head>
+
+<body>
+
+  <h1>Card Gallery</h1>
+
+  <div class="inputGroup">
+    <div style="margin-bottom:5px;"><a href="../">Home</a></div>
+    <form class="searchForm" action="javascript:submitSearch()">
+      <input type="text" class="searchInput" placeholder='Search for a string of text in the details of a card, or with expressive search.' />
+      <input type="submit" class="searchSubmit" value="Search"/>
+    </form>
+    <details class="tips">
+      <summary>Advanced</summary>
+      <div class="checkboxGroup">
+        <input type="checkbox" id="regex" value="true">
+        <label for="regex">Use regular expressions</label>
+      </div>
+      <div class="checkboxGroup">
+        <input type="checkbox" id="autoSubmit" value="true">
+        <label for="autoSubmit">Search as you type</label>
+      </div>
+    </details>
+    <details class="tips">
+      <summary>Tips</summary>
+      <ul>
+        <li>Searches are not case-sensitive.</li>
+        <li>You can click on a character card or event to see the other side of that card.</li>
+        <li>You can see all the materials associated with a specific deck by searching with this format: "Deck: Baron Blade".</li>
+      </ul>
+    </details>
+    <p class="tips">Want to search something more complicated? Learn about our new <a href="/card-gallery/search-reference">expressive search</a>!</p>
+  </div>
+
+
+  <!-- Cards get loaded here -->
+  <div class="cardFlexDisplay"></div>
+
+
+  <!-- Scripts -->
+
+  <!-- jQuery -->
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js'></script>
+
+  <!-- String Scanner -->
+  <script src="./strscan.js"></script>
+
+  <!-- Advanced Seach Script -->
+  <script src="./expressive-search.js"></script>
+
+  <!-- Card Gallery Script -->
+  <script src="./script.js"></script>
+
+
+</body>
+
+</html>
