@@ -486,6 +486,38 @@ function listRegexMatch(candidate, regexp) {
   return candidate.some(c => regexMatch(c, regexp));
 }
 
+function subArrayOverlapRegexMatch(candidate, regexList) {
+  if (!candidate || candidate.length === 0) {
+    return false;
+  }
+  if (candidate.length < regexList.length) {
+    return false;
+  }
+  if (regexList.length === 1) {
+    return listRegexMatch(candidate, regexList[0]);
+  }
+  // We've handled all naive cases, time for ugliness...
+  // Iterate through the candidate's crunches, which should be ordered (ex. ["The", "Ruler", "of", "Aeternus"]) to find a crunch that matches the *first* element of regexList
+  for (let i = 0; i < candidate.length - regexList.length + 1; i++) {
+    let c = candidate[i];
+    if (regexMatch(c, regexList[0])) {
+      // If we find a match, perform an ordered check of all child regexList elements. *Everything* must match.
+      let allMatch = true;
+      for (let j = 1; j < regexList.length; j++) {
+        if (!regexMatch(candidate[i + j], regexList[j])) {
+          allMatch = false;
+          break;
+        }
+      }
+      // If everything matched, terminate the loop early. Doesn't matter if there are multiple matches as long as there's 1.
+      if (allMatch) {
+        return true;
+      }
+      // If not, continue the loop until we're out of candidate crunches. 
+    }
+  }
+}
+
 function numberMatch(candidate, target, relationship) {
   if (!candidate) {
     return false;
@@ -544,20 +576,20 @@ class Condition {
 class DeckNameCond extends Condition {
   constructor(str) {
     super();
-    this.regexp = new RegExp("^" + str, "i");
+    this.regexList = extractCrunchedName(str).map(s => new RegExp("^" + s, "i"));
   }
   match(c) {
-    return listRegexMatch(c.crunchedDeckName, this.regexp);
+    return subArrayOverlapRegexMatch(c.crunchedDeckName, this.regexList);
   }
 }
 
 class CharacterNameCond extends Condition {
   constructor(exp) {
     super();
-    this.regexp = new RegExp("^" + exp, "i");
+    this.regexList = extractCrunchedName(str).map(s => new RegExp("^" + s, "i"));
   }
   match(c) {
-    return listRegexMatch(c.crunchedCharacterName, this.regexp);
+    return subArrayOverlapRegexMatch(c.crunchedCharacterName, this.regexList);
   }
 }
 
