@@ -584,7 +584,7 @@ class DeckNameCond extends Condition {
 }
 
 class CharacterNameCond extends Condition {
-  constructor(exp) {
+  constructor(str) {
     super();
     this.regexList = extractCrunchedName(str).map(s => new RegExp("^" + s, "i"));
   }
