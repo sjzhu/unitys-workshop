@@ -441,7 +441,7 @@ function getLine(dataLines, lineIndex) {
 }
 
 function extractCrunchedName(nameString) {
-  return nameString.split(" ");
+  return nameString.trim().split(" ");
 }
 
 function extractKeywords(keywordsString) {
@@ -480,7 +480,7 @@ function regexMatch(candidate, regexp) {
 }
 
 function listRegexMatch(candidate, regexp) {
-  if (!candidate || candidate.length == 0) {
+  if (!candidate || candidate.length === 0) {
     return false;
   }
   return candidate.some(c => regexMatch(c, regexp));
