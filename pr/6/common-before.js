@@ -17,6 +17,7 @@ const BASIC = "basic";
 const ENVIRONMENT = "environment";
 const HERO_CHAR = "hero_character";
 const VILLAIN_CHAR = "villain_character";
+const PRINCIPLES = "principles";
 // Card preview sizes. These should match the text content of buttons on the page.
 const SMALL = "Small";
 const MEDIUM = "Medium";
@@ -244,6 +245,7 @@ const _phaseFontSizeMap = new Map([
     [ENVIRONMENT, ph(4.1)],
     [HERO_CHAR, pw(4)],
     [VILLAIN_CHAR, ph(3.2)],
+    [PRINCIPLES, pw(3.2)],
 ]);
 const EFFECT_PHASE_FONT_SIZE = _phaseFontSizeMap.get(CARD_CATEGORY);
 
@@ -253,6 +255,7 @@ const _phaseIconXMap = new Map([
     [ENVIRONMENT, pw(54)],
     [HERO_CHAR, pw(9.2)],
     [VILLAIN_CHAR, pw(58.5)],
+    [PRINCIPLES, pw(4)],
 ]);
 const PHASE_ICON_X = _phaseIconXMap.get(CARD_CATEGORY);
 
@@ -262,6 +265,7 @@ const _phaseIconSizeMap = new Map([
     [ENVIRONMENT, ps(5)],
     [HERO_CHAR, ps(5)],
     [VILLAIN_CHAR, ps(3.8)],
+    [PRINCIPLES, ps(5)],
 ]);
 const PHASE_ICON_SIZE = _phaseIconSizeMap.get(CARD_CATEGORY);
 
@@ -271,6 +275,7 @@ const _baseFontSizeMap = new Map([
     [ENVIRONMENT, ph(4.05)],
     [HERO_CHAR, pw(3.95)],
     [VILLAIN_CHAR, ph(2.9)],
+    [PRINCIPLES, ph(4.05)],
 ]);
 const EFFECT_BASE_FONT_SIZE = _baseFontSizeMap.get(CARD_CATEGORY);
 
@@ -294,6 +299,11 @@ const _effectStartXMap = new Map([
         [FRONT, pw(60.25)],
         [BACK, null],
     ])],
+    [PRINCIPLES, new Map([
+        [FRONT, pw(6.5)],
+        // Principle deck backs don't have effect text
+        [BACK, null],
+    ])],
 ]);
 const EFFECT_START_X = _effectStartXMap.get(CARD_CATEGORY)?.get(FACE);
 
@@ -303,6 +313,7 @@ const _effectEndXMap = new Map([
     [ENVIRONMENT, pw(94)],
     [HERO_CHAR, pw(86.5)],
     [VILLAIN_CHAR, pw(96.75)],
+    [PRINCIPLES, pw(47.5)],
 ]);
 const EFFECT_END_X =  _effectEndXMap.get(CARD_CATEGORY);
 
@@ -324,6 +335,11 @@ const _effectStartYMap = new Map([
     ])],
     [VILLAIN_CHAR, new Map([
         [FRONT, ph(86.1)],
+        [BACK, null],
+    ])],
+    [PRINCIPLES, new Map([
+        [FRONT, ph(23)],
+        // Principle deck backs don't have effect text
         [BACK, null],
     ])],
 ]);
@@ -356,6 +372,7 @@ const _characterBodyBoxMap = new Map([
         borderThickness: pw(0.25),
         shadowThickness: pw(0.5),
     }],
+    [PRINCIPLES, null],
 ]);
 const CHARACTER_BODY_BOX = _characterBodyBoxMap.get(CARD_CATEGORY);
 
@@ -369,6 +386,7 @@ const _quoteFontSizeMap = new Map([
     [ENVIRONMENT, ph(3.4)],
     [HERO_CHAR, null],
     [VILLAIN_CHAR, null],
+    [PRINCIPLES, ph(3.4)]
 ]);
 const QUOTE_FONT_SIZE = _quoteFontSizeMap.get(CARD_CATEGORY);
 
@@ -386,6 +404,11 @@ const _quoteStartXMap = new Map([
     ])],
     [HERO_CHAR, null],
     [VILLAIN_CHAR, null],
+    [PRINCIPLES, new Map([
+        [FRONT, pw(27)],
+        // Principle deck backs don't have quotes
+        [BACK, null],
+    ])],
 ]);
 const QUOTE_START_X = _quoteStartXMap.get(CARD_CATEGORY)?.get(FACE);
 
@@ -403,6 +426,11 @@ const _quoteStartYMap = new Map([
     ])],
     [HERO_CHAR, null],
     [VILLAIN_CHAR, null],
+    [PRINCIPLES, new Map([
+        [FRONT, ph(89)],
+        // Principle deck backs don't have quotes
+        [BACK, null],
+    ])],
 ]);
 const QUOTE_START_Y = _quoteStartYMap.get(CARD_CATEGORY)?.get(FACE);
 
@@ -419,6 +447,11 @@ const _quoteWidthMap = new Map([
     ])],
     [HERO_CHAR, null],
     [VILLAIN_CHAR, null],
+    [PRINCIPLES, new Map([
+        [FRONT, ph(63)],
+        // Principle deck backs don't have quotes
+        [BACK, null],
+    ])],
 ]);
 const QUOTE_WIDTH = _quoteWidthMap.get(CARD_CATEGORY)?.get(FACE);
 
