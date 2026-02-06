@@ -413,16 +413,16 @@ function parseCriticalEventCards(tsvData) {
     card.flavorText = line[2];
     card.collectionLimit = line[3];
     // TODO: someone needs to update the spreadsheet with these or do it by hand, because the original villain character isn't present
-    card.crunchedDeckName = ["TODO"];
-    card.crunchedCharacterName = extractCrunchedName(line[4]);
-    card.description = line[5];
-    card.keywords = extractKeywords(line[6]);
-    card.hp = extractHp(line[7]);
-    card.nemesisIcons = extractNemesisIcons(line[8]);
-    card.setup = line[9];
-    card.gameText = line[10];
-    card.advancedGameText = line[11];
-    card.set = line[12];
+    card.crunchedDeckName = extractCrunchedName(line[4]);
+    card.crunchedCharacterName = extractCrunchedName(line[5]);
+    card.description = line[6];
+    card.keywords = extractKeywords(line[7]);
+    card.hp = extractHp(line[8]);
+    card.nemesisIcons = extractNemesisIcons(line[9]);
+    card.setup = line[10];
+    card.gameText = line[11];
+    card.advancedGameText = line[12];
+    card.set = line[13];
     card.type = "critical event";
     card.kind = "event";
     card.hasBack = true;
