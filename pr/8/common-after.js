@@ -149,7 +149,7 @@ $('#parseJsonInputButton').on('click', function () {
 
 // Output JSON Input button
 $('#outputJsonButton').on('click', function () {
-  outputJSONData(CARD_FORM, ORIENTATION);
+  outputJSONData(CARD_CATEGORY);
 });
 
 /*
@@ -884,9 +884,9 @@ function parseJSONData(data) {
   drawCardCanvas();
 }
 
-function outputJSONData(form="deck", orientation="vertical") {
+function outputJSONData(category="basic") {
   var outputJSON = '';
-  if(form == "deck") {
+  if(category == BASIC || category == ENVIRONMENT) {
     outputJSON = `{
       "Title": ${JSON.stringify($('#inputTitle').val())},
       "HP": ${JSON.stringify($('#inputHP').val())},
@@ -903,8 +903,7 @@ function outputJSONData(form="deck", orientation="vertical") {
       "ImageZoom": ${JSON.stringify($('.inputImageScale').val())},
       "Suddenly": ${isChecked('#suddenly')}
     },`;
-  } else if (form == "character") {
-    if (orientation == "vertical") {
+  } else if (category == HERO_CHAR) {
       outputJSON = `{
         "HP": ${JSON.stringify($('#inputHP').val())},
         "Keywords": ${JSON.stringify($('#inputKeywords').val())},
@@ -932,7 +931,7 @@ function outputJSONData(form="deck", orientation="vertical") {
         "VariantToggle": ${isChecked('#inputVariantToggle')},
         "WhiteVariantText": ${isChecked('#inputVariantColor')}
       }`
-    } else if (orientation == "horizontal") {
+    } else if (category == VILLAIN_CHAR) {
       outputJSON = `{
         "HP": ${JSON.stringify($('#inputHP').val())},
         "Description": ${JSON.stringify($('#inputDescription').val())},
@@ -964,8 +963,21 @@ function outputJSONData(form="deck", orientation="vertical") {
         "BoldedTerms": ${JSON.stringify($('#inputBoldWords').val())},
         "ShowBorder": ${isChecked('#inputDisplayBorder')}
       }`
+    } else if (category == PRINCIPLES)  {
+      outputJSON = `{
+        "Title": ${JSON.stringify($('#inputTitle').val())},
+        "BoldedTerms": ${JSON.stringify($('#inputBoldWords').val())},
+        "GameText": ${JSON.stringify($('#inputEffect').val())},
+        "GameTextSize": ${JSON.stringify($('#inputEffectTextSize').val())},
+        "Quote": ${JSON.stringify($('#inputQuote').val())},
+        "QuoteTextSize": ${JSON.stringify($('#inputQuoteTextSize').val())},
+        "Attribution": ${JSON.stringify($('#inputAttribution').val())},
+        "ImageURL": ${JSON.stringify(extractImageURL())},
+        "ImageX": ${JSON.stringify($('.inputImageOffsetX').val())},
+        "ImageY": ${JSON.stringify($('.inputImageOffsetY').val())},
+        "ImageZoom": ${JSON.stringify($('.inputImageScale').val())}
+      }`;
     }
-  }
   $('#jsonInput').val(outputJSON);
 }
 
