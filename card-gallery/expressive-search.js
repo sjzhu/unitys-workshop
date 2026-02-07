@@ -584,6 +584,7 @@ function subArrayOverlapRegexMatch(candidate, regexList) {
       }
       // If not, continue the loop until we're out of candidate crunches. 
     }
+    return false;
   }
 }
 
