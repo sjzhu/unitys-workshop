@@ -1500,9 +1500,12 @@ function drawSimpleBlock(simpleContent, isFirstBlock) {
       let stringToDraw = '';
       // Check if there's a punctuation mark at the end of a bold/italicized word
       let endingPunctuation = '';
-      if ((thisWord.isBold || thisWord.isItalics) && wordString[wordString.length - 1].match(/[.,!;:\?]/g)) {
-        endingPunctuation = wordString.charAt(wordString.length - 1); // Get the punctuation at the end of the string
-        wordString = wordString.slice(0, wordString.length - 1); // Remove the punctuation from the main string
+      // Check if word is intended to be punctuated
+      if (!thisWord.isPunctuated) {
+        if ((thisWord.isBold || thisWord.isItalics) && wordString[wordString.length - 1].match(/[.,!;:\?]/g)) {
+          endingPunctuation = wordString.charAt(wordString.length - 1); // Get the punctuation at the end of the string
+          wordString = wordString.slice(0, wordString.length - 1); // Remove the punctuation from the main string
+        } 
       }
 
       // Check line wrapping status
@@ -1537,21 +1540,34 @@ function drawSimpleBlock(simpleContent, isFirstBlock) {
 }
 
 function getWordProperties(word) {
-  // Minimize the word for easier analyzing
-  var minimizedWord = '';
-  // Remove any punctuation
-  minimizedWord = word.replaceAll(/[.,!;:\?]/g, '');
-  // Restore spaces that were replaced with underscores earlier
-  minimizedWord = minimizedWord.replaceAll('_', ' ');
-  // Check minimized word against lists of words to bold and italicize
+  let isPunctuated = false;
   let isBold = false;
   let isItalics = false;
+
+  // Minimize the word for easier analyzing
+  var minimizedWord = word;
+  // Restore spaces that were replaced with underscores earlier
+  minimizedWord = minimizedWord.replaceAll('_', ' ');
+  // Check word with punctuation against lists of words to bold and italicize
   if (effectBoldList.indexOf(minimizedWord) != -1) { isBold = true; }
   if (effectItalicsList.indexOf(minimizedWord) != -1) { isItalics = true; }
+  // If we found it, that means the punctuation is intended to be there
+  if (isBold || isItalics) {
+     isPunctuated = true; 
+  } else {
+    isPunctuated = false;
+    // Remove any punctuation
+    minimizedWord = minimizedWord.replaceAll(/[.,!;:\?]/g, '');
+
+    // Check minimized word against lists of words to bold and italicize
+    if (effectBoldList.indexOf(minimizedWord) != -1) { isBold = true; }
+    if (effectItalicsList.indexOf(minimizedWord) != -1) { isItalics = true; }
+  }
+
 
   // Restore spaces that were replaced with underscores earlier
   let restoredWord = word.replaceAll('_', ' ');
 
   // Output
-  return { text: restoredWord, isBold: isBold, isItalics: isItalics };
+  return { text: restoredWord, isBold: isBold, isItalics: isItalics, isPunctuated: isPunctuated };
 }
