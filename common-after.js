@@ -1501,11 +1501,9 @@ function drawSimpleBlock(simpleContent, isFirstBlock) {
       // Check if there's a punctuation mark at the end of a bold/italicized word
       let endingPunctuation = '';
       // Check if word is intended to be punctuated
-      if (!thisWord.isPunctuated) {
-        if ((thisWord.isBold || thisWord.isItalics) && wordString[wordString.length - 1].match(/[.,!;:\?]/g)) {
-          endingPunctuation = wordString.charAt(wordString.length - 1); // Get the punctuation at the end of the string
-          wordString = wordString.slice(0, wordString.length - 1); // Remove the punctuation from the main string
-        } 
+      if (!thisWord.isPunctuated && (thisWord.isBold || thisWord.isItalics) && wordString[wordString.length - 1].match(/[.,!;:\?]/g)) {
+        endingPunctuation = wordString.charAt(wordString.length - 1); // Get the punctuation at the end of the string
+        wordString = wordString.slice(0, wordString.length - 1); // Remove the punctuation from the main string
       }
 
       // Check line wrapping status
