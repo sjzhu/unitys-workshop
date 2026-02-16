@@ -307,6 +307,7 @@ function submitSearch() {
           $(this).hide();
         }
       })
+      updateSearchResultsCount();
     } catch (ex) {
       // If we catch an error with the regex, swallow it
       console.log("Caught an exception when performing a regex search", ex);
@@ -319,6 +320,7 @@ function submitSearch() {
 
   // Try to perform an expressive search. If that fails (not out of the question), fall back to legacy search.
   if (expressiveSearch(query)) {
+    updateSearchResultsCount();
     return;
   }
 
@@ -334,6 +336,18 @@ function submitSearch() {
       $(this).hide();
     }
   })
+  updateSearchResultsCount();
+}
+
+function updateSearchResultsCount() {
+  const rawQuery = $(".searchInput").val();
+  if (!rawQuery || rawQuery.trim().length === 0) {
+    $(".searchResultsCount").text("");
+    return;
+  }
+  const count = $(".card:visible").length;
+  const label = `Found ${count} result${count === 1 ? '' : 's'}`;
+  $(".searchResultsCount").text(label);
 }
 
 // Handle any text replacement for weird text characters in SOTM
