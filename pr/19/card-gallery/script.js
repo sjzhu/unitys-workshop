@@ -1,0 +1,369 @@
+// This array contains the card category folder names, as well as dictating the order they will be loaded in
+const cardCategories = [
+  'Hero Character Cards',
+  'Hero Cards',
+  'Villain Character Cards',
+  'Ennead Character Cards',
+  'Events',
+  'Critical Events',
+  'Villain Cards',
+  'Environment Cards',
+  'Principle Cards'
+]
+const CARD_CATEGORY_TO_ID_PREFIX = new Map([
+  ['Hero Character Cards',      'hc'],
+  ['Hero Cards',                'hd'],
+  ['Villain Character Cards',   'vc'],
+  ['Ennead Character Cards',    'vce'],
+  ['Events',                    'es'],
+  ['Critical Events',           'ec'],
+  ['Villain Cards',             'vd'],
+  ['Environment Cards',         'ed'],
+  ['Principle Cards',           'pd']
+]);
+
+let currentCardCategory = 0;
+
+// Load first set of card data (the rest will follow)
+setTimeout(function () {
+  $.ajax({
+    url: `${cardCategories[0]}.tsv`,
+    success: function (data) {
+      loadCards(data, cardCategories[0]);
+    }
+  });
+}, 1)
+
+// Function to load cards, used one category at a time
+function loadCards(tsvData, dataGroup) {
+
+  // Get each row of card data
+  let dataLines = tsvData.split('\n');
+
+  // Get data labels (headings in the spreadsheet) and number of first data line
+  let labels = [], firstDataLine = 0;
+
+  // Check if it's a one-row heading spreadsheet or two-row heading spreadsheet
+  const firstRow = dataLines[0].split('\t');
+  const secondRow = dataLines[1].split('\t');
+
+  // If the first cell of the second row isn't blank...
+  if (secondRow[0] != '') {
+    // It's a one-row heading
+
+    // First data line is 2nd row in spreadsheet
+    firstDataLine = 1;
+
+    // To get labels, split the first row by tabs
+    labels = dataLines[0].split('\t');
+  }
+  // Otherwise...
+  else {
+    // It's a two-row heading
+
+    // First data line is 3rd row in spreadsheet
+    firstDataLine = 2;
+
+    // To get labels, split the first and second row by tabs and combine when needed
+    for (let i = 0; i < firstRow.length; i++) {
+      const firstRowCell = firstRow[i];
+      const secondRowCell = secondRow[i];
+      // If second row cell isn't blank, combine the two rows
+      if (secondRowCell != '') {
+        // Find the appropriate first row part by going backwards in the row until we find something
+        for (let ii = 0; ii < 10; ii++) {
+          const firstRowTestCell = firstRow[i - ii];
+          // If this cell isn't blank...
+          if (firstRowTestCell != '') {
+            // We found something
+            // Combine first row cell and second row cell to make the label
+            labels.push(firstRowTestCell + ' ' + secondRowCell);
+            break;
+          }
+        }
+      }
+      // Otherwise, just use the first row's cell
+      else {
+        labels.push(firstRowCell);
+      }
+    }
+  }
+
+  // Iterate through each data line
+  for (let i = firstDataLine; i < dataLines.length; i++) {
+    // Separate out the values by splitting the line by tabs
+    const cardData = dataLines[i].split('\t');
+
+    // Get image path differently depending on the category (due to spreadsheet formatting)
+    let imagePath1, imagePath2, folderName, fileName;
+    switch (dataGroup) {
+      case 'Environment Cards':
+        folderName = cardData[0];
+        fileName = cardData[1];
+        imagePath1 = "../_resources/Scans/" + dataGroup + "/" + folderName + "/" + fileName + ".webp";
+        // Strip out quotation marks and question marks because the files name's can't have them
+        imagePath1 = imagePath1.replaceAll('"', '').replaceAll('?', '');
+        // Deck Back
+        fileName = folderName;
+        imagePath2 = "../_resources/Scans/Deck Backs/" + fileName + ".webp";
+        // Strip out quotation marks and question marks because the files name's can't have them
+        imagePath2 = imagePath2.replaceAll('"', '').replaceAll('?', '');
+        break;
+
+      case 'Principle Cards':
+        folderName = cardData[0];
+        fileName = cardData[1];
+        imagePath1 = "../_resources/Scans/" + dataGroup + "/" + folderName + "/" + fileName + ".webp";
+        // Strip out quotation marks and question marks because the files name's can't have them
+        imagePath1 = imagePath1.replaceAll('"', '').replaceAll('?', '');
+        // Deck Back
+        fileName = folderName;
+        imagePath2 = "../_resources/Scans/Deck Backs/" + fileName + ".webp";
+        // Strip out quotation marks and question marks because the files name's can't have them
+        imagePath2 = imagePath2.replaceAll('"', '').replaceAll('?', '');
+        break;
+
+      case 'Hero Cards':
+      case 'Villain Cards':
+        // Directories can't end in periods, so remove any trailing periods
+        folderName = cardData[1].replace(/\.+$/,'');
+        fileName = cardData[2];
+        imagePath1 = "../_resources/Scans/" + dataGroup + "/" + folderName + "/" + fileName + ".webp";
+        // Strip out quotation marks and question marks because the files name's can't have them
+        imagePath1 = imagePath1.replaceAll('"', '').replaceAll('?', '');
+        // Deck Back
+        fileName = folderName;
+        imagePath2 = "../_resources/Scans/Deck Backs/" + fileName + ".webp";
+        // Strip out quotation marks and question marks because the files name's can't have them
+        imagePath2 = imagePath2.replaceAll('"', '').replaceAll('?', '');
+        break;
+
+      case 'Hero Character Cards':
+        // Directories can't end in periods, so remove any trailing periods from the Nemesis Icon
+        const nemesisIcon = cardData[4].replace(/\.+$/,'');
+        // Use Nemesis Icon instead of Deck to support multi-character decks
+        fileName = `${nemesisIcon}/${cardData[0]} Front`;
+        imagePath1 = "../_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
+        // Strip out quotation marks and question marks because the files name's can't have them
+        imagePath1 = imagePath1.replaceAll('"', '').replaceAll('?', '');
+        // Then repeat for the back side
+        fileName = `${nemesisIcon}/${cardData[0]} Back`;
+        imagePath2 = "../_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
+        // Strip out quotation marks and question marks because the files name's can't have them
+        imagePath2 = imagePath2.replaceAll('"', '').replaceAll('?', '');
+        break;
+
+      case 'Villain Character Cards':
+      case 'Ennead Character Cards':
+        fileName = `${cardData[1]} Front`;
+        imagePath1 = "../_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
+        // Strip out quotation marks and question marks because the files name's can't have them
+        imagePath1 = imagePath1.replaceAll('"', '').replaceAll('?', '');
+        // Then repeat for the back side
+        fileName = `${cardData[1]} Back`;
+        imagePath2 = "../_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
+        // Strip out quotation marks and question marks because the files name's can't have them
+        imagePath2 = imagePath2.replaceAll('"', '').replaceAll('?', '');
+        break;
+
+      case 'Events':
+        fileName = `${cardData[0]} Front`;
+        imagePath1 = "../_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
+        // Strip out quotation marks and question marks because the files name's can't have them
+        imagePath1 = imagePath1.replaceAll('"', '').replaceAll('?', '');
+        // Then repeat for the back side
+        fileName = `${cardData[0]} Back`;
+        imagePath2 = "../_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
+        // Strip out quotation marks and question marks because the files name's can't have them
+        imagePath2 = imagePath2.replaceAll('"', '').replaceAll('?', '');
+        break;
+
+      case 'Critical Events':
+        fileName = `${cardData[0]} Front`;
+        imagePath1 = "../_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
+        // Strip out quotation marks and question marks because the files name's can't have them
+        imagePath1 = imagePath1.replaceAll('"', '').replaceAll('?', '');
+        // Then repeat for the back side
+        fileName = `${cardData[0]} Back`;
+        imagePath2 = "../_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
+        // Strip out quotation marks and question marks because the files name's can't have them
+        imagePath2 = imagePath2.replaceAll('"', '').replaceAll('?', '');
+        break;
+    }
+
+    // Create new card HTML
+
+    // Create details element
+    let detailsElement = '';
+    for (let ii = 0; ii < cardData.length - 1; ii++) {
+      detailsElement += `<p><strong>${labels[ii]}:</strong> ${cardData[ii]}</p>`;
+    }
+
+    // Add extra classes to the cards if necessary
+    let extraClasses = '';
+    switch (dataGroup) {
+      case 'Hero Cards':
+        extraClasses += ' heroCard flippable';
+        break;
+      case 'Villain Cards':
+        extraClasses += ' villainCard flippable';
+        break;
+      case 'Environment Cards':
+        extraClasses += ' environmentCard flippable';
+        break;
+      case 'Principle Cards':
+        extraClasses += ' principleCard flippable';
+        break;
+      case 'Hero Character Cards':
+        extraClasses += ' heroCharacterCard flippable';
+        break;
+      case 'Villain Character Cards':
+        extraClasses += ' villainCharacterCard flippable';
+        break;
+      case 'Ennead Character Cards':
+        extraClasses += ' enneadCharacterCard flippable';
+        break;
+      case 'Events':
+        extraClasses += ' event flippable';
+        break;
+      case 'Critical Events':
+        extraClasses += ' criticalEvent flippable';
+        break;
+    }
+
+    // Assemble a card element with the image(s) and the details
+    let newHTML = `
+<div id="${buildUniqueId(CARD_CATEGORY_TO_ID_PREFIX.get(dataGroup), i)}" class="card${extraClasses}">
+  <img class="cardImage" src="${imagePath1}" loading="lazy" />
+  ${imagePath2 ? `<img class="cardImage" src="${imagePath2}" loading="lazy" style="display: none;" />` : ''}
+  <details class="cardDetails">
+    <summary>Details</summary>
+    ${detailsElement}
+    </div>
+  </details>
+  `;
+
+    // Add the card element to the display
+    $(".cardFlexDisplay").append(newHTML);
+  }
+
+  // Expressive search requires more fancy structured data.
+  // TODO: this should be done once per set release / spreadsheet update and stored as a JSON file instead of us re-parsing the TSV every time someone loads the page.
+  awesomeParser(tsvData, dataGroup);
+
+  // Start loading next card category
+  currentCardCategory++;
+  const nextCategoryName = cardCategories[currentCardCategory];
+  // Check if we're done
+  if (nextCategoryName != undefined) {
+    // Load card data
+    setTimeout(function () {
+      $.ajax({
+        url: `${nextCategoryName}.tsv`,
+        success: function (data) {
+          loadCards(data, nextCategoryName);
+        }
+      });
+    }, 1)
+  }
+  else {
+    // Once all the cards have been generated...
+    // Flip cards when needed
+    $('.flippable .cardImage').click(function() {
+      // Mark as flipped
+      $(this).parent().toggleClass('flipped');
+      // Toggle image
+      $(this).parent().children('.cardImage').toggle();
+    });
+    // If there's already something in the search bar, do a search
+    submitSearch();
+  }
+}
+
+// Submit search as user types, if enabled
+$(".searchInput").on("input", function (e) {
+  // Check if auto submit is checked
+  if($("#autoSubmit").is(":checked")){
+    submitSearch();
+  }
+})
+
+// Filter display based on search input
+function submitSearch() {
+  console.info("Searching...");
+  // Regex will be entirely literal, no replacements
+  // Check if regex checkbox is checked
+  if ($("#regex").is(":checked")) {
+    // Create new RegExp from search value, catch errors and do nothing will malformed RegExp
+    try{
+      const regex = new RegExp( $(".searchInput").val(), "i")
+
+      $(".card").each(function (index, element) {
+        // Get card content (text of cardDetails element basically) and test against RegExp search
+        if (regex.test($(this).text())) {
+          $(this).show();
+        }
+        else {
+          $(this).hide();
+        }
+      })
+      updateSearchResultsCount();
+    } catch (ex) {
+      // If we catch an error with the regex, swallow it
+      console.log("Caught an exception when performing a regex search", ex);
+    }
+    return;
+  }
+
+  // Get the query, make it not case-sensitive and do any necessary replacements
+  const query = sentinelsReplacements($(".searchInput").val().toLowerCase());
+
+  // Try to perform an expressive search. If that fails (not out of the question), fall back to legacy search.
+  if (expressiveSearch(query)) {
+    updateSearchResultsCount();
+    return;
+  }
+
+  // Show or hide each card
+  $(".card").each(function (index, element) {
+    // Get card content (text of cardDetails element basically) and make it not case-sensitive
+    let cardContent = $(this).text().toLowerCase();
+    // See if the card content contains the query
+    if (cardContent.includes(query)) {
+      $(this).show();
+    }
+    else {
+      $(this).hide();
+    }
+  })
+  updateSearchResultsCount();
+}
+
+function updateSearchResultsCount() {
+  const rawQuery = $(".searchInput").val();
+  if (!rawQuery || rawQuery.trim().length === 0) {
+    $(".searchResultsCount").text("");
+    return;
+  }
+  const count = $(".card:visible").length;
+  const label = `Found ${count} result${count === 1 ? '' : 's'}`;
+  $(".searchResultsCount").text(label);
+}
+
+// Handle any text replacement for weird text characters in SOTM
+function sentinelsReplacements(query) {
+  let modifiedQuery = query;
+
+  // Replace ae with æ when it is at the beginning of a word
+  // this should already be entirely lowercase
+  modifiedQuery = modifiedQuery.replace(/\bae/g, "æ");
+
+  return modifiedQuery;
+}
+
+window.addEventListener("load", () => {
+  let query = (new URLSearchParams(document.location.search)).get("q");
+  if (query) {
+    $(".searchInput").val(query);
+  }
+});
