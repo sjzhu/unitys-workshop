@@ -116,6 +116,9 @@ function drawCardCanvas() {
 
   // Draw the card quote attribution
   drawCardAttribution();
+
+  // Draw artist attribution
+  drawArtistAttribution();
 }
 
 function drawCardArt() {
@@ -326,6 +329,20 @@ function drawCardAttribution() {
     ctx.fillText(keywords, keywordsX, keywordsY);
     // Undo the squish for future drawings
     ctx.restore();
+  }
+}
+
+function drawArtistAttribution() {
+  let artist = $('#inputArtistAttribution').prop('value');
+  if (artist) {
+    artist = "Art by: " + artist;
+    let artistFontSize = pw(3.3);
+    ctx.font = `${EFFECT_FONT_WEIGHT} normal ${artistFontSize}px ${EFFECT_FONT_FAMILY}`;
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = "right";
+    let artistX = pw(96);
+    let artistY = ph(99);
+    ctx.fillText(artist, artistX, artistY);
   }
 }
 
