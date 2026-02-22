@@ -94,7 +94,7 @@ function drawCardCanvas() {
   // drawCardKeywords();
 
   // Draw the card effect
-  drawBodyText(parseCardBody());
+  drawBodyText(parseCardBody(), { centerVertically: true });
 
   // Draw the card quote
   drawCardQuote();

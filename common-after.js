@@ -1260,8 +1260,30 @@ function drawCharacterBodyBox() {
   }
 }
 
+/** Measures how tall a body of text will be */
+function measureBodyTextHeight(parsedBlocks, startY) {
+  const originalContext = ctx;
+  ctx = calculationCanvas.getContext("2d");
+
+  currentOffsetX = EFFECT_START_X + bodyWidthAdjustment;
+  currentOffsetY = startY;
+
+  effectFontScale = $('#inputEffectTextSize').prop('value') / 100; // Result is between 0 and 1
+  effectFontSize = EFFECT_BASE_FONT_SIZE * effectFontScale;
+  lineHeight = BODY_BASE_LINE_HEIGHT * effectFontScale;
+  spaceWidth = effectFontSize * SPACE_WIDTH_FACTOR;
+
+  parsedBlocks.forEach((block, index) => {
+    drawBlock(block, index == 0);
+  });
+
+  const textHeight = currentOffsetY - startY;
+  ctx = originalContext;
+  return textHeight;
+}
+
 /** Given an array of blocks, draw the body of a card from a deck. */
-function drawBodyText(parsedBlocks) {
+function drawBodyText(parsedBlocks, options = {}) {
   // Check for width adjustment (for villain character cards)
   updateBodyWidthAdjustment();
 
@@ -1279,6 +1301,16 @@ function drawBodyText(parsedBlocks) {
   effectFontSize = EFFECT_BASE_FONT_SIZE * effectFontScale;
   lineHeight = BODY_BASE_LINE_HEIGHT * effectFontScale;
   spaceWidth = effectFontSize * SPACE_WIDTH_FACTOR;
+
+  // Optionally center text vertically inside the body area.
+  if (options.centerVertically) {
+    const startY = currentOffsetY;
+    const availableBottomY = QUOTE_START_Y - QUOTE_FONT_SIZE * 1.5;
+    const availableHeight = Math.max(0, availableBottomY - startY);
+    const textHeight = measureBodyTextHeight(parsedBlocks, startY);
+    const centeredOffset = Math.max(0, (availableHeight - textHeight) / 2);
+    currentOffsetY = startY + centeredOffset - (lineHeight / 4);
+  }
 
   // Draw the blocks
   parsedBlocks.forEach((block, index) => {
@@ -1551,7 +1583,7 @@ function getWordProperties(word) {
   if (effectItalicsList.indexOf(minimizedWord) != -1) { isItalics = true; }
   // If we found it, that means the punctuation is intended to be there
   if (isBold || isItalics) {
-     isPunctuated = true; 
+     isPunctuated = true;
   } else {
     isPunctuated = false;
     // Remove any punctuation
