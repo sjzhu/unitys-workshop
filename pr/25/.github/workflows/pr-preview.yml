@@ -1,0 +1,85 @@
+name: PR Preview (to gh-pages/pr/<number>/)
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, closed]
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: pr-preview-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  deploy-preview:
+    if: github.event.action != 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch (preview source)
+        uses: actions/checkout@v4
+        with:
+          path: src
+
+      - name: Checkout gh-pages (published branch)
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+          path: pages
+        continue-on-error: true
+
+      - name: Initialize gh-pages if missing
+        run: |
+          if [ ! -d "pages/.git" ]; then
+            mkdir -p pages
+            cd pages
+            git init
+            git checkout -b gh-pages
+            git remote add origin "https://github.com/${GITHUB_REPOSITORY}.git"
+          fi
+
+      - name: Publish preview into pr/<number>/
+        run: |
+          PR="${{ github.event.pull_request.number }}"
+          mkdir -p "pages/pr/$PR"
+          rm -rf "pages/pr/$PR"/*
+          rsync -av \
+            --exclude ".git/" \
+            "src/" "pages/pr/$PR/"
+
+      - name: Commit and push preview
+        run: |
+          cd pages
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Deploy PR #${{ github.event.pull_request.number }} preview" || exit 0
+          git push -u origin gh-pages
+
+      - name: Comment preview URL
+        uses: marocchino/sticky-pull-request-comment@v2
+        with:
+          header: pr-preview
+          message: |
+            ✅ Preview ready:
+            https://unitysworkshop.thewyrmsuperior.com/pr/${{ github.event.pull_request.number }}/
+
+  cleanup-preview:
+    if: github.event.action == 'closed'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout gh-pages
+        uses: actions/checkout@v4
+        with:
+          ref: gh-pages
+
+      - name: Remove preview folder
+        run: |
+          PR="${{ github.event.pull_request.number }}"
+          rm -rf "pr/$PR"
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Remove PR #$PR preview" || exit 0
+          git push
