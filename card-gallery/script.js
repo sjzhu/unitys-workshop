@@ -194,12 +194,13 @@ function loadCards(tsvData, dataGroup) {
 
       case 'Dividers':
         // Show the back as the main image because it has the card counts
-        fileName = `${cardData[0]} Back`;
+        // use Name for the file name to handle side deck things
+        fileName = `${cardData[1]} Back`;
         imagePath1 = "../_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
         // Strip out quotation marks and question marks because the files name's can't have them
         imagePath1 = imagePath1.replaceAll('"', '').replaceAll('?', '');
         // Then repeat for the back side
-        fileName = `${cardData[0]} Front`;
+        fileName = `${cardData[1]} Front`;
         imagePath2 = "../_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
         // Strip out quotation marks and question marks because the files name's can't have them
         imagePath2 = imagePath2.replaceAll('"', '').replaceAll('?', '');
