@@ -241,6 +241,8 @@ function awesomeParser(tsvData, dataGroup) {
       parseVillainDeckCards(tsvData);
   } else if (dataGroup === 'Environment Cards') {
       parseEnvironmentDeckCards(tsvData);
+  } else if (dataGroup === 'Dividers') {
+      parseDividerCards(tsvData);
   } else {
       throw new Error(`Unidentified data group: ${dataGroup}.`);
   }
