@@ -338,12 +338,41 @@ const _effectStartYMap = new Map([
         [BACK, null],
     ])],
     [PRINCIPLES, new Map([
-        [FRONT, ph(23)],
+        [FRONT, ph(21.5)],
         // Principle deck backs don't have effect text
         [BACK, null],
     ])],
 ]);
 const EFFECT_START_Y = _effectStartYMap.get(CARD_CATEGORY)?.get(FACE);
+
+// The Y position of the bottom of the effect text box. This is currently only used
+// to calculate vertical centering for horizontal deck cards.
+const _effectEndYMap = new Map([
+    [BASIC, new Map([
+        [FRONT, null],
+        // Deck backs don't have effect text
+        [BACK, null],
+    ])],
+    [ENVIRONMENT, new Map([
+        [FRONT, ph(84.5)],
+        // Deck backs don't have effect text
+        [BACK, null],
+    ])],
+    [HERO_CHAR, new Map([
+        [FRONT, null],
+        [BACK, null],
+    ])],
+    [VILLAIN_CHAR, new Map([
+        [FRONT, null],
+        [BACK, null],
+    ])],
+    [PRINCIPLES, new Map([
+        [FRONT, ph(85)],
+        // Principle deck backs don't have effect text
+        [BACK, null],
+    ])],
+]);
+const EFFECT_END_Y = _effectEndYMap.get(CARD_CATEGORY)?.get(FACE);
 
 // The base line height. Used to set the line height for body text.
 const BODY_BASE_LINE_HEIGHT = EFFECT_BASE_FONT_SIZE * 1.2345;

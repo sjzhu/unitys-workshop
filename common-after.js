@@ -1260,6 +1260,13 @@ function drawCharacterBodyBox() {
   }
 }
 
+function setupEffectFontSize() {
+  effectFontScale = $('#inputEffectTextSize').prop('value') / 100; // Result is between 0 and 1
+  effectFontSize = EFFECT_BASE_FONT_SIZE * effectFontScale;
+  lineHeight = BODY_BASE_LINE_HEIGHT * effectFontScale;
+  spaceWidth = effectFontSize * SPACE_WIDTH_FACTOR;
+}
+
 /** Measures how tall a body of text will be */
 function measureBodyTextHeight(parsedBlocks, startY) {
   const originalContext = ctx;
@@ -1268,10 +1275,7 @@ function measureBodyTextHeight(parsedBlocks, startY) {
   currentOffsetX = EFFECT_START_X + bodyWidthAdjustment;
   currentOffsetY = startY;
 
-  effectFontScale = $('#inputEffectTextSize').prop('value') / 100; // Result is between 0 and 1
-  effectFontSize = EFFECT_BASE_FONT_SIZE * effectFontScale;
-  lineHeight = BODY_BASE_LINE_HEIGHT * effectFontScale;
-  spaceWidth = effectFontSize * SPACE_WIDTH_FACTOR;
+  setupEffectFontSize();
 
   parsedBlocks.forEach((block, index) => {
     drawBlock(block, index == 0);
@@ -1297,19 +1301,15 @@ function drawBodyText(parsedBlocks, options = {}) {
   currentOffsetY = EFFECT_START_Y + boxHeightOffset + advancedTextYAdjustment;
 
   // Get and apply the text scale the user chose
-  effectFontScale = $('#inputEffectTextSize').prop('value') / 100; // Result is between 0 and 1
-  effectFontSize = EFFECT_BASE_FONT_SIZE * effectFontScale;
-  lineHeight = BODY_BASE_LINE_HEIGHT * effectFontScale;
-  spaceWidth = effectFontSize * SPACE_WIDTH_FACTOR;
+  setupEffectFontSize();
 
   // Optionally center text vertically inside the body area.
   if (options.centerVertically) {
     const startY = currentOffsetY;
-    const availableBottomY = QUOTE_START_Y - QUOTE_FONT_SIZE * 1.5;
-    const availableHeight = Math.max(0, availableBottomY - startY);
+    const availableHeight = Math.max(0, EFFECT_END_Y - startY);
     const textHeight = measureBodyTextHeight(parsedBlocks, startY);
     const centeredOffset = Math.max(0, (availableHeight - textHeight) / 2);
-    currentOffsetY = startY + centeredOffset - (lineHeight / 4);
+    currentOffsetY = startY + centeredOffset;
   }
 
   // Draw the blocks
