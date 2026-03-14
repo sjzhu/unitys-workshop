@@ -354,7 +354,7 @@ const _effectEndYMap = new Map([
         [BACK, null],
     ])],
     [ENVIRONMENT, new Map([
-        [FRONT, ph(84.5)],
+        [FRONT, ph(81)],
         // Deck backs don't have effect text
         [BACK, null],
     ])],
@@ -367,7 +367,7 @@ const _effectEndYMap = new Map([
         [BACK, null],
     ])],
     [PRINCIPLES, new Map([
-        [FRONT, ph(85)],
+        [FRONT, ph(81)],
         // Principle deck backs don't have effect text
         [BACK, null],
     ])],
