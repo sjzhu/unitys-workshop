@@ -335,20 +335,6 @@ function drawCardAttribution() {
   }
 }
 
-function drawArtistAttribution() {
-  let artist = $('#inputArtistAttribution').prop('value');
-  if (artist) {
-    artist = "Art by: " + artist;
-    let artistFontSize = ph(3.3);
-    ctx.font = `${EFFECT_FONT_WEIGHT} normal ${artistFontSize}px ${EFFECT_FONT_FAMILY}`;
-    ctx.fillStyle = '#ffffff';
-    ctx.textAlign = "right";
-    let artistX = pw(96);
-    let artistY = ph(98.8);
-    ctx.fillText(artist, artistX, artistY);
-  }
-}
-
 /* NOTEPAD
 
 I could introduce manual line breaks in the effect text... or I could write a script to detect when there is a number followed by a space in the block string, then replace that space with a non-breaking space. (oh, but the non-breaking space might not have the same width as my custom space width...)

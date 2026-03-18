@@ -1066,6 +1066,19 @@ function drawCardQuote() {
 Functions for rendering card bodies
 ============================================================================
 */
+
+function drawArtistAttribution() {
+  let artist = $('#inputArtistAttribution').prop('value');
+  if (artist) {
+    artist = "Art by: " + artist;
+    let artistFontSize = CARD_CATEGORY === BASIC ? pw(3.3) : ph(3.3);
+    ctx.font = `${EFFECT_FONT_WEIGHT} normal ${artistFontSize}px ${EFFECT_FONT_FAMILY}`;
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = "right";
+    ctx.fillText(artist, ARTIST_ATTRIBUTION_X, ARTIST_ATTRIBUTION_Y);
+  }
+}
+
 /**
  * Determines the indent label in a line of game text. If one exists, this method returns the label and the length of the specifier that was used to identify it. If not
  * label can be extracted, this returns null, which indicates that this line is not an indent block.
