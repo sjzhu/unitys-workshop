@@ -291,12 +291,20 @@ $(".searchInput").on("input", function (e) {
 // Filter display based on search input
 function submitSearch() {
   console.info("Searching...");
+  const rawQuery = $(".searchInput").val();
+  const searchUrl = new URL(window.location.href);
+  if (rawQuery && rawQuery.length > 0) {
+    searchUrl.searchParams.set("q", rawQuery);
+  } else {
+    searchUrl.searchParams.delete("q");
+  }
+  window.history.replaceState({}, "", searchUrl);
   // Regex will be entirely literal, no replacements
   // Check if regex checkbox is checked
   if ($("#regex").is(":checked")) {
     // Create new RegExp from search value, catch errors and do nothing will malformed RegExp
     try{
-      const regex = new RegExp( $(".searchInput").val(), "i")
+      const regex = new RegExp(rawQuery, "i")
 
       $(".card").each(function (index, element) {
         // Get card content (text of cardDetails element basically) and test against RegExp search
@@ -315,7 +323,7 @@ function submitSearch() {
   }
 
   // Get the query, make it not case-sensitive and do any necessary replacements
-  const query = sentinelsReplacements($(".searchInput").val().toLowerCase());
+  const query = sentinelsReplacements(rawQuery.toLowerCase());
 
   // Try to perform an expressive search. If that fails (not out of the question), fall back to legacy search.
   if (expressiveSearch(query)) {
