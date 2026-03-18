@@ -337,7 +337,6 @@ function drawCardAttribution() {
 
 function drawArtistAttribution() {
   let artist = $('#inputArtistAttribution').prop('value');
-  console.log(artist);
   if (artist) {
     artist = "Art by: " + artist;
     let artistFontSize = ph(3.3);
