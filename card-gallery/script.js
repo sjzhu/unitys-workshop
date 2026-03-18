@@ -277,6 +277,7 @@ function loadCards(tsvData, dataGroup) {
     });
     // If there's already something in the search bar, do a search
     submitSearch();
+    updateSearchResultsCount();
   }
 }
 
@@ -285,6 +286,7 @@ $(".searchInput").on("input", function (e) {
   // Check if auto submit is checked
   if($("#autoSubmit").is(":checked")){
     submitSearch();
+    updateSearchResultsCount();
   }
 })
 
@@ -307,7 +309,6 @@ function submitSearch() {
           $(this).hide();
         }
       })
-      updateSearchResultsCount();
     } catch (ex) {
       // If we catch an error with the regex, swallow it
       console.log("Caught an exception when performing a regex search", ex);
@@ -320,7 +321,6 @@ function submitSearch() {
 
   // Try to perform an expressive search. If that fails (not out of the question), fall back to legacy search.
   if (expressiveSearch(query)) {
-    updateSearchResultsCount();
     return;
   }
 
@@ -336,7 +336,6 @@ function submitSearch() {
       $(this).hide();
     }
   })
-  updateSearchResultsCount();
 }
 
 function updateSearchResultsCount() {
