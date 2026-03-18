@@ -277,7 +277,6 @@ function loadCards(tsvData, dataGroup) {
     });
     // If there's already something in the search bar, do a search
     submitSearch();
-    updateSearchResultsCount();
   }
 }
 
@@ -286,12 +285,17 @@ $(".searchInput").on("input", function (e) {
   // Check if auto submit is checked
   if($("#autoSubmit").is(":checked")){
     submitSearch();
-    updateSearchResultsCount();
   }
 })
 
-// Filter display based on search input
+// Submit search and do any pre/post processing (like counting the results)
 function submitSearch() {
+  executeSearch();
+  updateSearchResultsCount();
+}
+
+// Filter display based on search input
+function executeSearch() {
   console.info("Searching...");
   const rawQuery = $(".searchInput").val();
   const searchUrl = new URL(window.location.href);
