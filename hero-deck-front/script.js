@@ -332,20 +332,6 @@ function drawCardAttribution() {
   }
 }
 
-function drawArtistAttribution() {
-  let artist = $('#inputArtistAttribution').prop('value');
-  if (artist) {
-    artist = "Art by: " + artist;
-    let artistFontSize = pw(3.3);
-    ctx.font = `${EFFECT_FONT_WEIGHT} normal ${artistFontSize}px ${EFFECT_FONT_FAMILY}`;
-    ctx.fillStyle = '#ffffff';
-    ctx.textAlign = "right";
-    let artistX = pw(96);
-    let artistY = ph(99);
-    ctx.fillText(artist, artistX, artistY);
-  }
-}
-
 /* NOTEPAD
 
 Official card contents for testing:
