@@ -337,6 +337,136 @@ function drawCardAttribution() {
   }
 }
 
+function loadBatchCardArt(imageURL) {
+  return new Promise((resolve, reject) => {
+    if (!imageURL) {
+      cardArtImage = null;
+      resolve();
+      return;
+    }
+
+    const batchImage = new Image();
+    batchImage.crossOrigin = "Anonymous";
+    batchImage.onload = function () {
+      cardArtImage = batchImage;
+      resolve();
+    };
+    batchImage.onerror = function () {
+      reject(new Error(`Failed to load image URL: ${imageURL}`));
+    };
+    batchImage.src = imageURL;
+  });
+}
+
+function applyBatchJSONEntry(data) {
+  parseJSONData({
+    Title: data.Title ?? '',
+    HP: data.HP ?? '',
+    Keywords: data.Keywords ?? '',
+    BoldedTerms: data.BoldedTerms ?? '',
+    GameText: data.GameText ?? '',
+    GameTextSize: data.GameTextSize ?? '100',
+    Quote: data.Quote ?? '',
+    QuoteTextSize: data.QuoteTextSize ?? '100',
+    Attribution: data.Attribution ?? '',
+    ImageX: data.ImageX ?? '0',
+    ImageY: data.ImageY ?? '0',
+    ImageZoom: data.ImageZoom ?? '100'
+  });
+}
+
+function sanitizeBatchFilename(title) {
+  const trimmedTitle = `${title || DEFAULT_DOWNLOAD_NAME}`.trim();
+  const safeTitle = trimmedTitle.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').replace(/\s+/g, ' ').trim();
+  return safeTitle || DEFAULT_DOWNLOAD_NAME;
+}
+
+function getUniqueBatchFilename(baseName, usedNames) {
+  let candidate = baseName;
+  let suffix = 2;
+  while (usedNames.has(candidate)) {
+    candidate = `${baseName} ${suffix}`;
+    suffix += 1;
+  }
+  usedNames.add(candidate);
+  return `${candidate}.png`;
+}
+
+function canvasToBlobAsync(targetCanvas) {
+  return new Promise((resolve, reject) => {
+    targetCanvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+      } else {
+        reject(new Error('Failed to convert canvas to PNG.'));
+      }
+    }, 'image/png');
+  });
+}
+
+async function downloadMultipleVillainDeckImages() {
+  let jsonEntries;
+  try {
+    jsonEntries = parseJSONEntries($('#jsonInput').prop('value')).filter((entry) => typeof entry === 'object' && entry !== null);
+  } catch (err) {
+    $('#jsonError').text("JSON Parse error:" + err.message);
+    return;
+  }
+
+  if (jsonEntries.length === 0) {
+    $('#jsonError').text('JSON Parse error: no JSON entries were found.');
+    return;
+  }
+
+  if (typeof JSZip === 'undefined') {
+    $('#jsonError').text('Batch download failed: JSZip did not load.');
+    return;
+  }
+
+  const button = $('#downloadMultipleButton');
+  const originalButtonText = button.text();
+  button.prop('disabled', true).text('Preparing ZIP...');
+  $('#jsonError').text('');
+
+  try {
+    const zip = new JSZip();
+    const usedNames = new Set();
+
+    for (let index = 0; index < jsonEntries.length; index++) {
+      const entry = jsonEntries[index];
+      const cardTitle = entry.Title || `card-${index + 1}`;
+      button.text(`Rendering ${index + 1}/${jsonEntries.length}...`);
+
+      applyBatchJSONEntry(entry);
+      await loadBatchCardArt(entry.ImageURL ?? '');
+      drawCardCanvas();
+
+      const pngBlob = await canvasToBlobAsync(canvas);
+      const filename = getUniqueBatchFilename(sanitizeBatchFilename(cardTitle), usedNames);
+      zip.file(filename, pngBlob);
+    }
+
+    button.text('Creating ZIP...');
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const zipName = sanitizeBatchFilename(jsonEntries[0]?.['Originating deck'] || 'villain-deck-front-images');
+    const downloadLink = document.createElement('a');
+    const objectUrl = URL.createObjectURL(zipBlob);
+    downloadLink.href = objectUrl;
+    downloadLink.download = `${zipName}.zip`;
+    downloadLink.click();
+    downloadLink.remove();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+  } catch (err) {
+    $('#jsonError').text(`Batch download failed: ${err.message}`);
+  } finally {
+    button.prop('disabled', false).text(originalButtonText);
+  }
+}
+
+$('#downloadMultipleButton').on('click', function () {
+  downloadMultipleVillainDeckImages();
+});
+
 /* NOTEPAD
 
 I could introduce manual line breaks in the effect text... or I could write a script to detect when there is a number followed by a space in the block string, then replace that space with a non-breaking space. (oh, but the non-breaking space might not have the same width as my custom space width...)
