@@ -288,8 +288,14 @@ $(".searchInput").on("input", function (e) {
   }
 })
 
-// Filter display based on search input
+// Submit search and do any pre/post processing (like counting the results)
 function submitSearch() {
+  executeSearch();
+  updateSearchResultsCount();
+}
+
+// Filter display based on search input
+function executeSearch() {
   console.info("Searching...");
   const rawQuery = $(".searchInput").val();
   const searchUrl = new URL(window.location.href);
@@ -342,6 +348,17 @@ function submitSearch() {
       $(this).hide();
     }
   })
+}
+
+function updateSearchResultsCount() {
+  const rawQuery = $(".searchInput").val();
+  if (!rawQuery || rawQuery.trim().length === 0) {
+    $(".searchResultsCount").text("");
+    return;
+  }
+  const count = $(".card:visible").length;
+  const label = `Found ${count} result${count === 1 ? '' : 's'}`;
+  $(".searchResultsCount").text(label);
 }
 
 // Handle any text replacement for weird text characters in SOTM
