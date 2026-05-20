@@ -365,9 +365,11 @@ function updateSearchResultsCount() {
 function sentinelsReplacements(query) {
   let modifiedQuery = query;
 
-  // Replace ae with æ when it is at the beginning of a word
+  // Replace ae with æ when it is either the entire word, or at the beginning of aeternus or 
+  // something similar
   // this should already be entirely lowercase
-  modifiedQuery = modifiedQuery.replace(/\bae/g, "æ");
+  modifiedQuery = modifiedQuery.replace(/\bae\b/g, "æ");
+  modifiedQuery = modifiedQuery.replace(/\baet/g, "æt");
 
   return modifiedQuery;
 }
