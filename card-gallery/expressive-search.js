@@ -241,6 +241,8 @@ function awesomeParser(tsvData, dataGroup) {
       parseVillainDeckCards(tsvData);
   } else if (dataGroup === 'Environment Cards') {
       parseEnvironmentDeckCards(tsvData);
+  } else if (dataGroup === 'Dividers') {
+      parseDividerCards(tsvData);
   } else {
       throw new Error(`Unidentified data group: ${dataGroup}.`);
   }
@@ -501,6 +503,36 @@ function parsePrincipleCards(tsvData) {
   }
 }
 
+function parseDividerCards(tsvData) {
+  let dataLines = getDataLines(tsvData)
+  for (let lineIndex = 1; lineIndex < dataLines.length; lineIndex++) {
+    let line = getLine(dataLines, lineIndex);
+    let card = new Card();
+    card.id = buildUniqueId("dv", lineIndex);
+    card.crunchedDeckName = extractCrunchedName(line[0]);
+    card.crunchedCharacterName = extractCrunchedName(line[1]);
+    card.type = line[2];
+    card.kind = "divider";
+    card.hasBack = true;
+    switch (card.type) {
+      case "villain":
+        card.difficulty = parseInt(line[3]);
+        break;
+      case "hero":
+        card.complexity = parseInt(line[3]);
+        break;
+      case "environment":
+        card.peril = parseInt(line[3]);
+        break;
+      default:
+        card.cdp = parseInt(line[3]);
+        break;
+    }
+    card.set = line[4];
+    cards.push(card);
+  }
+}
+
 function getDataLines(tsvData) {
   return tsvData.split("\n");
 }
@@ -582,7 +614,7 @@ function subArrayOverlapRegexMatch(candidate, regexList) {
       if (allMatch) {
         return true;
       }
-      // If not, continue the loop until we're out of candidate crunches. 
+      // If not, continue the loop until we're out of candidate crunches.
     }
     return false;
   }
