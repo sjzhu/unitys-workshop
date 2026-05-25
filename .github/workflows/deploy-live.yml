@@ -17,12 +17,12 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout main (site source)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           path: src
 
       - name: Checkout gh-pages (published branch)
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
         with:
           ref: gh-pages
           path: pages
