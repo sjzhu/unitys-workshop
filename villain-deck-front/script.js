@@ -117,6 +117,9 @@ function drawCardCanvas() {
   // Draw the card quote attribution
   drawCardAttribution();
 
+  // Draw artist attribution
+  drawArtistAttribution();
+
 
   // Update image element
   //canvasImage.src = canvas.toDataURL();
