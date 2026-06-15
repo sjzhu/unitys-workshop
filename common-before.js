@@ -484,6 +484,26 @@ const _quoteWidthMap = new Map([
 ]);
 const QUOTE_WIDTH = _quoteWidthMap.get(CARD_CATEGORY)?.get(FACE);
 
+const _artistAttributionXMap = new Map([
+    [BASIC, pw(96)],
+    [ENVIRONMENT, pw(96)],
+    // not done for characters yet
+    [HERO_CHAR, null],
+    [VILLAIN_CHAR, null],
+    [PRINCIPLES, pw(96)],
+]);
+const ARTIST_ATTRIBUTION_X = _artistAttributionXMap.get(CARD_CATEGORY);
+
+const _artistAttributionYMap = new Map([
+    [BASIC, ph(99)],
+    [ENVIRONMENT, ph(98.8)],
+    // not done for characters yet
+    [HERO_CHAR, null],
+    [VILLAIN_CHAR, null],
+    [PRINCIPLES, ph(98.8)],
+]);
+const ARTIST_ATTRIBUTION_Y = _artistAttributionYMap.get(CARD_CATEGORY);
+
 // This object is where user input images (specifically Image objects) are stored
 // currently unused for deck fronts, but needs to exist for JSON parsing to function correctly
 const loadedUserImages = {
