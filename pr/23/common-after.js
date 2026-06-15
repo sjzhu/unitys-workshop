@@ -669,6 +669,13 @@ function parseJSONData(data) {
   } else {
     $('#inputAttribution').val('');
   }
+  if('ArtistAttribution' in data) {
+    $('#inputArtistAttribution').val(data.ArtistAttribution);
+  } else if('Artist' in data) {
+    $('#inputArtistAttribution').val(data.Artist);
+  } else {
+    $('#inputArtistAttribution').val('');
+  }
   if('ImageURL' in data && data.ImageURL.length != 0) {
     cardArtImage = new Image();
     cardArtImage.crossOrigin = "Anonymous";
@@ -897,6 +904,7 @@ function outputJSONData(category="basic") {
       "Quote": ${JSON.stringify($('#inputQuote').val())},
       "QuoteTextSize": ${JSON.stringify($('#inputQuoteTextSize').val())},
       "Attribution": ${JSON.stringify($('#inputAttribution').val())},
+      "ArtistAttribution": ${JSON.stringify(getInputValue('#inputArtistAttribution'))},
       "ImageURL": ${JSON.stringify(extractImageURL())},
       "ImageX": ${JSON.stringify($('.inputImageOffsetX').val())},
       "ImageY": ${JSON.stringify($('.inputImageOffsetY').val())},
@@ -972,6 +980,7 @@ function outputJSONData(category="basic") {
         "Quote": ${JSON.stringify($('#inputQuote').val())},
         "QuoteTextSize": ${JSON.stringify($('#inputQuoteTextSize').val())},
         "Attribution": ${JSON.stringify($('#inputAttribution').val())},
+        "ArtistAttribution": ${JSON.stringify(getInputValue('#inputArtistAttribution'))},
         "ImageURL": ${JSON.stringify(extractImageURL())},
         "ImageX": ${JSON.stringify($('.inputImageOffsetX').val())},
         "ImageY": ${JSON.stringify($('.inputImageOffsetY').val())},
@@ -984,6 +993,11 @@ function outputJSONData(category="basic") {
 // Helper method to get if a checkbox is checked without breaking if it doesn't exist
 function isChecked(jquery_id) {
   return $(jquery_id).length? JSON.stringify($(jquery_id)[0].checked) : 'false'
+}
+
+// Helper method to get an input value without breaking on pages where it doesn't exist
+function getInputValue(jquery_id, fallback='') {
+  return $(jquery_id).length? $(jquery_id).val() : fallback;
 }
 
 function extractImageURL(purpose="") {
