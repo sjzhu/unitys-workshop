@@ -61,10 +61,25 @@ $('#inputImageFile').on('input', function (e) {
 
 // Reset the card art image adjustment controls when user uploads a new image
 $('#inputImageFile').on('input', function () {
-  $('.inputImageOffsetX').prop('value', '0');
-  $('.inputImageOffsetY').prop('value', '0');
-  $('.inputImageScale').prop('value', '100');
+  $('.inputImageOffsetX[data-image-purpose="mainArt"]').prop('value', '0');
+  $('.inputImageOffsetY[data-image-purpose="mainArt"]').prop('value', '0');
+  $('.inputImageScale[data-image-purpose="mainArt"]').prop('value', '100');
 });
+
+// This object is where user input images (specifically Image objects) other than the main art are stored
+loadedUserImages[ADDITIONAL_ICON] = null;
+
+// Handle user image uploading for purpose-scoped images (currently just the Additional Icon)
+$('.inputImageFile').on('input', function () {
+  let uploadedImage = this.files[0];
+  if (uploadedImage) {
+    let imagePurpose = this.dataset.imagePurpose;
+    loadedUserImages[imagePurpose] = new Image();
+    loadedUserImages[imagePurpose].crossOrigin = "Anonymous";
+    loadedUserImages[imagePurpose].src = URL.createObjectURL(uploadedImage);
+    loadedUserImages[imagePurpose].onload = function () { drawCardCanvas(); }
+  }
+})
 
 /*
 ============================================================================
@@ -107,6 +122,11 @@ function drawCardCanvas() {
 
   // Draw the card keywords
   drawCardKeywords();
+
+  // Draw the additional icon (on top of the keyword box, if they overlap)
+  if (loadedUserImages[ADDITIONAL_ICON]) {
+    drawArtInCroppedArea('vdcf_additionalIcon');
+  }
 
   // Draw the card effect
   drawBodyText(parseCardBody());
