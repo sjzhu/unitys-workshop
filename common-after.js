@@ -454,10 +454,10 @@ imageAreas = {
   ==========================================================*/
   hdcf_additionalIcon: {
     pathShape: coordinatesToPathShape([
-      [84, 52.40],
-      [96, 52.40],
-      [96, 61.00],
-      [84, 61.00]
+      [78, 48.10],
+      [102, 48.10],
+      [102, 65.30],
+      [78, 65.30]
     ]),
     scaleStyle: 'fit',
     vAlign: 'center',
@@ -473,10 +473,10 @@ imageAreas = {
   ==========================================================*/
   vdcf_additionalIcon: {
     pathShape: coordinatesToPathShape([
-      [84, 55.20],
-      [96, 55.20],
-      [96, 63.80],
-      [84, 63.80]
+      [78, 50.90],
+      [102, 50.90],
+      [102, 68.10],
+      [78, 68.10]
     ]),
     scaleStyle: 'fit',
     vAlign: 'center',
@@ -764,11 +764,11 @@ function parseJSONData(data) {
   if('AdditionalIconZoom' in data) {
     let zoomVal = parseInt(data.AdditionalIconZoom);
     if (zoomVal == NaN) {
-      zoomVal = 100;
+      zoomVal = 50;
     }
     $(getImagePurposeSelector(IMAGE_ZOOM, ADDITIONAL_ICON)).val(zoomVal);
   } else {
-    $(getImagePurposeSelector(IMAGE_ZOOM, ADDITIONAL_ICON)).val(100);
+    $(getImagePurposeSelector(IMAGE_ZOOM, ADDITIONAL_ICON)).val(50);
   }
 
   // this is complicated to allow for the fact that suddenly can be either a string or a boolean, depending on how people input it
@@ -958,7 +958,7 @@ function outputJSONData(category="basic") {
     // Not every page that shares this category has Additional Icon controls, so fall back to defaults if they're missing
     let additionalIconX = $(getImagePurposeSelector(IMAGE_X, ADDITIONAL_ICON)).length ? $(getImagePurposeSelector(IMAGE_X, ADDITIONAL_ICON)).val() : 0;
     let additionalIconY = $(getImagePurposeSelector(IMAGE_Y, ADDITIONAL_ICON)).length ? $(getImagePurposeSelector(IMAGE_Y, ADDITIONAL_ICON)).val() : 0;
-    let additionalIconZoom = $(getImagePurposeSelector(IMAGE_ZOOM, ADDITIONAL_ICON)).length ? $(getImagePurposeSelector(IMAGE_ZOOM, ADDITIONAL_ICON)).val() : 100;
+    let additionalIconZoom = $(getImagePurposeSelector(IMAGE_ZOOM, ADDITIONAL_ICON)).length ? $(getImagePurposeSelector(IMAGE_ZOOM, ADDITIONAL_ICON)).val() : 50;
     outputJSON = `{
       "Title": ${JSON.stringify($('#inputTitle').val())},
       "HP": ${JSON.stringify($('#inputHP').val())},
