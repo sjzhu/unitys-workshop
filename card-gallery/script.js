@@ -304,6 +304,11 @@ function executeSearch() {
   } else {
     searchUrl.searchParams.delete("q");
   }
+  if ($("#regex").is(":checked")) {
+    searchUrl.searchParams.set("regex", "true");
+  } else {
+    searchUrl.searchParams.delete("regex");
+  }
   window.history.replaceState({}, "", searchUrl);
   // Regex will be entirely literal, no replacements
   // Check if regex checkbox is checked
@@ -375,7 +380,10 @@ function sentinelsReplacements(query) {
 }
 
 window.addEventListener("load", () => {
-  let query = (new URLSearchParams(document.location.search)).get("q");
+  const searchParams = new URLSearchParams(document.location.search);
+  const query = searchParams.get("q");
+  const regexParam = searchParams.get("regex");
+  $("#regex").prop("checked", regexParam?.toLowerCase() === "true");
   if (query) {
     $(".searchInput").val(query);
   }
