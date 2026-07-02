@@ -448,6 +448,44 @@ imageAreas = {
     getAdjustments: function () {
       return getUserImageAdjustments(BACK_LEFT_ART);
     }
+  },
+  /*==========================================================
+  Hero Deck Front
+  ==========================================================*/
+  hdcf_additionalIcon: {
+    pathShape: coordinatesToPathShape([
+      [84, 52.40],
+      [96, 52.40],
+      [96, 61.00],
+      [84, 61.00]
+    ]),
+    scaleStyle: 'fit',
+    vAlign: 'center',
+    getImage: function () {
+      return getUserImage(ADDITIONAL_ICON);
+    },
+    getAdjustments: function () {
+      return getUserImageAdjustments(ADDITIONAL_ICON);
+    }
+  },
+  /*==========================================================
+  Villain Deck Front
+  ==========================================================*/
+  vdcf_additionalIcon: {
+    pathShape: coordinatesToPathShape([
+      [84, 55.20],
+      [96, 55.20],
+      [96, 63.80],
+      [84, 63.80]
+    ]),
+    scaleStyle: 'fit',
+    vAlign: 'center',
+    getImage: function () {
+      return getUserImage(ADDITIONAL_ICON);
+    },
+    getAdjustments: function () {
+      return getUserImageAdjustments(ADDITIONAL_ICON);
+    }
   }
 }
 
@@ -702,6 +740,36 @@ function parseJSONData(data) {
   } else {
     $('.inputImageScale').val(100);
   }
+  if('AdditionalIconURL' in data && data.AdditionalIconURL.length != 0) {
+    loadedUserImages[ADDITIONAL_ICON] = new Image();
+    loadedUserImages[ADDITIONAL_ICON].crossOrigin = "Anonymous";
+    loadedUserImages[ADDITIONAL_ICON].src = data.AdditionalIconURL;
+    loadedUserImages[ADDITIONAL_ICON].onload = function () {
+      // Once the Image has loaded, redraw the canvas so it immediately appears
+      drawCardCanvas();
+    }
+  } else {
+    loadedUserImages[ADDITIONAL_ICON] = null;
+  }
+  if('AdditionalIconX' in data) {
+    $(getImagePurposeSelector(IMAGE_X, ADDITIONAL_ICON)).val(data.AdditionalIconX);
+  } else {
+    $(getImagePurposeSelector(IMAGE_X, ADDITIONAL_ICON)).val(0);
+  }
+  if('AdditionalIconY' in data) {
+    $(getImagePurposeSelector(IMAGE_Y, ADDITIONAL_ICON)).val(data.AdditionalIconY);
+  } else {
+    $(getImagePurposeSelector(IMAGE_Y, ADDITIONAL_ICON)).val(0);
+  }
+  if('AdditionalIconZoom' in data) {
+    let zoomVal = parseInt(data.AdditionalIconZoom);
+    if (zoomVal == NaN) {
+      zoomVal = 100;
+    }
+    $(getImagePurposeSelector(IMAGE_ZOOM, ADDITIONAL_ICON)).val(zoomVal);
+  } else {
+    $(getImagePurposeSelector(IMAGE_ZOOM, ADDITIONAL_ICON)).val(100);
+  }
 
   // this is complicated to allow for the fact that suddenly can be either a string or a boolean, depending on how people input it
   if ($('#suddenly').length > 0) {
@@ -887,6 +955,10 @@ function parseJSONData(data) {
 function outputJSONData(category="basic") {
   var outputJSON = '';
   if(category == BASIC || category == ENVIRONMENT) {
+    // Not every page that shares this category has Additional Icon controls, so fall back to defaults if they're missing
+    let additionalIconX = $(getImagePurposeSelector(IMAGE_X, ADDITIONAL_ICON)).length ? $(getImagePurposeSelector(IMAGE_X, ADDITIONAL_ICON)).val() : 0;
+    let additionalIconY = $(getImagePurposeSelector(IMAGE_Y, ADDITIONAL_ICON)).length ? $(getImagePurposeSelector(IMAGE_Y, ADDITIONAL_ICON)).val() : 0;
+    let additionalIconZoom = $(getImagePurposeSelector(IMAGE_ZOOM, ADDITIONAL_ICON)).length ? $(getImagePurposeSelector(IMAGE_ZOOM, ADDITIONAL_ICON)).val() : 100;
     outputJSON = `{
       "Title": ${JSON.stringify($('#inputTitle').val())},
       "HP": ${JSON.stringify($('#inputHP').val())},
@@ -901,6 +973,10 @@ function outputJSONData(category="basic") {
       "ImageX": ${JSON.stringify($('.inputImageOffsetX').val())},
       "ImageY": ${JSON.stringify($('.inputImageOffsetY').val())},
       "ImageZoom": ${JSON.stringify($('.inputImageScale').val())},
+      "AdditionalIconURL": ${JSON.stringify(extractImageURL(ADDITIONAL_ICON))},
+      "AdditionalIconX": ${JSON.stringify(additionalIconX)},
+      "AdditionalIconY": ${JSON.stringify(additionalIconY)},
+      "AdditionalIconZoom": ${JSON.stringify(additionalIconZoom)},
       "Suddenly": ${isChecked('#suddenly')}
     },`;
   } else if (category == HERO_CHAR) {
