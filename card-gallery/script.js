@@ -8,7 +8,8 @@ const cardCategories = [
   'Critical Events',
   'Villain Cards',
   'Environment Cards',
-  'Principle Cards'
+  'Principle Cards',
+  'Dividers'
 ]
 const CARD_CATEGORY_TO_ID_PREFIX = new Map([
   ['Hero Character Cards',      'hc'],
@@ -19,7 +20,8 @@ const CARD_CATEGORY_TO_ID_PREFIX = new Map([
   ['Critical Events',           'ec'],
   ['Villain Cards',             'vd'],
   ['Environment Cards',         'ed'],
-  ['Principle Cards',           'pd']
+  ['Principle Cards',           'pd'],
+  ['Dividers',                  'dv']
 ]);
 
 let currentCardCategory = 0;
@@ -189,6 +191,20 @@ function loadCards(tsvData, dataGroup) {
         // Strip out quotation marks and question marks because the files name's can't have them
         imagePath2 = imagePath2.replaceAll('"', '').replaceAll('?', '');
         break;
+
+      case 'Dividers':
+        // Show the back as the main image because it has the card counts
+        // use Name for the file name to handle side deck things
+        fileName = `${cardData[1]} Back`;
+        imagePath1 = "../_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
+        // Strip out quotation marks and question marks because the files name's can't have them
+        imagePath1 = imagePath1.replaceAll('"', '').replaceAll('?', '');
+        // Then repeat for the back side
+        fileName = `${cardData[1]} Front`;
+        imagePath2 = "../_resources/Scans/" + dataGroup + "/" + fileName + ".webp";
+        // Strip out quotation marks and question marks because the files name's can't have them
+        imagePath2 = imagePath2.replaceAll('"', '').replaceAll('?', '');
+        break;
     }
 
     // Create new card HTML
@@ -228,6 +244,9 @@ function loadCards(tsvData, dataGroup) {
         break;
       case 'Critical Events':
         extraClasses += ' criticalEvent flippable';
+        break;
+      case 'Dividers':
+        extraClasses += ' divider flippable';
         break;
     }
 
