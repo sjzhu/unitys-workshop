@@ -79,6 +79,10 @@
                 <li>ImageY: Y position adjustment for card image (negative goes up, positive goes down) (from -50 to 50)</li>
                 <li>GameTextSize: scaling of text in the GameText box (from 80 to 100)</li>
                 <li>ImageZoom: How much to zoom in on the card image (from 100 to 500)</li>
+                <li>AdditionalIconURL: External URL to retrieve the Additional Icon image from</li>
+                <li>AdditionalIconX: X position adjustment for the Additional Icon (negative goes left, positive right) (from -50 to 50)</li>
+                <li>AdditionalIconY: Y position adjustment for the Additional Icon (negative goes up, positive goes down) (from -50 to 50)</li>
+                <li>AdditionalIconZoom: How much to zoom in on the Additional Icon (from 10 to 500)</li>
                 <li>Suddenly: toggle for if card should be rendered using the SUDDENLY template (any value works, delete field if you don't want suddenly)</li>
               </ul>
               <p>I recommend using https://opensheet.elk.sh to convert a google spreadsheet into a JSON file that will be easy to copy/paste into the application.</p>
@@ -167,6 +171,27 @@
           <summary>Advanced Formatting</summary>
           <label for="inputQuoteTextSize" style="margin-top: 10px;">Quote Text Size</label>
           <input type="range" class="contentInput" id="inputQuoteTextSize" min="80" max="100" value="100">
+        </details>
+      </div>
+      <div class="inputGroup">
+        <details>
+          <summary>Additional Icon</summary>
+          <label for="inputAdditionalIconFile" style="margin-top: 10px;">Upload Image</label>
+          <input type="file" accept="image/*" data-image-purpose="additionalIcon" class="contentInput inputImageFile">
+
+          <label for="inputImageOffsetX" style="margin-top: 10px;">X Position</label>
+          <input type="range" data-image-purpose="additionalIcon" class="contentInput inputImageOffsetX rangeSlider" min="-50" max="50" data-default="0">
+          <input type="text" data-image-purpose="additionalIcon" class="contentInput rangeText" data-default="0">
+
+          <label for="inputImageOffsetY">Y Position</label>
+          <input type="range" data-image-purpose="additionalIcon" class="contentInput inputImageOffsetY rangeSlider" min="-50" max="50" data-default="0">
+          <input type="text" data-image-purpose="additionalIcon" class="contentInput rangeText" data-default="0">
+
+          <label for="inputImageScale">Zoom</label>
+          <input type="range" data-image-purpose="additionalIcon" class="contentInput inputImageScale rangeSlider" min="10" max="500" data-default="50">
+          <input type="text" data-image-purpose="additionalIcon" class="contentInput rangeText" data-default="50">
+
+          <button style="margin-top: 10px;" data-image-purpose="additionalIcon" class="adjustmentResetButton clearImageButton">Clear Image and Adjustments</button>
         </details>
       </div>
     </div>
