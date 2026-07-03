@@ -473,10 +473,29 @@ imageAreas = {
   ==========================================================*/
   vdcf_additionalIcon: {
     pathShape: coordinatesToPathShape([
-      [78, 50.90],
-      [102, 50.90],
-      [102, 68.10],
-      [78, 68.10]
+      [78, 47.90],
+      [102, 47.90],
+      [102, 65.10],
+      [78, 65.10]
+    ]),
+    scaleStyle: 'fit',
+    vAlign: 'center',
+    getImage: function () {
+      return getUserImage(ADDITIONAL_ICON);
+    },
+    getAdjustments: function () {
+      return getUserImageAdjustments(ADDITIONAL_ICON);
+    }
+  },
+  /*==========================================================
+  Environment Deck Front
+  ==========================================================*/
+  edcf_additionalIcon: {
+    pathShape: coordinatesToPathShape([
+      [41.41, 61.50],
+      [58.60, 61.50],
+      [58.60, 85.50],
+      [41.41, 85.50]
     ]),
     scaleStyle: 'fit',
     vAlign: 'center',
