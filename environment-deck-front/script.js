@@ -61,6 +61,21 @@ $('#inputImageFile').on('input', function (e) {
   }
 })
 
+// This object is where user input images (specifically Image objects) other than the main art are stored
+loadedUserImages[ADDITIONAL_ICON] = null;
+
+// Handle user image uploading for purpose-scoped images (currently just the Additional Icon)
+$('.inputImageFile').on('input', function () {
+  let uploadedImage = this.files[0];
+  if (uploadedImage) {
+    let imagePurpose = this.dataset.imagePurpose;
+    loadedUserImages[imagePurpose] = new Image();
+    loadedUserImages[imagePurpose].crossOrigin = "Anonymous";
+    loadedUserImages[imagePurpose].src = URL.createObjectURL(uploadedImage);
+    loadedUserImages[imagePurpose].onload = function () { drawCardCanvas(); }
+  }
+})
+
 
 /*
 ============================================================================
@@ -108,6 +123,11 @@ function drawCardCanvas() {
 
   // Draw the card keywords
   drawCardKeywords();
+
+  // Draw the additional icon (on top of the keyword box, if they overlap)
+  if (loadedUserImages[ADDITIONAL_ICON]) {
+    drawArtInCroppedArea('edcf_additionalIcon');
+  }
 
   // Draw the card effect
   drawBodyText(parseCardBody(), { centerVertically: true });
