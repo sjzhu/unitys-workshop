@@ -175,6 +175,14 @@
       <div class="inputGroup">
         <details>
           <summary>Additional Icon</summary>
+          <label style="margin-top: 10px;">Placement</label>
+          <div class="checkboxGroup">
+            <input type="radio" name="additionalIconMode" value="icon" class="contentInput" id="additionalIconModeIcon" checked>
+            <label for="additionalIconModeIcon">Icon</label>
+            <input type="radio" name="additionalIconMode" value="overlay" class="contentInput" id="additionalIconModeOverlay">
+            <label for="additionalIconModeOverlay">Overlay</label>
+          </div>
+
           <label for="inputAdditionalIconFile" style="margin-top: 10px;">Upload Image</label>
           <input type="file" accept="image/*" data-image-purpose="additionalIcon" class="contentInput inputImageFile">
 
@@ -187,8 +195,8 @@
           <input type="text" data-image-purpose="additionalIcon" class="contentInput rangeText" data-default="0">
 
           <label for="inputImageScale">Zoom</label>
-          <input type="range" data-image-purpose="additionalIcon" class="contentInput inputImageScale rangeSlider" min="10" max="500" data-default="50">
-          <input type="text" data-image-purpose="additionalIcon" class="contentInput rangeText" data-default="50">
+          <input type="range" data-image-purpose="additionalIcon" class="contentInput inputImageScale rangeSlider" min="10" max="500" data-default="100">
+          <input type="text" data-image-purpose="additionalIcon" class="contentInput rangeText" data-default="100">
 
           <button style="margin-top: 10px;" data-image-purpose="additionalIcon" class="adjustmentResetButton clearImageButton">Clear Image and Adjustments</button>
         </details>

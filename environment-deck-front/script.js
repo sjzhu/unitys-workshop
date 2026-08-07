@@ -353,42 +353,18 @@ function drawCardAttribution() {
 }
 
 function loadBatchCardArt(imageURL) {
-  return new Promise((resolve, reject) => {
-    if (!imageURL) {
-      cardArtImage = null;
-      resolve();
-      return;
-    }
+  return loadImageAsync(imageURL).then((image) => { cardArtImage = image; });
+}
 
-    const batchImage = new Image();
-    batchImage.crossOrigin = "Anonymous";
-    batchImage.onload = function () {
-      cardArtImage = batchImage;
-      resolve();
-    };
-    batchImage.onerror = function () {
-      reject(new Error(`Failed to load image URL: ${imageURL}`));
-    };
-    batchImage.src = imageURL;
-  });
+function loadBatchAdditionalIcon(imageURL) {
+  return loadImageAsync(imageURL).then((image) => { loadedUserImages[ADDITIONAL_ICON] = image; });
 }
 
 function applyBatchJSONEntry(data) {
-  parseJSONData({
-    Title: data.Title ?? '',
-    HP: data.HP ?? '',
-    Keywords: data.Keywords ?? '',
-    BoldedTerms: data.BoldedTerms ?? '',
-    GameText: data.GameText ?? '',
-    GameTextSize: data.GameTextSize ?? '100',
-    Quote: data.Quote ?? '',
-    QuoteTextSize: data.QuoteTextSize ?? '100',
-    Attribution: data.Attribution ?? '',
-    ImageX: data.ImageX ?? '0',
-    ImageY: data.ImageY ?? '0',
-    ImageZoom: data.ImageZoom ?? '100',
-    Suddenly: data.Suddenly ?? false
-  });
+  // ImageURL and AdditionalIconURL are loaded separately (and awaited) by the batch download loop, so they're
+  // excluded here. Every other field is handled by parseJSONData's own defaulting for keys missing from data.
+  const { ImageURL, AdditionalIconURL, ...rest } = data;
+  parseJSONData(rest);
 }
 
 function sanitizeBatchFilename(title) {
@@ -455,6 +431,7 @@ async function downloadMultipleEnvironmentDeckImages() {
 
       applyBatchJSONEntry(entry);
       await loadBatchCardArt(entry.ImageURL ?? '');
+      await loadBatchAdditionalIcon(entry.AdditionalIconURL ?? '');
       drawCardCanvas();
 
       const pngBlob = await canvasToBlobAsync(canvas);

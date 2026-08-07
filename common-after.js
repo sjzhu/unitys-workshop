@@ -177,6 +177,19 @@ $('#outputJsonButton').on('click', function () {
 Regions for Image Drawing
 ============================================================================
 */
+// Full-card bounding box used when the Additional Icon is set to "Overlay" mode
+const ADDITIONAL_ICON_OVERLAY_SHAPE = coordinatesToPathShape([
+  [0, 0],
+  [100, 0],
+  [100, 100],
+  [0, 100]
+]);
+
+// Whether the Additional Icon should be drawn as a full-card overlay instead of within its normal icon bounding box
+function isAdditionalIconOverlay() {
+  return $('input[name="additionalIconMode"]:checked').val() === 'overlay';
+}
+
 imageAreas = {
   /*==========================================================
   Hero Character Card Front
@@ -473,12 +486,15 @@ imageAreas = {
   Hero Deck Front
   ==========================================================*/
   hdcf_additionalIcon: {
-    pathShape: coordinatesToPathShape([
+    iconShape: coordinatesToPathShape([
       [78, 48.10],
       [102, 48.10],
       [102, 65.30],
       [78, 65.30]
     ]),
+    get pathShape() {
+      return isAdditionalIconOverlay() ? ADDITIONAL_ICON_OVERLAY_SHAPE : this.iconShape;
+    },
     scaleStyle: 'fit',
     vAlign: 'center',
     getImage: function () {
@@ -492,12 +508,15 @@ imageAreas = {
   Villain Deck Front
   ==========================================================*/
   vdcf_additionalIcon: {
-    pathShape: coordinatesToPathShape([
+    iconShape: coordinatesToPathShape([
       [78, 47.90],
       [102, 47.90],
       [102, 65.10],
       [78, 65.10]
     ]),
+    get pathShape() {
+      return isAdditionalIconOverlay() ? ADDITIONAL_ICON_OVERLAY_SHAPE : this.iconShape;
+    },
     scaleStyle: 'fit',
     vAlign: 'center',
     getImage: function () {
@@ -511,12 +530,15 @@ imageAreas = {
   Environment Deck Front
   ==========================================================*/
   edcf_additionalIcon: {
-    pathShape: coordinatesToPathShape([
+    iconShape: coordinatesToPathShape([
       [41.41, 61.50],
       [58.60, 61.50],
       [58.60, 85.50],
       [41.41, 85.50]
     ]),
+    get pathShape() {
+      return isAdditionalIconOverlay() ? ADDITIONAL_ICON_OVERLAY_SHAPE : this.iconShape;
+    },
     scaleStyle: 'fit',
     vAlign: 'center',
     getImage: function () {
@@ -803,11 +825,18 @@ function parseJSONData(data) {
   if('AdditionalIconZoom' in data) {
     let zoomVal = parseInt(data.AdditionalIconZoom);
     if (zoomVal == NaN) {
-      zoomVal = 50;
+      zoomVal = 100;
     }
     $(getImagePurposeSelector(IMAGE_ZOOM, ADDITIONAL_ICON)).val(zoomVal);
   } else {
-    $(getImagePurposeSelector(IMAGE_ZOOM, ADDITIONAL_ICON)).val(50);
+    $(getImagePurposeSelector(IMAGE_ZOOM, ADDITIONAL_ICON)).val(100);
+  }
+  // this is complicated to allow for the fact that AdditionalIconOverlay can be either a string or a boolean, depending on how people input it
+  if ($('input[name="additionalIconMode"]').length > 0) {
+    const isOverlayTrue = 'AdditionalIconOverlay' in data &&
+      ((typeof data.AdditionalIconOverlay === 'boolean' && data.AdditionalIconOverlay) ||
+      (typeof data.AdditionalIconOverlay === 'string' && data.AdditionalIconOverlay.toUpperCase() === 'TRUE'));
+    $('input[name="additionalIconMode"]').filter(function () { return this.value === (isOverlayTrue ? 'overlay' : 'icon'); })[0].checked = true;
   }
 
   // this is complicated to allow for the fact that suddenly can be either a string or a boolean, depending on how people input it
@@ -997,7 +1026,7 @@ function outputJSONData(category="basic") {
     // Not every page that shares this category has Additional Icon controls, so fall back to defaults if they're missing
     let additionalIconX = $(getImagePurposeSelector(IMAGE_X, ADDITIONAL_ICON)).length ? $(getImagePurposeSelector(IMAGE_X, ADDITIONAL_ICON)).val() : 0;
     let additionalIconY = $(getImagePurposeSelector(IMAGE_Y, ADDITIONAL_ICON)).length ? $(getImagePurposeSelector(IMAGE_Y, ADDITIONAL_ICON)).val() : 0;
-    let additionalIconZoom = $(getImagePurposeSelector(IMAGE_ZOOM, ADDITIONAL_ICON)).length ? $(getImagePurposeSelector(IMAGE_ZOOM, ADDITIONAL_ICON)).val() : 50;
+    let additionalIconZoom = $(getImagePurposeSelector(IMAGE_ZOOM, ADDITIONAL_ICON)).length ? $(getImagePurposeSelector(IMAGE_ZOOM, ADDITIONAL_ICON)).val() : 100;
     outputJSON = `{
       "Title": ${JSON.stringify($('#inputTitle').val())},
       "HP": ${JSON.stringify($('#inputHP').val())},
@@ -1016,6 +1045,7 @@ function outputJSONData(category="basic") {
       "AdditionalIconX": ${JSON.stringify(additionalIconX)},
       "AdditionalIconY": ${JSON.stringify(additionalIconY)},
       "AdditionalIconZoom": ${JSON.stringify(additionalIconZoom)},
+      "AdditionalIconOverlay": ${isAdditionalIconOverlay()},
       "Suddenly": ${isChecked('#suddenly')}
     },`;
   } else if (category == HERO_CHAR && FACE == "back") {

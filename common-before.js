@@ -204,6 +204,22 @@ function setCanvasWidth(cardPreviewSize) {
     $('#canvasContainer').css({ width: canvasSizes.get(ORIENTATION).get(cardPreviewSize) });
 }
 
+/** Loads an image from a URL, resolving once it's fully loaded (used by batch downloads, which need to await a
+ * load rather than relying on an onload-triggered redraw). Resolves to null if no URL is given. */
+function loadImageAsync(imageURL) {
+    return new Promise((resolve, reject) => {
+        if (!imageURL) {
+            resolve(null);
+            return;
+        }
+        const image = new Image();
+        image.crossOrigin = "Anonymous";
+        image.onload = function () { resolve(image); };
+        image.onerror = function () { reject(new Error(`Failed to load image URL: ${imageURL}`)); };
+        image.src = imageURL;
+    });
+}
+
 /** Resets the settings for a given data image input with the specified purpose (e.g. "mainArt", "backgroundArt") */
 function resetDataImageSettings(imagePurpose) {
     $(`.contentInput[data-image-purpose="${imagePurpose}"]`).each(function () {
