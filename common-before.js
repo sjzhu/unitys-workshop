@@ -158,6 +158,194 @@ const IMAGE_ZOOM = "inputImageScale"
 
 /*
 ============================================================================
+Declarative JSON import/export field registry
+
+Single source of truth for the JSON fields each card tool reads (import) and
+writes (export). Consumed by applyField/readField/applyImageGroup/readImageGroup
+in common-after.js. Adding a field here should be all that's needed to make it
+round-trip. See docs/json-field-registry.md for the maintainer guide (what each
+kind of change touches, guardrails, sparse-export tools).
+
+CARD_FIELDS entry shape:
+  key         - canonical JSON key
+  selector    - jQuery selector for the input control
+  kind        - 'text' | 'number' | 'checkbox' | 'select'
+  default     - value applied on import when the key (and any alias) is absent
+  categories  - CARD_CATEGORY values this field belongs to on export
+  aliases     - (optional) extra JSON keys accepted on import
+  setState    - (optional, checkbox) callback `v => { someGlobal = v; }` run on
+                import to keep the matching top-level `let` (suddenly, showBorder,
+                isVariant, variantTextColor) in sync, the way the input handlers do
+  description - human-readable summary of what the control does (for docs)
+============================================================================
+*/
+const CARD_FIELDS = [
+  {
+    key: "Title", selector: "#inputTitle", kind: "text", default: "",
+    categories: [BASIC, ENVIRONMENT, PRINCIPLES],
+    description: "Card name shown in the title bar."
+  },
+  {
+    key: "HP", selector: "#inputHP", kind: "text", default: "",
+    categories: [BASIC, ENVIRONMENT, HERO_CHAR, VILLAIN_CHAR],
+    description: "Hit-point value printed in the HP badge. Free text, so non-numeric values (e.g. blank, '*') render verbatim."
+  },
+  {
+    key: "Keywords", selector: "#inputKeywords", kind: "text", default: "",
+    categories: [BASIC, ENVIRONMENT, HERO_CHAR, VILLAIN_CHAR],
+    description: "Keyword line printed below the title (e.g. 'Hero', 'Villain', 'Ongoing, Limited'). Rendered as typed."
+  },
+  {
+    key: "BoldedTerms", selector: "#inputBoldWords", kind: "text", default: "",
+    categories: [BASIC, ENVIRONMENT, HERO_CHAR, VILLAIN_CHAR, PRINCIPLES],
+    description: "Comma-separated phrases to force-bold everywhere they occur in the game text, on top of the always-bold defaults."
+  },
+  {
+    key: "GameText", selector: "#inputEffect", kind: "text", default: "",
+    categories: [BASIC, ENVIRONMENT, HERO_CHAR, VILLAIN_CHAR, PRINCIPLES],
+    description: "Main rules text. Parsed heuristically for phase headers, Power:/Reaction: labels, bullets and symbols like (H) and [flip]."
+  },
+  {
+    key: "GameTextSize", selector: "#inputEffectTextSize", kind: "number", default: 100,
+    categories: [BASIC, ENVIRONMENT, HERO_CHAR, VILLAIN_CHAR, PRINCIPLES],
+    description: "Game-text font scale as a percent (slider, roughly 80-100). 100 = default size."
+  },
+  {
+    key: "Quote", selector: "#inputQuote", kind: "text", default: "",
+    categories: [BASIC, ENVIRONMENT, PRINCIPLES],
+    description: "Flavor quote text printed near the bottom of the card."
+  },
+  {
+    key: "QuoteTextSize", selector: "#inputQuoteTextSize", kind: "number", default: 100,
+    categories: [BASIC, ENVIRONMENT, PRINCIPLES],
+    description: "Flavor-quote font scale as a percent (slider, roughly 80-100). 100 = default size."
+  },
+  {
+    key: "Attribution", selector: "#inputAttribution", kind: "text", default: "",
+    // Not PRINCIPLES: principle cards have no attribution control or game concept.
+    // The old outputJSONData template listed it for principles, but #inputAttribution
+    // doesn't exist there, so it emitted the literal token `undefined` (invalid JSON).
+    categories: [BASIC, ENVIRONMENT],
+    description: "Attribution/speaker line printed under the flavor quote."
+  },
+  {
+    key: "Suddenly", selector: "#suddenly", kind: "checkbox", default: false,
+    // Plan's inventory table says BASIC, but its note is "only where #suddenly exists"
+    // and the checkbox is present on environment-deck-front too (matches the old
+    // BASIC||ENVIRONMENT output branch). The kind:'checkbox' handler is a no-op on
+    // pages without the control (e.g. villain-deck-front), so listing both is safe.
+    categories: [BASIC, ENVIRONMENT], setState: (v) => { suddenly = v; },
+    description: "Whether the card carries the 'Suddenly!' keyword. Accepts a JSON boolean or the string 'TRUE' (case-insensitive)."
+  },
+  {
+    key: "ShowBorder", selector: "#inputDisplayBorder", kind: "checkbox", default: true,
+    categories: [HERO_CHAR, VILLAIN_CHAR], setState: (v) => { showBorder = v; },
+    description: "Whether the printed card border/frame is drawn. Defaults to on."
+  },
+  {
+    key: "VariantToggle", selector: "#inputVariantToggle", kind: "checkbox", default: false,
+    categories: [HERO_CHAR], setState: (v) => { isVariant = v; },
+    description: "Whether the card shows the 'Variant' tag."
+  },
+  {
+    key: "WhiteVariantText", selector: "#inputVariantColor", kind: "checkbox", default: false,
+    categories: [HERO_CHAR], setState: (v) => { variantTextColor = v; },
+    description: "Whether the 'Variant' tag text is drawn white instead of the default color."
+  },
+  {
+    key: "HighContrastPhaseLabels", selector: "#inputUseHighConstrast", kind: "checkbox", default: true,
+    // The #inputUseHighConstrast control ships with the `checked` attribute present
+    // on all 7 tools (the smart-quoted value is cosmetic; the bare boolean attr is
+    // effective), so common-before.js initializes useHighContrastPhaseLabels to true.
+    // A key-less import must therefore leave it on.
+    categories: [BASIC, ENVIRONMENT, HERO_CHAR, VILLAIN_CHAR, PRINCIPLES],
+    setState: (v) => { useHighContrastPhaseLabels = v; },
+    description: "Whether the Start/Play/Power/Draw/End phase labels use the brighter high-contrast colors and matching phase-icon art."
+  },
+  {
+    key: "PowerName", selector: "#inputPowerName", kind: "text", default: "",
+    categories: [HERO_CHAR],
+    description: "Name of the hero's innate power, printed in the power bar."
+  },
+  {
+    key: "Description", selector: "#inputDescription", kind: "text", default: "",
+    categories: [VILLAIN_CHAR],
+    description: "Short descriptor line printed under the villain's name."
+  },
+  {
+    key: "VerticalAlignment", selector: "#inputBelowNameLogoAlignment", kind: "number", default: 0,
+    categories: [VILLAIN_CHAR],
+    description: "Vertical nudge (slider, roughly -20 to 20) of the HP / keywords / description block beneath the name logo."
+  },
+  {
+    key: "SetupText", selector: "#inputSetup", kind: "text", default: "",
+    categories: [VILLAIN_CHAR],
+    description: "Villain setup instructions printed in the setup banner at the top of the card."
+  },
+  {
+    key: "GameTextBoxWidth", selector: "#inputEffectBoxWidth", kind: "number", default: 0,
+    categories: [VILLAIN_CHAR],
+    description: "Width adjustment (slider, roughly -33 to 10) for the main game-text box."
+  },
+  {
+    key: "AdvancedPhase", selector: "#inputAdvancedPhase", kind: "select", default: "none",
+    categories: [VILLAIN_CHAR],
+    description: "Which phase the Advanced game text attaches to: 'none', 'start', 'play' or 'end'."
+  },
+  {
+    key: "AdvancedGameText", selector: "#inputAdvanced", kind: "text", default: "",
+    categories: [VILLAIN_CHAR],
+    description: "Extra rules text shown for the villain's advanced side."
+  },
+  {
+    key: "AdvancedGameTextBoxWidth", selector: "#inputAdvancedBoxWidth", kind: "number", default: 0,
+    categories: [VILLAIN_CHAR],
+    description: "Width adjustment (slider, roughly -33 to 10) for the Advanced game-text box."
+  },
+];
+
+/*
+IMAGE_FIELD_GROUPS entry shape (a URL + X + Y + Zoom quartet sharing an image purpose):
+  keyPrefix     - JSON key prefix; keys are `${keyPrefix}URL|X|Y|Zoom` unless urlKey overrides
+  urlKey        - (optional) explicit URL key when it isn't `${keyPrefix}URL`
+  purpose       - image purpose constant, or null for the main card art (cardArtImage + plain .inputImage* selectors)
+  zoomDefault   - value applied to the zoom slider on import when the key is absent
+  categories    - CARD_CATEGORY values this group belongs to on export
+  aliasPrefixes - (optional) extra key prefixes accepted on import
+  description   - human-readable summary (for docs)
+*/
+const IMAGE_FIELD_GROUPS = [
+  {
+    keyPrefix: "Image", purpose: null, zoomDefault: 100,
+    categories: [BASIC, ENVIRONMENT, PRINCIPLES],
+    description: "Main card art. Loaded with crossOrigin='Anonymous', so the image host must permit cross-origin use."
+  },
+  {
+    keyPrefix: "Nemesis", urlKey: "NemesisIconURL", purpose: NEMESIS_ICON, zoomDefault: 0,
+    categories: [HERO_CHAR, VILLAIN_CHAR],
+    description: "Nemesis icon badge shown on the card."
+  },
+  {
+    keyPrefix: "BackgroundArt", purpose: BACKGROUND_ART, zoomDefault: 0,
+    categories: [HERO_CHAR, VILLAIN_CHAR],
+    description: "Art drawn behind the card frame."
+  },
+  {
+    keyPrefix: "ForegroundArt", purpose: FOREGROUND_ART, zoomDefault: 0,
+    categories: [HERO_CHAR, VILLAIN_CHAR],
+    description: "Character art drawn in front of the background but behind the text areas."
+  },
+  {
+    keyPrefix: "NameLogo", purpose: NAME_LOGO, zoomDefault: 0,
+    aliasPrefixes: ["CharacterLogo"],
+    categories: [HERO_CHAR, VILLAIN_CHAR],
+    description: "Stylised name/title logo placed in the name banner. CharacterLogo* keys are also accepted on import."
+  },
+];
+
+
+/*
+============================================================================
 Global functions
 ============================================================================
 */

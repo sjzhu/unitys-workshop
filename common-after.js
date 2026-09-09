@@ -152,6 +152,9 @@ $('#outputJsonButton').on('click', function () {
   outputJSONData(CARD_CATEGORY);
 });
 
+// Fill the JSON Input docs list from the field registry
+renderJSONFieldDocs();
+
 /*
 ============================================================================
 Regions for Image Drawing
@@ -621,380 +624,241 @@ JSON Parsing
 ============================================================================
 */
 
+/*
+----------------------------------------------------------------------------
+Registry-driven field handlers (CARD_FIELDS / IMAGE_FIELD_GROUPS)
+
+parseJSONData() / outputJSONData() are driven entirely by these. Each handler
+does one field/group. Behavior matches the old hand-written code, except:
+  - parseZoom() uses a real Number.isNaN() check (the old `== NaN` guard never
+    fired), so a non-numeric *Zoom value now falls back to the default;
+  - image groups honor aliasPrefixes on import (CharacterLogo* -> NameLogo*),
+    and NameLogo* is now the canonical export key for hero characters (was
+    CharacterLogo*, which the importer never read);
+  - ShowBorder / VariantToggle / WhiteVariantText now round-trip on import
+    (export was already there via isChecked());
+  - the blank-string -> default guard now applies to every 'number' field
+    (was only GameTextSize / QuoteTextSize).
+----------------------------------------------------------------------------
+*/
+
+// Parse a zoom/scale slider value: an integer, falling back to `fallback` when
+// the input isn't a number. (The old inline code compared `== NaN`, which is
+// always false, so its fallback never ran.)
+function parseZoom(raw, fallback) {
+  var zoomVal = parseInt(raw);
+  if (Number.isNaN(zoomVal)) {
+    zoomVal = fallback;
+  }
+  return zoomVal;
+}
+
+// Look up data[field.key], or the first present alias key. Returns {found, value}.
+function findFieldValue(field, data) {
+  var keys = [field.key].concat(field.aliases || []);
+  for (var i = 0; i < keys.length; i++) {
+    if (keys[i] in data) {
+      return { found: true, value: data[keys[i]] };
+    }
+  }
+  return { found: false, value: undefined };
+}
+
+// Apply one CARD_FIELDS entry from parsed JSON to its input control. A missing
+// selector is a silent jQuery no-op, same as the inline code.
+function applyField(field, data) {
+  var found = findFieldValue(field, data);
+  switch (field.kind) {
+    case 'number':
+      // A blank or null value resets to the field default; JSON numbers and numeric strings are both accepted.
+      if (found.found && found.value !== '' && found.value != null) {
+        $(field.selector).val(found.value);
+      } else {
+        $(field.selector).val(field.default);
+      }
+      break;
+    case 'checkbox':
+      // the checkbox is only touched on pages where the control exists
+      if ($(field.selector).length > 0) {
+        var boolVal = field.default;
+        if (found.found) {
+          boolVal = (typeof found.value === 'boolean' && found.value) ||
+                    (typeof found.value === 'string' && found.value.toUpperCase() === 'TRUE');
+        }
+        $(field.selector)[0].checked = boolVal;
+        // keep the matching global (e.g. `suddenly`, `showBorder`) in sync, the
+        // way the input handlers in this file do
+        if (field.setState) {
+          field.setState(boolVal);
+        }
+      }
+      break;
+    case 'text':
+    case 'select':
+    default:
+      if (found.found) {
+        $(field.selector).val(found.value);
+      } else {
+        $(field.selector).val(field.default);
+      }
+      break;
+  }
+}
+
+// Read one CARD_FIELDS entry back out for export. Checkbox export mirrors the
+// old isChecked(): the checked state, or false when the control isn't on the page.
+function readField(field) {
+  if (field.kind === 'checkbox') {
+    return $(field.selector).length ? $(field.selector)[0].checked : false;
+  }
+  return $(field.selector).val();
+}
+
+// The canonical URL key for an image group.
+function imageGroupURLKey(group) {
+  return group.urlKey || (group.keyPrefix + 'URL');
+}
+
+// Look up an image adjustment value (X / Y / Zoom) across the canonical prefix
+// and any aliasPrefixes. Returns {found, value}.
+function findImageAdjust(group, data, suffix) {
+  var prefixes = [group.keyPrefix].concat(group.aliasPrefixes || []);
+  for (var i = 0; i < prefixes.length; i++) {
+    var k = prefixes[i] + suffix;
+    if (k in data) {
+      return { found: true, value: data[k] };
+    }
+  }
+  return { found: false, value: undefined };
+}
+
+// Apply one IMAGE_FIELD_GROUPS entry from parsed JSON: load the image and set
+// the three adjustment sliders. purpose === null means the main card art
+// (cardArtImage + plain .inputImage* selectors).
+function applyImageGroup(group, data) {
+  var isMainArt = !group.purpose;
+  var purpose = group.purpose || "";
+
+  // Image URL: canonical key first, then any alias prefixes.
+  var urlKeys = [imageGroupURLKey(group)];
+  (group.aliasPrefixes || []).forEach(function (p) { urlKeys.push(p + 'URL'); });
+  var url = null;
+  for (var i = 0; i < urlKeys.length; i++) {
+    if (urlKeys[i] in data && data[urlKeys[i]].length != 0) {
+      url = data[urlKeys[i]];
+      break;
+    }
+  }
+  var img = null;
+  if (url != null) {
+    img = new Image();
+    img.crossOrigin = "Anonymous";
+    img.src = url;
+    img.onload = function () {
+      // Once the image has loaded, redraw so it immediately appears
+      drawCardCanvas();
+    };
+  }
+  if (isMainArt) {
+    cardArtImage = img;
+  } else {
+    loadedUserImages[purpose] = img;
+  }
+
+  // Adjustment sliders. X / Y default to 0; Zoom to the group's zoomDefault.
+  var xEntry = findImageAdjust(group, data, 'X');
+  $(getImagePurposeSelector(IMAGE_X, purpose)).val(xEntry.found ? xEntry.value : 0);
+
+  var yEntry = findImageAdjust(group, data, 'Y');
+  $(getImagePurposeSelector(IMAGE_Y, purpose)).val(yEntry.found ? yEntry.value : 0);
+
+  var zoomEntry = findImageAdjust(group, data, 'Zoom');
+  if (zoomEntry.found) {
+    $(getImagePurposeSelector(IMAGE_ZOOM, purpose)).val(parseZoom(zoomEntry.value, group.zoomDefault));
+  } else {
+    $(getImagePurposeSelector(IMAGE_ZOOM, purpose)).val(group.zoomDefault);
+  }
+}
+
+// Read one IMAGE_FIELD_GROUPS entry back out for export, using canonical keys.
+function readImageGroup(group) {
+  var purpose = group.purpose || "";
+  var out = {};
+  out[imageGroupURLKey(group)] = extractImageURL(purpose);
+  out[group.keyPrefix + 'X'] = $(getImagePurposeSelector(IMAGE_X, purpose)).val();
+  out[group.keyPrefix + 'Y'] = $(getImagePurposeSelector(IMAGE_Y, purpose)).val();
+  out[group.keyPrefix + 'Zoom'] = $(getImagePurposeSelector(IMAGE_ZOOM, purpose)).val();
+  return out;
+}
+
 function parseJSONData(data) {
-  // Common fields
-  if('HP' in data) {
-    $('#inputHP').val(data.HP);
-  } else {
-    $('#inputHP').val('');
+  // Driven entirely by the registry in common-before.js. Every field is applied
+  // regardless of CARD_CATEGORY (selectors that aren't on the page are jQuery
+  // no-ops), matching the old flat behavior.
+  for (var i = 0; i < CARD_FIELDS.length; i++) {
+    applyField(CARD_FIELDS[i], data);
   }
-  if('Keywords' in data) {
-    $('#inputKeywords').val(data.Keywords);
-  } else {
-    $('#inputKeywords').val('');
-  }
-  if('BoldedTerms' in data) {
-    $('#inputBoldWords').val(data.BoldedTerms);
-  } else {
-    $('#inputBoldWords').val('');
-  }
-  if('GameText' in data) {
-    $('#inputEffect').val(data.GameText);
-  } else {
-    $('#inputEffect').val('');
-  }
-  if('GameTextSize' in data && data.GameTextSize.length != 0) {
-    $('#inputEffectTextSize').val(data.GameTextSize);
-  } else {
-    $('#inputEffectTextSize').val(100);
-  }
-  // Deck fields
-  if('Title' in data) {
-    $('#inputTitle').val(data.Title);
-  } else {
-    $('#inputTitle').val('');
-  }
-  if('Quote' in data) {
-    $('#inputQuote').val(data.Quote);
-  } else {
-    $('#inputQuote').val('');
-  }
-  if('QuoteTextSize' in data && data.QuoteTextSize.length != 0) {
-    $('#inputQuoteTextSize').val(data.QuoteTextSize);
-  } else {
-    $('#inputQuoteTextSize').val(100);
-  }
-  if('Attribution' in data) {
-    $('#inputAttribution').val(data.Attribution);
-  } else {
-    $('#inputAttribution').val('');
-  }
-  if('ImageURL' in data && data.ImageURL.length != 0) {
-    cardArtImage = new Image();
-    cardArtImage.crossOrigin = "Anonymous";
-    cardArtImage.src = data.ImageURL;
-    cardArtImage.onload = function (e) {
-      // Once the Image has loaded, redraw the canvas so it immediately appears
-      drawCardCanvas();
-    }
-  } else {
-    cardArtImage = null;
-  }
-  if('ImageX' in data) {
-    $('.inputImageOffsetX').val(data.ImageX);
-  } else {
-    $('.inputImageOffsetX').val(0);
-  }
-  if('ImageY' in data) {
-    $('.inputImageOffsetY').val(data.ImageY);
-  } else {
-    $('.inputImageOffsetY').val(0);
-  }
-  if('ImageZoom' in data) {
-    // special parsing for the zoom value, as if it's fed a non-number, it will
-    // default to the middle of the bar, which is not the default
-    // ImageZoom is used for card fronts, so it defaults to 100
-    let zoomVal = parseInt(data.ImageZoom);
-    if (zoomVal == NaN) {
-      zoomVal = 100;
-    }
-    $('.inputImageScale').val(zoomVal);
-  } else {
-    $('.inputImageScale').val(100);
-  }
-
-  // this is complicated to allow for the fact that suddenly can be either a string or a boolean, depending on how people input it
-  if ($('#suddenly').length > 0) {
-    if ('Suddenly' in data) {
-      const isSuddenlyTrue = (typeof data.Suddenly === 'boolean' && data.Suddenly) ||
-                             (typeof data.Suddenly === 'string' && data.Suddenly.toUpperCase() === 'TRUE');
-      $('#suddenly')[0].checked = isSuddenlyTrue;
-      suddenly = isSuddenlyTrue;
-    } else {
-      $('#suddenly')[0].checked = false;
-      suddenly = false;
-    }
-  }
-
-  // Hero Character card fields
-  if('PowerName' in data) {
-    $('#inputPowerName').val(data.PowerName);
-  } else {
-    $('#inputPowerName').val('');
-  }
-
-  // Common Character card fields
-  if('NemesisIconURL' in data && data.NemesisIconURL.length != 0) {
-    loadedUserImages[NEMESIS_ICON] = new Image();
-    loadedUserImages[NEMESIS_ICON].crossOrigin = "Anonymous";
-    loadedUserImages[NEMESIS_ICON].src = data.NemesisIconURL;
-    loadedUserImages[NEMESIS_ICON].onload = function () {
-      // Once the Image has loaded, redraw the canvas so it immediately appears
-      drawCardCanvas();
-    }
-  } else {
-    loadedUserImages[NEMESIS_ICON] = null;
-  }
-  if('NemesisX' in data) {
-    $(getImagePurposeSelector(IMAGE_X, NEMESIS_ICON)).val(data.NemesisX);
-  } else {
-    $(getImagePurposeSelector(IMAGE_X, NEMESIS_ICON)).val(0);
-  }
-  if('NemesisY' in data) {
-    $(getImagePurposeSelector(IMAGE_Y, NEMESIS_ICON)).val(data.NemesisY);
-  } else {
-    $(getImagePurposeSelector(IMAGE_Y, NEMESIS_ICON)).val(0);
-  }
-  if('NemesisZoom' in data) {
-    let zoomVal = parseInt(data.NemesisZoom);
-    if (zoomVal == NaN) {
-      zoomVal = 0;
-    }
-    $(getImagePurposeSelector(IMAGE_ZOOM, NEMESIS_ICON)).val(zoomVal);
-  } else {
-    $(getImagePurposeSelector(IMAGE_ZOOM, NEMESIS_ICON)).val(0);
-  }
-  if('BackgroundArtURL' in data && data.BackgroundArtURL.length != 0) {
-    loadedUserImages[BACKGROUND_ART] = new Image();
-    loadedUserImages[BACKGROUND_ART].crossOrigin = "Anonymous";
-    loadedUserImages[BACKGROUND_ART].src = data.BackgroundArtURL;
-    loadedUserImages[BACKGROUND_ART].onload = function () {
-      // Once the Image has loaded, redraw the canvas so it immediately appears
-      drawCardCanvas();
-    }
-  } else {
-    loadedUserImages[BACKGROUND_ART] = null;
-  }
-  if('BackgroundArtX' in data) {
-    $(getImagePurposeSelector(IMAGE_X, BACKGROUND_ART)).val(data.BackgroundArtX);
-  } else {
-    $(getImagePurposeSelector(IMAGE_X, BACKGROUND_ART)).val(0);
-  }
-  if('BackgroundArtY' in data) {
-    $(getImagePurposeSelector(IMAGE_Y, BACKGROUND_ART)).val(data.BackgroundArtY);
-  } else {
-    $(getImagePurposeSelector(IMAGE_Y, BACKGROUND_ART)).val(0);
-  }
-  if('BackgroundArtZoom' in data) {
-    let zoomVal = parseInt(data.BackgroundArtZoom);
-    if (zoomVal == NaN) {
-      zoomVal = 0;
-    }
-    $(getImagePurposeSelector(IMAGE_ZOOM, BACKGROUND_ART)).val(zoomVal);
-  } else {
-    $(getImagePurposeSelector(IMAGE_ZOOM, BACKGROUND_ART)).val(0);
-  }
-  if('ForegroundArtURL' in data && data.ForegroundArtURL.length != 0) {
-    loadedUserImages[FOREGROUND_ART] = new Image();
-    loadedUserImages[FOREGROUND_ART].crossOrigin = "Anonymous";
-    loadedUserImages[FOREGROUND_ART].src = data.ForegroundArtURL;
-    loadedUserImages[FOREGROUND_ART].onload = function () {
-      // Once the Image has loaded, redraw the canvas so it immediately appears
-      drawCardCanvas();
-    }
-  } else {
-    loadedUserImages[FOREGROUND_ART] = null;
-  }
-  if('ForegroundArtX' in data) {
-    $(getImagePurposeSelector(IMAGE_X, FOREGROUND_ART)).val(data.ForegroundArtX);
-  } else {
-    $(getImagePurposeSelector(IMAGE_X, FOREGROUND_ART)).val(0);
-  }
-  if('ForegroundArtY' in data) {
-    $(getImagePurposeSelector(IMAGE_Y, FOREGROUND_ART)).val(data.ForegroundArtY);
-  } else {
-    $(getImagePurposeSelector(IMAGE_Y, FOREGROUND_ART)).val(0);
-  }
-  if('ForegroundArtZoom' in data) {
-    let zoomVal = parseInt(data.ForegroundArtZoom);
-    if (zoomVal == NaN) {
-      zoomVal = 0;
-    }
-    $(getImagePurposeSelector(IMAGE_ZOOM, FOREGROUND_ART)).val(zoomVal);
-  } else {
-    $(getImagePurposeSelector(IMAGE_ZOOM, FOREGROUND_ART)).val(0);
-  }
-  if('NameLogoURL' in data && data.NameLogoURL.length != 0) {
-    loadedUserImages[NAME_LOGO] = new Image();
-    loadedUserImages[NAME_LOGO].crossOrigin = "Anonymous";
-    loadedUserImages[NAME_LOGO].src = data.NameLogoURL;
-    loadedUserImages[NAME_LOGO].onload = function () {
-      // Once the Image has loaded, redraw the canvas so it immediately appears
-      drawCardCanvas();
-    }
-  } else {
-    loadedUserImages[NAME_LOGO] = null;
-  }
-  if('NameLogoX' in data) {
-    $(getImagePurposeSelector(IMAGE_X, NAME_LOGO)).val(data.NameLogoX);
-  } else {
-    $(getImagePurposeSelector(IMAGE_X, NAME_LOGO)).val(0);
-  }
-  if('NameLogoY' in data) {
-    $(getImagePurposeSelector(IMAGE_Y, NAME_LOGO)).val(data.NameLogoY);
-  } else {
-    $(getImagePurposeSelector(IMAGE_Y, NAME_LOGO)).val(0);
-  }
-  if('NameLogoZoom' in data) {
-    let zoomVal = parseInt(data.NameLogoZoom);
-    if (zoomVal == NaN) {
-      zoomVal = 0;
-    }
-    $(getImagePurposeSelector(IMAGE_ZOOM, NAME_LOGO)).val(zoomVal);
-  } else {
-    $(getImagePurposeSelector(IMAGE_ZOOM, NAME_LOGO)).val(0);
-  }
-
-  // Villain Character card fields
-  if('Description' in data) {
-    $('#inputDescription').val(data.Description);
-  } else {
-    $('#inputDescription').val('');
-  }
-  if('VerticalAlignment' in data) {
-    $('#inputBelowNameLogoAlignment').val(data.VerticalAlignment);
-  } else {
-    $('#inputBelowNameLogoAlignment').val(0);
-  }
-  if('SetupText' in data) {
-    $('#inputSetup').val(data.SetupText);
-  } else {
-    $('#inputSetup').val('');
-  }
-  if('GameTextBoxWidth' in data) {
-    $('#inputEffectBoxWidth').val(data.GameTextBoxWidth);
-  } else {
-    $('#inputEffectBoxWidth').val(0);
-  }
-  if('AdvancedPhase' in data) {
-    $('#inputAdvancedPhase').val(data.AdvancedPhase);
-  } else {
-    $('#inputAdvancedPhase').val('none');
-  }
-  if('AdvancedGameText' in data) {
-    $('#inputAdvanced').val(data.AdvancedGameText);
-  } else {
-    $('#inputAdvanced').val('');
-  }
-  if('AdvancedGameTextBoxWidth' in data) {
-    $('#inputAdvancedBoxWidth').val(data.AdvancedGameTextBoxWidth);
-  } else {
-    $('#inputAdvancedBoxWidth').val(0);
+  for (var j = 0; j < IMAGE_FIELD_GROUPS.length; j++) {
+    applyImageGroup(IMAGE_FIELD_GROUPS[j], data);
   }
   drawCardCanvas();
 }
 
-function outputJSONData(category="basic") {
-  var outputJSON = '';
-  if(category == BASIC || category == ENVIRONMENT) {
-    outputJSON = `{
-      "Title": ${JSON.stringify($('#inputTitle').val())},
-      "HP": ${JSON.stringify($('#inputHP').val())},
-      "Keywords": ${JSON.stringify($('#inputKeywords').val())},
-      "BoldedTerms": ${JSON.stringify($('#inputBoldWords').val())},
-      "GameText": ${JSON.stringify($('#inputEffect').val())},
-      "GameTextSize": ${JSON.stringify($('#inputEffectTextSize').val())},
-      "Quote": ${JSON.stringify($('#inputQuote').val())},
-      "QuoteTextSize": ${JSON.stringify($('#inputQuoteTextSize').val())},
-      "Attribution": ${JSON.stringify($('#inputAttribution').val())},
-      "ImageURL": ${JSON.stringify(extractImageURL())},
-      "ImageX": ${JSON.stringify($('.inputImageOffsetX').val())},
-      "ImageY": ${JSON.stringify($('.inputImageOffsetY').val())},
-      "ImageZoom": ${JSON.stringify($('.inputImageScale').val())},
-      "Suddenly": ${isChecked('#suddenly')}
-    },`;
-  } else if (category == HERO_CHAR && FACE == "back") {
-      outputJSON = `{
-        "PowerName": ${JSON.stringify($('#inputPowerName').val())},
-        "GameText": ${JSON.stringify($('#inputEffect').val())},
-        "GameTextSize": ${JSON.stringify($('#inputEffectTextSize').val())},
-        "BackgroundArtURL": ${JSON.stringify(extractImageURL(BACKGROUND_ART))},
-        "BackgroundArtX": ${JSON.stringify($(getImagePurposeSelector(IMAGE_X, BACKGROUND_ART)).val())},
-        "BackgroundArtY": ${JSON.stringify($(getImagePurposeSelector(IMAGE_Y, BACKGROUND_ART)).val())},
-        "BackgroundArtZoom": ${JSON.stringify($(getImagePurposeSelector(IMAGE_ZOOM, BACKGROUND_ART)).val())},
-        "ShowBorder": ${isChecked('#inputDisplayBorder')}
-      }`
-    } else if (category == HERO_CHAR) {
-      outputJSON = `{
-        "HP": ${JSON.stringify($('#inputHP').val())},
-        "Keywords": ${JSON.stringify($('#inputKeywords').val())},
-        "BoldedTerms": ${JSON.stringify($('#inputBoldWords').val())},
-        "PowerName": ${JSON.stringify($('#inputPowerName').val())},
-        "GameText": ${JSON.stringify($('#inputEffect').val())},
-        "GameTextSize": ${JSON.stringify($('#inputEffectTextSize').val())},
-        "NemesisIconURL": ${JSON.stringify(extractImageURL(NEMESIS_ICON))},
-        "NemesisX": ${JSON.stringify($(getImagePurposeSelector(IMAGE_X, NEMESIS_ICON)).val())},
-        "NemesisY": ${JSON.stringify($(getImagePurposeSelector(IMAGE_Y, NEMESIS_ICON)).val())},
-        "NemesisZoom": ${JSON.stringify($(getImagePurposeSelector(IMAGE_ZOOM, NEMESIS_ICON)).val())},
-        "BackgroundArtURL": ${JSON.stringify(extractImageURL(BACKGROUND_ART))},
-        "BackgroundArtX": ${JSON.stringify($(getImagePurposeSelector(IMAGE_X, BACKGROUND_ART)).val())},
-        "BackgroundArtY": ${JSON.stringify($(getImagePurposeSelector(IMAGE_Y, BACKGROUND_ART)).val())},
-        "BackgroundArtZoom": ${JSON.stringify($(getImagePurposeSelector(IMAGE_ZOOM, BACKGROUND_ART)).val())},
-        "ForegroundArtURL": ${JSON.stringify(extractImageURL(FOREGROUND_ART))},
-        "ForegroundArtX": ${JSON.stringify($(getImagePurposeSelector(IMAGE_X, FOREGROUND_ART)).val())},
-        "ForegroundArtY": ${JSON.stringify($(getImagePurposeSelector(IMAGE_Y, FOREGROUND_ART)).val())},
-        "ForegroundArtZoom": ${JSON.stringify($(getImagePurposeSelector(IMAGE_ZOOM, FOREGROUND_ART)).val())},
-        "CharacterLogoURL": ${JSON.stringify(extractImageURL(NAME_LOGO))},
-        "CharacterLogoX": ${JSON.stringify($(getImagePurposeSelector(IMAGE_X, NAME_LOGO)).val())},
-        "CharacterLogoY": ${JSON.stringify($(getImagePurposeSelector(IMAGE_Y, NAME_LOGO)).val())},
-        "CharacterLogoZoom": ${JSON.stringify($(getImagePurposeSelector(IMAGE_ZOOM, NAME_LOGO)).val())},
-        "ShowBorder": ${isChecked('#inputDisplayBorder')},
-        "VariantToggle": ${isChecked('#inputVariantToggle')},
-        "WhiteVariantText": ${isChecked('#inputVariantColor')}
-      }`
-    } else if (category == VILLAIN_CHAR) {
-      outputJSON = `{
-        "HP": ${JSON.stringify($('#inputHP').val())},
-        "Description": ${JSON.stringify($('#inputDescription').val())},
-        "Keywords": ${JSON.stringify($('#inputKeywords').val())},
-        "VerticalAlignment": ${JSON.stringify($('#inputBelowNameLogoAlignment').val())},
-        "NemesisIconURL": ${JSON.stringify(extractImageURL(NEMESIS_ICON))},
-        "NemesisX": ${JSON.stringify($(getImagePurposeSelector(IMAGE_X, NEMESIS_ICON)).val())},
-        "NemesisY": ${JSON.stringify($(getImagePurposeSelector(IMAGE_Y, NEMESIS_ICON)).val())},
-        "NemesisZoom": ${JSON.stringify($(getImagePurposeSelector(IMAGE_ZOOM, NEMESIS_ICON)).val())},
-        "BackgroundArtURL": ${JSON.stringify(extractImageURL(BACKGROUND_ART))},
-        "BackgroundArtX": ${JSON.stringify($(getImagePurposeSelector(IMAGE_X, BACKGROUND_ART)).val())},
-        "BackgroundArtY": ${JSON.stringify($(getImagePurposeSelector(IMAGE_Y, BACKGROUND_ART)).val())},
-        "BackgroundArtZoom": ${JSON.stringify($(getImagePurposeSelector(IMAGE_ZOOM, BACKGROUND_ART)).val())},
-        "ForegroundArtURL": ${JSON.stringify(extractImageURL(FOREGROUND_ART))},
-        "ForegroundArtX": ${JSON.stringify($(getImagePurposeSelector(IMAGE_X, FOREGROUND_ART)).val())},
-        "ForegroundArtY": ${JSON.stringify($(getImagePurposeSelector(IMAGE_Y, FOREGROUND_ART)).val())},
-        "ForegroundArtZoom": ${JSON.stringify($(getImagePurposeSelector(IMAGE_ZOOM, FOREGROUND_ART)).val())},
-        "NameLogoURL": ${JSON.stringify(extractImageURL(NAME_LOGO))},
-        "NameLogoX": ${JSON.stringify($(getImagePurposeSelector(IMAGE_X, NAME_LOGO)).val())},
-        "NameLogoY": ${JSON.stringify($(getImagePurposeSelector(IMAGE_Y, NAME_LOGO)).val())},
-        "NameLogoZoom": ${JSON.stringify($(getImagePurposeSelector(IMAGE_ZOOM, NAME_LOGO)).val())},
-        "SetupText": ${JSON.stringify($('#inputSetup').val())},
-        "GameText": ${JSON.stringify($('#inputEffect').val())},
-        "GameTextSize": ${JSON.stringify($('#inputEffectTextSize').val())},
-        "GameTextBoxWidth": ${JSON.stringify($('#inputEffectBoxWidth').val())},
-        "AdvancedPhase": ${JSON.stringify($('#inputAdvancedPhase').val())},
-        "AdvancedGameText": ${JSON.stringify($('#inputAdvanced').val())},
-        "AdvancedGameTextBoxWidth": ${JSON.stringify($('#inputAdvancedBoxWidth').val())},
-        "BoldedTerms": ${JSON.stringify($('#inputBoldWords').val())},
-        "ShowBorder": ${isChecked('#inputDisplayBorder')}
-      }`
-    } else if (category == PRINCIPLES)  {
-      outputJSON = `{
-        "Title": ${JSON.stringify($('#inputTitle').val())},
-        "BoldedTerms": ${JSON.stringify($('#inputBoldWords').val())},
-        "GameText": ${JSON.stringify($('#inputEffect').val())},
-        "GameTextSize": ${JSON.stringify($('#inputEffectTextSize').val())},
-        "Quote": ${JSON.stringify($('#inputQuote').val())},
-        "QuoteTextSize": ${JSON.stringify($('#inputQuoteTextSize').val())},
-        "Attribution": ${JSON.stringify($('#inputAttribution').val())},
-        "ImageURL": ${JSON.stringify(extractImageURL())},
-        "ImageX": ${JSON.stringify($('.inputImageOffsetX').val())},
-        "ImageY": ${JSON.stringify($('.inputImageOffsetY').val())},
-        "ImageZoom": ${JSON.stringify($('.inputImageScale').val())}
-      }`;
+function outputJSONData(category = BASIC) {
+  var obj = {};
+  for (var i = 0; i < CARD_FIELDS.length; i++) {
+    var f = CARD_FIELDS[i];
+    if (f.categories.includes(category)) {
+      obj[f.key] = readField(f);
     }
-  $('#jsonInput').val(outputJSON);
+  }
+  for (var j = 0; j < IMAGE_FIELD_GROUPS.length; j++) {
+    var g = IMAGE_FIELD_GROUPS[j];
+    if (g.categories.includes(category)) {
+      Object.assign(obj, readImageGroup(g));
+    }
+  }
+  $('#jsonInput').val(JSON.stringify(obj, null, 2));
 }
 
-// Helper method to get if a checkbox is checked without breaking if it doesn't exist
-function isChecked(jquery_id) {
-  return $(jquery_id).length? JSON.stringify($(jquery_id)[0].checked) : 'false'
+// Populate the "JSON Input" docs list (<ul id="jsonFieldDocs">) from the registry,
+// filtered to this page's CARD_CATEGORY, in the same order the export uses. A page
+// without the container is a silent no-op.
+function renderJSONFieldDocs() {
+  var container = $('#jsonFieldDocs');
+  if (container.length === 0) {
+    return;
+  }
+  // Escape via the DOM so descriptions can't inject markup.
+  function esc(text) {
+    return $('<div></div>').text(text == null ? '' : String(text)).html();
+  }
+  var items = '';
+  for (var i = 0; i < CARD_FIELDS.length; i++) {
+    var f = CARD_FIELDS[i];
+    if (!f.categories.includes(CARD_CATEGORY)) {
+      continue;
+    }
+    items += '<li><strong>' + esc(f.key) + '</strong> — ' + esc(f.description) + '</li>';
+  }
+  for (var j = 0; j < IMAGE_FIELD_GROUPS.length; j++) {
+    var g = IMAGE_FIELD_GROUPS[j];
+    if (!g.categories.includes(CARD_CATEGORY)) {
+      continue;
+    }
+    var urlKey = g.urlKey || (g.keyPrefix + 'URL');
+    items += '<li><strong>' + esc(urlKey) + '</strong>, <strong>' + esc(g.keyPrefix) +
+      'X</strong>, <strong>' + esc(g.keyPrefix) + 'Y</strong>, <strong>' + esc(g.keyPrefix) +
+      'Zoom</strong> — ' + esc(g.description) +
+      '<ul>' +
+      '<li><strong>' + esc(urlKey) + '</strong>: external URL to load the image from</li>' +
+      '<li><strong>' + esc(g.keyPrefix) + 'X</strong> / <strong>' + esc(g.keyPrefix) +
+      'Y</strong>: position offset in percent (about -50 to 50; negative is left / up, positive is right / down)</li>' +
+      '<li><strong>' + esc(g.keyPrefix) + 'Zoom</strong>: zoom percent; omitting the key on import resets it to ' +
+      esc(g.zoomDefault) + '</li>' +
+      '</ul></li>';
+  }
+  container.html(items);
 }
 
 function extractImageURL(purpose="") {
