@@ -903,7 +903,18 @@ function outputJSONData(category="basic") {
       "ImageZoom": ${JSON.stringify($('.inputImageScale').val())},
       "Suddenly": ${isChecked('#suddenly')}
     },`;
-  } else if (category == HERO_CHAR) {
+  } else if (category == HERO_CHAR && FACE == "back") {
+      outputJSON = `{
+        "PowerName": ${JSON.stringify($('#inputPowerName').val())},
+        "GameText": ${JSON.stringify($('#inputEffect').val())},
+        "GameTextSize": ${JSON.stringify($('#inputEffectTextSize').val())},
+        "BackgroundArtURL": ${JSON.stringify(extractImageURL(BACKGROUND_ART))},
+        "BackgroundArtX": ${JSON.stringify($(getImagePurposeSelector(IMAGE_X, BACKGROUND_ART)).val())},
+        "BackgroundArtY": ${JSON.stringify($(getImagePurposeSelector(IMAGE_Y, BACKGROUND_ART)).val())},
+        "BackgroundArtZoom": ${JSON.stringify($(getImagePurposeSelector(IMAGE_ZOOM, BACKGROUND_ART)).val())},
+        "ShowBorder": ${isChecked('#inputDisplayBorder')}
+      }`
+    } else if (category == HERO_CHAR) {
       outputJSON = `{
         "HP": ${JSON.stringify($('#inputHP').val())},
         "Keywords": ${JSON.stringify($('#inputKeywords').val())},
