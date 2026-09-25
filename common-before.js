@@ -343,6 +343,27 @@ const IMAGE_FIELD_GROUPS = [
   },
 ];
 
+/*
+JSON_FIELD_PROFILES defines exceptional field contracts for a particular card
+category and face. Tools without a matching profile use every registry entry in
+their CARD_CATEGORY. Keep these allowlists limited to established exceptions so
+new category-wide fields continue to flow to the usual tools automatically.
+*/
+const JSON_FIELD_PROFILES = [
+  {
+    category: HERO_CHAR,
+    face: BACK,
+    fields: [
+      "GameText",
+      "GameTextSize",
+      "ShowBorder",
+      "HighContrastPhaseLabels",
+      "PowerName",
+    ],
+    imageGroups: ["BackgroundArt"],
+  },
+];
+
 
 /*
 ============================================================================

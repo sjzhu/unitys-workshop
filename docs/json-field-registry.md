@@ -19,19 +19,21 @@ by registry changes.
 | Change | `CARD_FIELDS` / `IMAGE_FIELD_GROUPS` | tool `index.html` | tool `script.js` | `_resources/` |
 | --- | --- | --- | --- | --- |
 | **Expose an existing field on another tool in the same category** | — (field already flows to every tool in its `categories`) | add the input control | add rendering, if the tool doesn't already handle that global | maybe (frame/overlay art) |
-| **Brand-new field** | +1 entry (`key`, `selector`, `kind`, `default`, `categories`, `description`) | add the input control | add rendering | as needed |
+| **Brand-new field** | +1 entry (`key`, `selector`, `kind`, `default`, `categories`, `description`); update a matching `JSON_FIELD_PROFILES` allowlist if the field belongs on that exceptional face | add the input control | add rendering | as needed |
 | **Rename a JSON key** | change `key`; add the old name to `aliases: [...]` so existing blobs still import | — | — | — |
 | **Change a default, kind, or category membership** | one-line edit on the entry | — | — | — |
 | **New image slot** (e.g. a deck-back art layer) | +1 `IMAGE_FIELD_GROUPS` entry + a new image-purpose constant | add the `data-image-purpose` slider block | add rendering | — |
 | **New card category / tool** | add the `CARD_CATEGORY` constant; add it to existing entries' `categories` where shared; add category-specific entries | new page | new script | frame art |
 
 After any registry edit: add a sample value for the field in
-`scratch/json-roundtrip.mjs` and run `node scratch/json-roundtrip.mjs` — its delta
-gate fails if the export key set changes in a way the test doesn't expect.
+`tools/json-roundtrip.mjs` and run `node tools/json-roundtrip.mjs` — its delta
+gate fails if the export key set changes in a way the test doesn't expect. It
+also verifies that unknown properties and registry fields unused by a particular
+tool are accepted without errors and omitted from that tool's export.
 
-(Once the docs-generation step lands, the `<details>` "JSON Input" list on each
-tool page is also generated from `CARD_FIELDS` + `description`. Until then those
-lists are hand-maintained and known to be inaccurate for character cards.)
+The `<details>` "JSON Input" list on each tool page is generated from
+`CARD_FIELDS` + `IMAGE_FIELD_GROUPS`, using the same category/tool filtering as
+import and export.
 
 ## Worked example: add "Suddenly" to villain-deck-front
 
@@ -59,24 +61,15 @@ change.
   global in sync. These `let`s are reachable lexically but not via `window`.
 - **Number fields** read back through `.val()`, which returns the range input's
   clamped string. Compare round-trips by parsed value, not raw export text.
-- **Granularity is per-category, not per-tool.** A `[BASIC]` field is emitted in
-  the JSON of every `basic` tool (hero-deck-front, villain-deck-front, the deck
-  backs). Tools without the control get a harmless no-op on import and a sparse key
-  on export (`"Suddenly": false`). If you ever need a field on only *some* tools in
-  a category, the registry would need per-tool filtering added — don't do that
-  preemptively.
+- **Granularity is per-category by default.** A `[BASIC]` field is emitted in the
+  JSON of every `basic` tool. Established category/face exceptions belong in a
+  centralized `JSON_FIELD_PROFILES` allowlist; import, export, and generated docs
+  all use the same profile.
 
-## Known sparse-export tools
+## Tool-specific field sets
 
-`outputJSONData` lets `JSON.stringify` drop keys whose control isn't on the page,
-so two tools export a valid *subset* of their category's keys:
-
-- **principles-deck-front** — no `#inputAttribution` control (principle cards have
-  no attribution concept); `Attribution` is excluded from its field's categories.
-- **hero-character-card-back** — shares `hero_character` with the front but has
-  ~1/3 the controls, so `HP`, `Keywords`, `BoldedTerms`, and the X/Y/Zoom of
-  Nemesis / ForegroundArt / NameLogo are omitted.
-
-Both round-trips were already non-functional before the registry (the old string
-templates emitted the literal token `undefined`). Face-aware field sets are out of
-scope.
+- **principles-deck-front** — no `#inputAttribution` control or attribution
+  concept, so `Attribution` does not include `PRINCIPLES` in its categories.
+- **hero-character-card-back** — shares `hero_character` with the front, but the
+  `HERO_CHAR` + `BACK` profile limits it to the fields and image groups the back
+  actually supports.
