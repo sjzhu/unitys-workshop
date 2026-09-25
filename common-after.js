@@ -174,6 +174,160 @@ $('#outputJsonButton').on('click', function () {
 
 /*
 ============================================================================
+Batch Image Download (JSON input -> ZIP of PNGs)
+============================================================================
+*/
+// JSON image-URL fields and the image slot each one fills. A purpose of "" is the main card art (cardArtImage);
+// any other purpose is a key of loadedUserImages. NameLogoURL and CharacterLogoURL are two names for the same slot.
+const BATCH_IMAGE_URL_FIELDS = [
+  { key: 'ImageURL', purpose: '' },
+  { key: 'AdditionalIconURL', purpose: ADDITIONAL_ICON },
+  { key: 'NemesisIconURL', purpose: NEMESIS_ICON },
+  { key: 'BackgroundArtURL', purpose: BACKGROUND_ART },
+  { key: 'ForegroundArtURL', purpose: FOREGROUND_ART },
+  { key: 'NameLogoURL', purpose: NAME_LOGO },
+  { key: 'CharacterLogoURL', purpose: NAME_LOGO },
+];
+
+// Whether the current page has an upload control for the given image slot (and so actually draws it)
+function pageHasImageSlot(purpose) {
+  if (purpose === '') {
+    return $('#inputImageFile').length > 0;
+  }
+  return $(`.inputImageFile[data-image-purpose="${purpose}"]`).length > 0;
+}
+
+function setBatchImage(purpose, image) {
+  if (purpose === '') {
+    cardArtImage = image;
+  } else {
+    loadedUserImages[purpose] = image;
+  }
+}
+
+/** Applies one JSON entry to the page and resolves once every image it references has finished loading, so the
+ * canvas can be drawn exactly once with everything in place. */
+async function applyBatchJSONEntry(entry) {
+  // Image URL fields are stripped before parseJSONData so it doesn't kick off its own (un-awaited) image loads.
+  // Every other field is handled by parseJSONData's own defaulting for keys missing from the entry.
+  const textFields = { ...entry };
+  const urlsByPurpose = new Map();
+  for (const { key, purpose } of BATCH_IMAGE_URL_FIELDS) {
+    if (entry[key] && !urlsByPurpose.has(purpose)) {
+      urlsByPurpose.set(purpose, entry[key]);
+    }
+    delete textFields[key];
+  }
+  parseJSONData(textFields);
+
+  const purposes = new Set(BATCH_IMAGE_URL_FIELDS.map((field) => field.purpose));
+  for (const purpose of purposes) {
+    if (!pageHasImageSlot(purpose)) {
+      continue;
+    }
+    setBatchImage(purpose, await loadImageAsync(urlsByPurpose.get(purpose) ?? ''));
+  }
+}
+
+function sanitizeBatchFilename(title) {
+  const trimmedTitle = `${title || DEFAULT_DOWNLOAD_NAME}`.trim();
+  const safeTitle = trimmedTitle.replace(/[<>:"/\\|?*\u0000-\u001F]/g, '').replace(/\s+/g, ' ').trim();
+  return safeTitle || DEFAULT_DOWNLOAD_NAME;
+}
+
+function getUniqueBatchFilename(baseName, usedNames) {
+  let candidate = baseName;
+  let suffix = 2;
+  while (usedNames.has(candidate)) {
+    candidate = `${baseName} ${suffix}`;
+    suffix += 1;
+  }
+  usedNames.add(candidate);
+  return `${candidate}.png`;
+}
+
+function canvasToBlobAsync(targetCanvas) {
+  return new Promise((resolve, reject) => {
+    targetCanvas.toBlob((blob) => {
+      if (blob) {
+        resolve(blob);
+      } else {
+        reject(new Error('Failed to convert canvas to PNG.'));
+      }
+    }, 'image/png');
+  });
+}
+
+// The PNG filename for a batch entry: its Title if it has one (character cards have no title field, so a "Title"
+// key can be added to the JSON purely for naming), otherwise the page's download name plus its position.
+function getBatchEntryName(entry, index) {
+  return entry.Title || `${DEFAULT_DOWNLOAD_NAME} ${index + 1}`;
+}
+
+/** Renders every JSON entry in the JSON input box in turn and downloads the results as a single ZIP of PNGs. */
+async function downloadMultipleImages() {
+  let jsonEntries;
+  try {
+    jsonEntries = parseJSONEntries($('#jsonInput').prop('value')).filter((entry) => typeof entry === 'object' && entry !== null);
+  } catch (err) {
+    $('#jsonError').text("JSON Parse error:" + err.message);
+    return;
+  }
+
+  if (jsonEntries.length === 0) {
+    $('#jsonError').text('JSON Parse error: no JSON entries were found.');
+    return;
+  }
+
+  if (typeof JSZip === 'undefined') {
+    $('#jsonError').text('Batch download failed: JSZip did not load.');
+    return;
+  }
+
+  const button = $('#downloadMultipleButton');
+  const originalButtonText = button.text();
+  button.prop('disabled', true).text('Preparing ZIP...');
+  $('#jsonError').text('');
+
+  try {
+    const zip = new JSZip();
+    const usedNames = new Set();
+
+    for (let index = 0; index < jsonEntries.length; index++) {
+      const entry = jsonEntries[index];
+      button.text(`Rendering ${index + 1}/${jsonEntries.length}...`);
+
+      await applyBatchJSONEntry(entry);
+      drawCardCanvas();
+
+      const pngBlob = await canvasToBlobAsync(canvas);
+      const filename = getUniqueBatchFilename(sanitizeBatchFilename(getBatchEntryName(entry, index)), usedNames);
+      zip.file(filename, pngBlob);
+    }
+
+    button.text('Creating ZIP...');
+    const zipBlob = await zip.generateAsync({ type: 'blob' });
+    const zipName = sanitizeBatchFilename(jsonEntries[0]?.['Originating deck'] || `${DEFAULT_DOWNLOAD_NAME}-images`);
+    const downloadLink = document.createElement('a');
+    const objectUrl = URL.createObjectURL(zipBlob);
+    downloadLink.href = objectUrl;
+    downloadLink.download = `${zipName}.zip`;
+    downloadLink.click();
+    downloadLink.remove();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+  } catch (err) {
+    $('#jsonError').text(`Batch download failed: ${err.message}`);
+  } finally {
+    button.prop('disabled', false).text(originalButtonText);
+  }
+}
+
+$('#downloadMultipleButton').on('click', function () {
+  downloadMultipleImages();
+});
+
+/*
+============================================================================
 Regions for Image Drawing
 ============================================================================
 */
@@ -950,10 +1104,13 @@ function parseJSONData(data) {
   } else {
     $(getImagePurposeSelector(IMAGE_ZOOM, FOREGROUND_ART)).val(0);
   }
-  if('NameLogoURL' in data && data.NameLogoURL.length != 0) {
+  // The hero character front exports the name logo as CharacterLogo*, villain character cards as NameLogo*.
+  // Accept either name on import.
+  const nameLogoURL = data.NameLogoURL || data.CharacterLogoURL;
+  if(nameLogoURL) {
     loadedUserImages[NAME_LOGO] = new Image();
     loadedUserImages[NAME_LOGO].crossOrigin = "Anonymous";
-    loadedUserImages[NAME_LOGO].src = data.NameLogoURL;
+    loadedUserImages[NAME_LOGO].src = nameLogoURL;
     loadedUserImages[NAME_LOGO].onload = function () {
       // Once the Image has loaded, redraw the canvas so it immediately appears
       drawCardCanvas();
@@ -961,18 +1118,18 @@ function parseJSONData(data) {
   } else {
     loadedUserImages[NAME_LOGO] = null;
   }
-  if('NameLogoX' in data) {
-    $(getImagePurposeSelector(IMAGE_X, NAME_LOGO)).val(data.NameLogoX);
+  if('NameLogoX' in data || 'CharacterLogoX' in data) {
+    $(getImagePurposeSelector(IMAGE_X, NAME_LOGO)).val(data.NameLogoX ?? data.CharacterLogoX);
   } else {
     $(getImagePurposeSelector(IMAGE_X, NAME_LOGO)).val(0);
   }
-  if('NameLogoY' in data) {
-    $(getImagePurposeSelector(IMAGE_Y, NAME_LOGO)).val(data.NameLogoY);
+  if('NameLogoY' in data || 'CharacterLogoY' in data) {
+    $(getImagePurposeSelector(IMAGE_Y, NAME_LOGO)).val(data.NameLogoY ?? data.CharacterLogoY);
   } else {
     $(getImagePurposeSelector(IMAGE_Y, NAME_LOGO)).val(0);
   }
-  if('NameLogoZoom' in data) {
-    let zoomVal = parseInt(data.NameLogoZoom);
+  if('NameLogoZoom' in data || 'CharacterLogoZoom' in data) {
+    let zoomVal = parseInt(data.NameLogoZoom ?? data.CharacterLogoZoom);
     if (zoomVal == NaN) {
       zoomVal = 0;
     }
@@ -1017,7 +1174,27 @@ function parseJSONData(data) {
   } else {
     $('#inputAdvancedBoxWidth').val(0);
   }
+
+  // Character card checkboxes. Like Suddenly, each may be a boolean or a string; a missing key restores the default.
+  if ($('#inputDisplayBorder').length > 0) {
+    showBorder = 'ShowBorder' in data ? parseJSONBoolean(data.ShowBorder) : true;
+    $('#inputDisplayBorder')[0].checked = showBorder;
+  }
+  if ($('#inputVariantToggle').length > 0) {
+    isVariant = 'VariantToggle' in data ? parseJSONBoolean(data.VariantToggle) : false;
+    $('#inputVariantToggle')[0].checked = isVariant;
+  }
+  if ($('#inputVariantColor').length > 0) {
+    variantTextColor = 'WhiteVariantText' in data ? parseJSONBoolean(data.WhiteVariantText) : false;
+    $('#inputVariantColor')[0].checked = variantTextColor;
+  }
   drawCardCanvas();
+}
+
+// JSON checkbox values may arrive as a real boolean or as the string "TRUE"/"true" (e.g. from a spreadsheet)
+function parseJSONBoolean(value) {
+  return (typeof value === 'boolean' && value) ||
+         (typeof value === 'string' && value.toUpperCase() === 'TRUE');
 }
 
 function outputJSONData(category="basic") {
