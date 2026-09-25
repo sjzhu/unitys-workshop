@@ -791,15 +791,36 @@ function readImageGroup(group) {
   return out;
 }
 
+// Registry entries normally apply to every face in one of their categories.
+// A matching JSON_FIELD_PROFILES entry replaces that category-wide behavior
+// with an explicit allowlist for the exceptional category/face pair.
+function registryEntryApplies(entry, category, face) {
+  if (!entry.categories.includes(category)) {
+    return false;
+  }
+  var profile = JSON_FIELD_PROFILES.find(function (candidate) {
+    return candidate.category === category && candidate.face === face;
+  });
+  if (!profile) {
+    return true;
+  }
+  if (entry.keyPrefix) {
+    return profile.imageGroups.includes(entry.keyPrefix);
+  }
+  return profile.fields.includes(entry.key);
+}
+
 function parseJSONData(data) {
-  // Driven entirely by the registry in common-before.js. Every field is applied
-  // regardless of CARD_CATEGORY (selectors that aren't on the page are jQuery
-  // no-ops), matching the old flat behavior.
+  // Driven entirely by the registry in common-before.js.
   for (var i = 0; i < CARD_FIELDS.length; i++) {
-    applyField(CARD_FIELDS[i], data);
+    if (registryEntryApplies(CARD_FIELDS[i], CARD_CATEGORY, FACE)) {
+      applyField(CARD_FIELDS[i], data);
+    }
   }
   for (var j = 0; j < IMAGE_FIELD_GROUPS.length; j++) {
-    applyImageGroup(IMAGE_FIELD_GROUPS[j], data);
+    if (registryEntryApplies(IMAGE_FIELD_GROUPS[j], CARD_CATEGORY, FACE)) {
+      applyImageGroup(IMAGE_FIELD_GROUPS[j], data);
+    }
   }
   drawCardCanvas();
 }
@@ -808,13 +829,13 @@ function outputJSONData(category = BASIC) {
   var obj = {};
   for (var i = 0; i < CARD_FIELDS.length; i++) {
     var f = CARD_FIELDS[i];
-    if (f.categories.includes(category)) {
+    if (registryEntryApplies(f, category, FACE)) {
       obj[f.key] = readField(f);
     }
   }
   for (var j = 0; j < IMAGE_FIELD_GROUPS.length; j++) {
     var g = IMAGE_FIELD_GROUPS[j];
-    if (g.categories.includes(category)) {
+    if (registryEntryApplies(g, category, FACE)) {
       Object.assign(obj, readImageGroup(g));
     }
   }
@@ -836,14 +857,14 @@ function renderJSONFieldDocs() {
   var items = '';
   for (var i = 0; i < CARD_FIELDS.length; i++) {
     var f = CARD_FIELDS[i];
-    if (!f.categories.includes(CARD_CATEGORY)) {
+    if (!registryEntryApplies(f, CARD_CATEGORY, FACE)) {
       continue;
     }
     items += '<li><strong>' + esc(f.key) + '</strong> — ' + esc(f.description) + '</li>';
   }
   for (var j = 0; j < IMAGE_FIELD_GROUPS.length; j++) {
     var g = IMAGE_FIELD_GROUPS[j];
-    if (!g.categories.includes(CARD_CATEGORY)) {
+    if (!registryEntryApplies(g, CARD_CATEGORY, FACE)) {
       continue;
     }
     var urlKey = g.urlKey || (g.keyPrefix + 'URL');
