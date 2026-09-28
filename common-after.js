@@ -1624,8 +1624,9 @@ function getWordProperties(word) {
      isPunctuated = true;
   } else {
     isPunctuated = false;
-    // Remove any punctuation
-    minimizedWord = minimizedWord.replaceAll(/[.,!;:\?]/g, '');
+    // Ignore punctuation surrounding the word when matching styles. Keep the
+    // original word unchanged so the punctuation is still drawn.
+    minimizedWord = minimizedWord.replace(/^\p{P}+|\p{P}+$/gu, '');
 
     // Check minimized word against lists of words to bold and italicize
     if (effectBoldList.indexOf(minimizedWord) != -1) { isBold = true; }
