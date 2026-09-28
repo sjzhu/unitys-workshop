@@ -1256,10 +1256,9 @@ function adjustBoxHeightBelowOffset(reminderBlocks) {
   // Draw on the invisible calculation canvas instead of the main canvas
   ctx = calculationCanvas.getContext("2d");
   boxHeightBelowOffset = 0;
+  const reminderStartY = REMINDER_EFFECT_START_Y + boxHeightOffset;
   drawBodyText(reminderBlocks);
-  console.log("TESTING BELOW OFFSET");
-  console.log(currentOffsetY);
-  boxHeightBelowOffset = Math.round(REMINDER_EFFECT_START_Y - currentOffsetY);
+  boxHeightBelowOffset = Math.round(reminderStartY - currentOffsetY);
   currentOffsetY = 0;
   // Return to the main canvas
   ctx = canvas.getContext("2d");
@@ -1339,8 +1338,20 @@ function drawCharacterBodyBox() {
   }
 }
 
+function setupEffectTextBounds() {
+  // Make reminder text have wider horizontal bounds
+  const reminderMarginAddition = drawingReminder ? pw(2) : 0;
+  effectTextStartX = EFFECT_START_X - reminderMarginAddition;
+  effectTextEndX = EFFECT_END_X + reminderMarginAddition;
+}
+
 function setupEffectFontSize() {
-  effectFontScale = $('#inputEffectTextSize').prop('value') / 100; // Result is between 0 and 1
+  // Reminder text has its own size control. Both the measurement and visible
+  // drawing passes set drawingReminder, so they use identical font metrics.
+  const textSizeInput = drawingReminder && $('#reminderEffectTextSize').length > 0
+    ? '#reminderEffectTextSize'
+    : '#inputEffectTextSize';
+  effectFontScale = $(textSizeInput).prop('value') / 100; // Result is between 0 and 1
   effectFontSize = EFFECT_BASE_FONT_SIZE * effectFontScale;
   lineHeight = BODY_BASE_LINE_HEIGHT * effectFontScale;
   spaceWidth = effectFontSize * SPACE_WIDTH_FACTOR;
@@ -1351,7 +1362,8 @@ function measureBodyTextHeight(parsedBlocks, startY) {
   const originalContext = ctx;
   ctx = calculationCanvas.getContext("2d");
 
-  currentOffsetX = EFFECT_START_X + bodyWidthAdjustment;
+  setupEffectTextBounds();
+  currentOffsetX = effectTextStartX + bodyWidthAdjustment;
   currentOffsetY = startY;
 
   setupEffectFontSize();
@@ -1376,9 +1388,12 @@ function drawBodyText(parsedBlocks, options = {}) {
   }
 
   // Initialize positioning values
-  currentOffsetX = EFFECT_START_X + bodyWidthAdjustment;
+  setupEffectTextBounds();
+  currentOffsetX = effectTextStartX + bodyWidthAdjustment;
   if (drawingReminder) {
-    currentOffsetY = REMINDER_EFFECT_START_Y + boxHeightOffset;
+    // Keep the reminder anchored to the bottom of the body box. As wrapped
+    // reminder text makes the box move upward, move the text with it.
+    currentOffsetY = REMINDER_EFFECT_START_Y + boxHeightOffset + boxHeightBelowOffset;
   }
   else {
     currentOffsetY = EFFECT_START_Y + boxHeightOffset + boxHeightBelowOffset + advancedTextYAdjustment;
@@ -1413,7 +1428,7 @@ function drawBodyText(parsedBlocks, options = {}) {
 /** Draws a single block from the array of parsed blocks. */
 function drawBlock(block, isFirstBlock) {
   // Reset indentation to default
-  currentIndentX = EFFECT_START_X + bodyWidthAdjustment;
+  currentIndentX = effectTextStartX + bodyWidthAdjustment;
 
   if (block.type === SPACE_BLOCK) {
     drawSpaceBlock(isFirstBlock);
@@ -1466,13 +1481,15 @@ function drawPhaseBlock(phase, isFirstBlock) {
 
   // Draw the text after the icon
   ctx.font = `400 ${EFFECT_PHASE_FONT_SIZE}px ${PHASE_FONT_FAMILY}`;
-  ctx.strokeStyle = colorBlack;
-  ctx.line = EFFECT_PHASE_FONT_SIZE
-  ctx.lineWidth = EFFECT_PHASE_FONT_SIZE * 0.2;
-  ctx.lineJoin = MITER;
-  ctx.miterLimit = 3;
-  ctx.strokeText(phaseText, currentOffsetX, currentOffsetY);
-  ctx.fillStyle = phaseColor;
+  if (!drawingReminder) {
+    ctx.strokeStyle = colorBlack;
+    ctx.line = EFFECT_PHASE_FONT_SIZE
+    ctx.lineWidth = EFFECT_PHASE_FONT_SIZE * 0.2;
+    ctx.lineJoin = MITER;
+    ctx.miterLimit = 3;
+    ctx.strokeText(phaseText, currentOffsetX, currentOffsetY);
+  }
+  ctx.fillStyle = drawingReminder ? '#ffffff' : phaseColor;
   ctx.fillText(phaseText, currentOffsetX, currentOffsetY);
 
   // Prepare for next block
@@ -1487,7 +1504,7 @@ function drawIndentBlock(indentLabel, indentContent, isFirstBlock) {
   }
 
   // Set shared characteristics for all labels:
-  ctx.fillStyle = colorBlack;
+  ctx.fillStyle = drawingReminder ? '#ffffff' : colorBlack;
 
   // Set properties specific to the type of indent block. Bullet points need special handling
   let labelContent;
@@ -1589,7 +1606,7 @@ function drawSimpleBlock(simpleContent, isFirstBlock) {
     } else {
       ctx.font = weightValue + ' ' + styleValue + ' ' + effectFontSize + 'px ' + EFFECT_FONT_FAMILY;
     }
-    ctx.fillStyle = colorBlack;
+    ctx.fillStyle = drawingReminder ? '#ffffff' : colorBlack;
 
     // Break up special bold/italics phrases into their component words
     let phraseParts = thisWord.text.split(' ');
@@ -1601,7 +1618,7 @@ function drawSimpleBlock(simpleContent, isFirstBlock) {
       // Check to see if the line should wrap
       let wrapped = false;
       // Looks forward to see if adding this word to the current line would make the line exceed the maximum x position
-      if (currentOffsetX + spaceWidth + wordWidth > EFFECT_END_X) {
+      if (currentOffsetX + spaceWidth + wordWidth > effectTextEndX) {
         // If it would, then start the next line
         currentOffsetY += lineHeight;
         currentOffsetX = currentIndentX;
@@ -1649,7 +1666,7 @@ function drawSimpleBlock(simpleContent, isFirstBlock) {
   });
 
   // After drawing all the words, prepare for the next block
-  currentOffsetX = EFFECT_START_X + bodyWidthAdjustment;
+  currentOffsetX = effectTextStartX + bodyWidthAdjustment;
   currentOffsetY += lineHeight * BLOCK_SPACING_FACTOR;
 }
 

@@ -132,6 +132,12 @@ function drawCardCanvas() {
   drawArtInCroppedArea('hccf_foregroundArt');
   loadEffectList();
 
+  // Fill the full-width footer allocated to reminder text. Draw this before
+  // the body box so its angled lower edge remains visible over the footer.
+  if (reminderBlocks.length > 0) {
+    drawReminderBackground();
+  }
+
   // Draw the character body box, and the text in the card body.
   drawCharacterBodyBox();
   drawBodyText(parsedBlocks);
@@ -142,7 +148,7 @@ function drawCardCanvas() {
 
   // Draw the variant tag if it's enabled
   if (isVariant) {
-    drawVariantTag();
+    drawVariantTag(reminderBlocks.length > 0);
   }
 
   // == Draw the power name
@@ -179,6 +185,17 @@ function drawCardCanvas() {
     // Adjust for box height below offset
     ctx.drawImage(loadedGraphics['Nemesis Icon Frame'], pw(11), ph(89) + boxHeightBelowOffset, frameSize, frameSize);
   }
+}
+
+/** Draws the full-width black footer behind reminder text. */
+function drawReminderBackground() {
+  const bodyBoxBottomY = Math.min(
+    CHARACTER_BODY_BOX.bottomLeft.y,
+    CHARACTER_BODY_BOX.bottomRight.y
+  );
+  const backgroundTopY = bodyBoxBottomY + boxHeightBelowOffset + ph(2);
+  ctx.fillStyle = colorBlack;
+  ctx.fillRect(0, backgroundTopY, canvas.width, canvas.height - backgroundTopY);
 }
 
 /**
@@ -260,13 +277,13 @@ function drawHP() {
 /**
  * Draws the Variant tag on a Hero character card.
  */
-function drawVariantTag() {
+function drawVariantTag(hasReminder) {
   let tagX = pw(77);
   // TODO(sjzhu): Make this change when CC reminder text is applied
   let tagY = ph(94.6);
   let tagFontSize = pw(2.7);
   ctx.save();
-  if(!variantTextColor) {
+  if(!variantTextColor && !hasReminder) {
     ctx.fillStyle = colorBlack;
   } else {
     ctx.fillStyle = "#ffffff";
