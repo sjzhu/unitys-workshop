@@ -129,17 +129,37 @@ $('#inputVariantColor').on('input', function () {
   drawCardCanvas();
 });
 
+function parseJSONEntries(jsonString) {
+  const trimmed = jsonString.trim();
+  if (trimmed.length === 0) {
+    return [];
+  }
+
+  const normalized = trimmed.endsWith(',') ? trimmed.slice(0, -1) : trimmed;
+  let parsedData;
+  try {
+    parsedData = JSON.parse(normalized);
+  } catch (err) {
+    parsedData = JSON.parse(`[${normalized}]`);
+  }
+
+  if (Array.isArray(parsedData)) {
+    return parsedData;
+  }
+  return [parsedData];
+}
+
 // Parse JSON input buttom
 $('#parseJsonInputButton').on('click', function () {
   // attempt to parse the JSON
   let jsonString = $('#jsonInput').prop('value');
-  // get rid of extra commas that happen when pasting from array
-  if (jsonString.slice(-1) == ',') {
-    jsonString = jsonString.slice(0,-1)
-  }
   try {
-    let jsonData = JSON.parse(jsonString);
-    parseJSONData(jsonData);
+    const jsonEntries = parseJSONEntries(jsonString);
+    if (jsonEntries.length === 0) {
+      $('#jsonError').text("JSON Parse error: no JSON entries were found.");
+      return;
+    }
+    parseJSONData(jsonEntries[0]);
   } catch(err) {
     $('#jsonError').text("JSON Parse error:" + err.message);
     return;
