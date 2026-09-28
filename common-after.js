@@ -789,7 +789,7 @@ function parseJSONData(data) {
   }
   if('AdditionalIconZoom' in data) {
     let zoomVal = parseInt(data.AdditionalIconZoom);
-    if (zoomVal == NaN) {
+    if (Number.isNaN(zoomVal)) {
       zoomVal = 50;
     }
     $(getImagePurposeSelector(IMAGE_ZOOM, ADDITIONAL_ICON)).val(zoomVal);
