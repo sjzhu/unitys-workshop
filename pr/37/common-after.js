@@ -726,6 +726,13 @@ function parseJSONData(data) {
   } else {
     $('#inputAttribution').val('');
   }
+  if('ArtistAttribution' in data) {
+    $('#inputArtistAttribution').val(data.ArtistAttribution);
+  } else if('Artist' in data) {
+    $('#inputArtistAttribution').val(data.Artist);
+  } else {
+    $('#inputArtistAttribution').val('');
+  }
   if('ImageURL' in data && data.ImageURL.length != 0) {
     cardArtImage = new Image();
     cardArtImage.crossOrigin = "Anonymous";
@@ -782,7 +789,7 @@ function parseJSONData(data) {
   }
   if('AdditionalIconZoom' in data) {
     let zoomVal = parseInt(data.AdditionalIconZoom);
-    if (zoomVal == NaN) {
+    if (Number.isNaN(zoomVal)) {
       zoomVal = 50;
     }
     $(getImagePurposeSelector(IMAGE_ZOOM, ADDITIONAL_ICON)).val(zoomVal);
@@ -988,6 +995,7 @@ function outputJSONData(category="basic") {
       "Quote": ${JSON.stringify($('#inputQuote').val())},
       "QuoteTextSize": ${JSON.stringify($('#inputQuoteTextSize').val())},
       "Attribution": ${JSON.stringify($('#inputAttribution').val())},
+      "ArtistAttribution": ${JSON.stringify(getInputValue('#inputArtistAttribution'))},
       "ImageURL": ${JSON.stringify(extractImageURL())},
       "ImageX": ${JSON.stringify($('.inputImageOffsetX').val())},
       "ImageY": ${JSON.stringify($('.inputImageOffsetY').val())},
@@ -998,7 +1006,18 @@ function outputJSONData(category="basic") {
       "AdditionalIconZoom": ${JSON.stringify(additionalIconZoom)},
       "Suddenly": ${isChecked('#suddenly')}
     },`;
-  } else if (category == HERO_CHAR) {
+  } else if (category == HERO_CHAR && FACE == "back") {
+      outputJSON = `{
+        "PowerName": ${JSON.stringify($('#inputPowerName').val())},
+        "GameText": ${JSON.stringify($('#inputEffect').val())},
+        "GameTextSize": ${JSON.stringify($('#inputEffectTextSize').val())},
+        "BackgroundArtURL": ${JSON.stringify(extractImageURL(BACKGROUND_ART))},
+        "BackgroundArtX": ${JSON.stringify($(getImagePurposeSelector(IMAGE_X, BACKGROUND_ART)).val())},
+        "BackgroundArtY": ${JSON.stringify($(getImagePurposeSelector(IMAGE_Y, BACKGROUND_ART)).val())},
+        "BackgroundArtZoom": ${JSON.stringify($(getImagePurposeSelector(IMAGE_ZOOM, BACKGROUND_ART)).val())},
+        "ShowBorder": ${isChecked('#inputDisplayBorder')}
+      }`
+    } else if (category == HERO_CHAR) {
       outputJSON = `{
         "HP": ${JSON.stringify($('#inputHP').val())},
         "Keywords": ${JSON.stringify($('#inputKeywords').val())},
@@ -1067,6 +1086,7 @@ function outputJSONData(category="basic") {
         "Quote": ${JSON.stringify($('#inputQuote').val())},
         "QuoteTextSize": ${JSON.stringify($('#inputQuoteTextSize').val())},
         "Attribution": ${JSON.stringify($('#inputAttribution').val())},
+        "ArtistAttribution": ${JSON.stringify(getInputValue('#inputArtistAttribution'))},
         "ImageURL": ${JSON.stringify(extractImageURL())},
         "ImageX": ${JSON.stringify($('.inputImageOffsetX').val())},
         "ImageY": ${JSON.stringify($('.inputImageOffsetY').val())},
@@ -1079,6 +1099,11 @@ function outputJSONData(category="basic") {
 // Helper method to get if a checkbox is checked without breaking if it doesn't exist
 function isChecked(jquery_id) {
   return $(jquery_id).length? JSON.stringify($(jquery_id)[0].checked) : 'false'
+}
+
+// Helper method to get an input value without breaking on pages where it doesn't exist
+function getInputValue(jquery_id, fallback='') {
+  return $(jquery_id).length? $(jquery_id).val() : fallback;
 }
 
 function extractImageURL(purpose="") {
@@ -1161,6 +1186,19 @@ function drawCardQuote() {
 Functions for rendering card bodies
 ============================================================================
 */
+
+function drawArtistAttribution() {
+  let artist = $('#inputArtistAttribution').prop('value');
+  if (artist) {
+    artist = "Art by: " + artist;
+    let artistFontSize = CARD_CATEGORY === BASIC ? pw(3.3) : ph(3.3);
+    ctx.font = `${EFFECT_FONT_WEIGHT} normal ${artistFontSize}px ${EFFECT_FONT_FAMILY}`;
+    ctx.fillStyle = '#ffffff';
+    ctx.textAlign = "right";
+    ctx.fillText(artist, ARTIST_ATTRIBUTION_X, ARTIST_ATTRIBUTION_Y);
+  }
+}
+
 /**
  * Determines the indent label in a line of game text. If one exists, this method returns the label and the length of the specifier that was used to identify it. If not
  * label can be extracted, this returns null, which indicates that this line is not an indent block.
