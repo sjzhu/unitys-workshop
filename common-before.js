@@ -405,8 +405,9 @@ const _characterBodyBoxMap = new Map([
 ]);
 const CHARACTER_BODY_BOX = _characterBodyBoxMap.get(CARD_CATEGORY);
 
-// Reminder text vertical effect variable
-const REMINDER_EFFECT_START_Y = ph(95);
+// Reminder text baseline. Leave enough room below the character body box for
+// the full font height and a small visual gap.
+const REMINDER_EFFECT_START_Y = ph(99);
 
 
 // Values for quotes:
@@ -548,8 +549,13 @@ let effectBoldList = Array.from(DEFAULT_BOLD_LIST);
 // These phrases will be automatically italicized. This list is updated based on user input.
 let effectItalicsList = Array.from(DEFAULT_ITALICS_LIST);
 
+// Mutable horizontal text bounds. Reminder text applies wider margins without
+// changing the card-category constants used by normal game text.
+let effectTextStartX = EFFECT_START_X;
+let effectTextEndX = EFFECT_END_X;
+
 // The indentation of the X-position cursor when drawing indented blocks (such as Power, Reaction, and Bullet point blocks).
-var currentIndentX = EFFECT_START_X;
+var currentIndentX = effectTextStartX;
 /*
 Using "var" instead of "let" above to fix a bug that started happening within drawSimpleBlock(),
 where executing [currentOffsetX = currentIndentX;] caused both variables to then return as NaN,
