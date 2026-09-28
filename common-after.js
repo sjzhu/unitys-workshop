@@ -565,7 +565,7 @@ function drawArtInCroppedArea(areaName) {
     ctx.translate(bodyWidthAdjustment, advancedBoxYAdjustment);
   }
 
-  // Dynamically adjust nemesis icon placement on villain character cards
+  // Dynamically adjust nemesis icon placement on hero character cards
   if (areaName == 'hccf_nemesisIcon') {
     ctx.translate(0, boxHeightBelowOffset);
   }
