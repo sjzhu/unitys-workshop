@@ -288,15 +288,17 @@ function loadCards(tsvData, dataGroup) {
   else {
     // Once all the cards have been generated...
     // Flip cards when needed
-    $('.flippable .cardImage').click(function() {
-      // Mark as flipped
-      $(this).parent().toggleClass('flipped');
-      // Toggle image
-      $(this).parent().children('.cardImage').toggle();
-    });
+    bindCardFlipping();
     // If there's already something in the search bar, do a search
     submitSearch();
   }
+}
+
+function bindCardFlipping() {
+  $('.flippable .cardImage').off('click.cardFlip').on('click.cardFlip', function() {
+    $(this).parent().toggleClass('flipped');
+    $(this).parent().children('.cardImage').toggle();
+  });
 }
 
 // Submit search as user types, if enabled

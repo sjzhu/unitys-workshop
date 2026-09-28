@@ -2,12 +2,16 @@
 ============================================================================
 Parsing Into Cards
 ============================================================================
-*/
+ */
 /**
  * A record representing a single Definitive Edition card. This contains a definitive list of every possible property a card can have, including metadata like quantity.
  * <p>
  * Property names and constraints aren't actually enforced because this is JavaScript (big sad), so everything in the constructor is just meant as documentation.
- */
+*/
+if (typeof module !== "undefined" && module.exports) {
+  var StringScanner = require("./strscan.js").StringScanner;
+}
+
 class Card {
   constructor() {
     // ==========
@@ -327,7 +331,7 @@ function parseVillainCharacterCards(tsvData) {
     card.backGameText = line[14];
     card.backAdvancedGameText = line[15];
     card.set = line[16];
-    card.difficulty = line[17];
+    card.difficulty = parseInt(line[17]);
     card.type = "villain";
     card.kind = "character";
     card.displayType = line[18];
@@ -361,7 +365,7 @@ function parseEnneadCharacterCards(tsvData) {
     card.backGameText = line[14];
     card.backAdvancedGameText = line[15];
     card.set = line[16];
-    card.difficulty = line[17];
+    card.difficulty = parseInt(line[17]);
     card.type = "villain";
     card.kind = "character";
     card.displayType = line[18];
@@ -387,7 +391,7 @@ function parseStandardEventCards(tsvData) {
     card.eventRuleTitle = line[6];
     card.eventRuleEffect = line[7];
     card.collectionFlavorText = line[8];
-    card.collectionIssues = line[9].split("\n");
+    card.collectionIssues = extractCollectionIssues(line[9]);
     card.collectionFeaturedIssue = line[10];
     card.rewardATitle = line[11];
     card.rewardAFlavorText = line[12];
@@ -413,7 +417,7 @@ function parseCriticalEventCards(tsvData) {
     card.title = line[0];
     card.date = line[1];
     card.flavorText = line[2];
-    card.collectionLimit = line[3];
+    card.collectionLimit = parseInt(line[3]);
     // TODO: someone needs to update the spreadsheet with these or do it by hand, because the original villain character isn't present
     card.crunchedDeckName = extractCrunchedName(line[4]);
     card.crunchedCharacterName = extractCrunchedName(line[5]);
@@ -534,7 +538,7 @@ function parseDividerCards(tsvData) {
 }
 
 function getDataLines(tsvData) {
-  return tsvData.split("\n");
+  return tsvData.replace(/(?:\r?\n)+$/, "").split(/\r?\n/);
 }
 
 function getLine(dataLines, lineIndex) {
@@ -561,6 +565,10 @@ function extractNemesisIcons(nemesisIconsString) {
     return [];
   }
   return nemesisIconsString.split("\n");
+}
+
+function extractCollectionIssues(collectionIssuesString) {
+  return collectionIssuesString.split("\n");
 }
 
 /**
@@ -616,12 +624,12 @@ function subArrayOverlapRegexMatch(candidate, regexList) {
       }
       // If not, continue the loop until we're out of candidate crunches.
     }
-    return false;
   }
+  return false;
 }
 
 function numberMatch(candidate, target, relationship) {
-  if (!candidate) {
+  if (candidate === null || candidate === undefined || Number.isNaN(candidate)) {
     return false;
   }
   if (relationship === "=" || relationship === ":") {
@@ -644,6 +652,7 @@ function xnor(a, b) {
 }
 
 function parseBoolean(boolString) {
+  boolString = boolString.toLowerCase();
   if (['t', 'true', 'y', 'yes'].includes(boolString)) {
     return true;
   } else if (['f', 'false', 'n', 'no'].includes(boolString)) {
@@ -825,7 +834,7 @@ class AdvancedGameTextCond extends Condition {
     this.regexp = regexp;
   }
   match(c) {
-    return regexMatch(c.advancedGameText, this.regexp) || regexMatch(c.advancedGameText, this.regexp);
+    return regexMatch(c.advancedGameText, this.regexp) || regexMatch(c.backAdvancedGameText, this.regexp);
   }
 }
 
@@ -945,7 +954,7 @@ class CollectionIssuesCond extends Condition {
     this.regexp = regexp;
   }
   match(c) {
-    return listRegexMatch(c.collectionIssues, regexp);
+    return listRegexMatch(c.collectionIssues, this.regexp);
   }
 }
 
@@ -1161,6 +1170,8 @@ class ExpressiveSearcher {
           tokens.push(new CollectionFlavorTextCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
         } else if (s.scan(/(?:collectionFeaturedIssue)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
           tokens.push(new CollectionFeaturedIssueCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
+        } else if (s.scan(/(?:collectionIssues)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
+          tokens.push(new CollectionIssuesCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
         } else if (s.scan(/(?:rewardTitle)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
           tokens.push(new RewardTitleCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
         } else if (s.scan(/(?:rewardFlavor)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
@@ -1174,7 +1185,7 @@ class ExpressiveSearcher {
         } else if (s.scan(/(c|complexity)\s*(>=|>|<=|<|=|:)\s*(\d+)/i)) {
           tokens.push(new ComplexityCond(s.getCapture(2), s.getCapture(1)));
         } else if (s.scan(/(diff|difficulty)\s*(>=|>|<=|<|=|:)\s*(\d+)/i)) {
-          tokens.push(new DifficultyCond(s.getCapture(1), s.getCapture(0)));
+          tokens.push(new DifficultyCond(s.getCapture(2), s.getCapture(1)));
         } else if (s.scan(/(?:ty|type)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
           tokens.push(new TypeCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
         } else if (s.scan(/(?:ki|kind)\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
@@ -1307,4 +1318,30 @@ function filterCards(query) {
       $(`#${card.id}`).hide()
     }
   }
+}
+
+if (typeof module !== "undefined" && module.exports) {
+  module.exports = {
+    Card,
+    cards,
+    awesomeParser,
+    getDataLines,
+    extractCrunchedName,
+    extractKeywords,
+    extractHp,
+    extractNemesisIcons,
+    extractCollectionIssues,
+    buildUniqueId,
+    regexMatch,
+    listRegexMatch,
+    subArrayOverlapRegexMatch,
+    numberMatch,
+    xnor,
+    parseBoolean,
+    escapeRegex,
+    Condition,
+    ExpressiveSearcher,
+    expressiveSearch,
+    resetCards: () => { cards.length = 0; },
+  };
 }

@@ -54,7 +54,7 @@ const HIGH_CONTRAST = "high";
 const ORIGINAL_CONTRAST = "original"
 // Gross RegeEx for identifying phase blocks
 const _phaseSymbols = "[.,!;:<>[\\](){}\\-|]"; // "\" and "]" need to be escaped inside regex brackets
-const PHASE_REGEX = new RegExp(`^${_phaseSymbols}* ?(${PHASE_LABELS.join("|")}) phase ?${_phaseSymbols}? *`);
+const PHASE_REGEX = new RegExp(`^${_phaseSymbols}* ?(${PHASE_LABELS.join("|")}) phase ?${_phaseSymbols}* *`);
 const PHASE_INDEX = 1; // the position of the phase word that is identified in PHASE_REGEX
 
 // Map of phases to various rendering strings

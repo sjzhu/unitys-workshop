@@ -702,7 +702,7 @@ function parseJSONData(data) {
     // default to the middle of the bar, which is not the default
     // ImageZoom is used for card fronts, so it defaults to 100
     let zoomVal = parseInt(data.ImageZoom);
-    if (zoomVal == NaN) {
+    if (Number.isNaN(zoomVal)) {
       zoomVal = 100;
     }
     $('.inputImageScale').val(zoomVal);
@@ -754,7 +754,7 @@ function parseJSONData(data) {
   }
   if('NemesisZoom' in data) {
     let zoomVal = parseInt(data.NemesisZoom);
-    if (zoomVal == NaN) {
+    if (Number.isNaN(zoomVal)) {
       zoomVal = 0;
     }
     $(getImagePurposeSelector(IMAGE_ZOOM, NEMESIS_ICON)).val(zoomVal);
@@ -784,7 +784,7 @@ function parseJSONData(data) {
   }
   if('BackgroundArtZoom' in data) {
     let zoomVal = parseInt(data.BackgroundArtZoom);
-    if (zoomVal == NaN) {
+    if (Number.isNaN(zoomVal)) {
       zoomVal = 0;
     }
     $(getImagePurposeSelector(IMAGE_ZOOM, BACKGROUND_ART)).val(zoomVal);
@@ -814,7 +814,7 @@ function parseJSONData(data) {
   }
   if('ForegroundArtZoom' in data) {
     let zoomVal = parseInt(data.ForegroundArtZoom);
-    if (zoomVal == NaN) {
+    if (Number.isNaN(zoomVal)) {
       zoomVal = 0;
     }
     $(getImagePurposeSelector(IMAGE_ZOOM, FOREGROUND_ART)).val(zoomVal);
@@ -844,7 +844,7 @@ function parseJSONData(data) {
   }
   if('NameLogoZoom' in data) {
     let zoomVal = parseInt(data.NameLogoZoom);
-    if (zoomVal == NaN) {
+    if (Number.isNaN(zoomVal)) {
       zoomVal = 0;
     }
     $(getImagePurposeSelector(IMAGE_ZOOM, NAME_LOGO)).val(zoomVal);
