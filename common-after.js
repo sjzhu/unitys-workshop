@@ -1244,8 +1244,10 @@ function adjustBoxHeightOffset(parsedBlocks) {
     // Unique minimum size for advanced box (higher number = smaller)
     minimumSizeCap = ph(10);
   }
-  boxHeightOffset = Math.min(Math.round(EFFECT_START_Y - currentOffsetY + 137), minimumSizeCap);
-  // boxHeightOffset += boxHeightBelowOffset; // Apply any user-defined offset below the box
+  // drawBodyText() shifts the game text upward with the reminder footer. Cancel
+  // that positional shift so only the game text's own height determines how
+  // tall the body box needs to be.
+  boxHeightOffset = Math.min(Math.round(EFFECT_START_Y - currentOffsetY + boxHeightBelowOffset + 137), minimumSizeCap);
   currentOffsetY = 0;
   // Return to the main canvas
   ctx = canvas.getContext("2d");
@@ -1256,7 +1258,7 @@ function adjustBoxHeightBelowOffset(reminderBlocks) {
   // Draw on the invisible calculation canvas instead of the main canvas
   ctx = calculationCanvas.getContext("2d");
   boxHeightBelowOffset = 0;
-  const reminderStartY = REMINDER_EFFECT_START_Y + boxHeightOffset;
+  const reminderStartY = REMINDER_EFFECT_START_Y;
   drawBodyText(reminderBlocks);
   boxHeightBelowOffset = Math.round(reminderStartY - currentOffsetY);
   currentOffsetY = 0;
@@ -1391,9 +1393,10 @@ function drawBodyText(parsedBlocks, options = {}) {
   setupEffectTextBounds();
   currentOffsetX = effectTextStartX + bodyWidthAdjustment;
   if (drawingReminder) {
-    // Keep the reminder anchored to the bottom of the body box. As wrapped
-    // reminder text makes the box move upward, move the text with it.
-    currentOffsetY = REMINDER_EFFECT_START_Y + boxHeightOffset + boxHeightBelowOffset;
+    // Keep the reminder anchored to the bottom of the body box. The normal
+    // boxHeightOffset expands only the top edge, so it must not move the
+    // reminder; boxHeightBelowOffset tracks the footer's actual position.
+    currentOffsetY = REMINDER_EFFECT_START_Y + boxHeightBelowOffset;
   }
   else {
     currentOffsetY = EFFECT_START_Y + boxHeightOffset + boxHeightBelowOffset + advancedTextYAdjustment;
