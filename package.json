@@ -10,10 +10,12 @@
     "test": "vitest run",
     "test:watch": "vitest",
     "test:python": "python3 -m unittest discover -s tests/python -p 'test_*.py' -v",
-    "test:all": "npm test && npm run test:python"
+    "test:all": "npm test && npm run test:python",
+    "test:e2e": "playwright test"
   },
   "devDependencies": {
-    "jquery": "3.7.1",
+    "@playwright/test": "^1.63.0",
+    "jquery": "3.6.0",
     "jsdom": "26.1.0",
     "vitest": "^4.1.11"
   }
