@@ -1,9 +1,7 @@
 const { test, expect } = require("@playwright/test");
 const fs = require("node:fs");
 const path = require("node:path");
-
-const jqueryCdnUrl = "https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js";
-const jqueryPath = require.resolve("jquery/dist/jquery.min.js");
+const { installOfflineRoutes, waitForCardCanvas } = require("./support");
 
 const galleryCategories = [
   "Hero Character Cards",
@@ -39,17 +37,7 @@ const cardMakerPages = [
 ];
 
 test.beforeEach(async ({ page }) => {
-  await page.route("https://**/*", async route => {
-    if (route.request().url() === jqueryCdnUrl) {
-      await route.fulfill({ path: jqueryPath, contentType: "application/javascript" });
-      return;
-    }
-    if (route.request().resourceType() === "stylesheet") {
-      await route.fulfill({ body: "", contentType: "text/css" });
-      return;
-    }
-    await route.abort("blockedbyclient");
-  });
+  await installOfflineRoutes(page);
 });
 
 for (const pagePath of cardMakerPages) {
@@ -59,6 +47,7 @@ for (const pagePath of cardMakerPages) {
 
     await page.goto(pagePath);
     await expect(page.locator("#myCanvas")).toBeVisible();
+    await waitForCardCanvas(page);
     const canvasState = await page.locator("#myCanvas").evaluate(canvas => {
       const pixels = canvas.getContext("2d").getImageData(0, 0, canvas.width, canvas.height).data;
       const firstRed = pixels[0];
