@@ -43,13 +43,7 @@ $('*[data-image-purpose]').each(function () {
 $('.adjustmentResetButton.clearImageButton').on('click', function () {
   const areaName = this.dataset.imagePurpose;
   resetDataImageSettings(areaName);
-  // Remove uploaded image
-  $(`.contentInput[data-image-purpose="${areaName}"][type="file"]`).each(function () {
-      this.value = '';
-      loadedUserImages[areaName] = null;
-  });
-  // Redraw canvas (since "on input" event didn't trigger)
-  drawCardCanvas();
+  clearUserImage(areaName);
 });
 $('.adjustmentResetButton:not(.clearImageButton)').on('click', function () {
   const areaName = this.dataset.imagePurpose;
@@ -130,7 +124,10 @@ $('#inputVariantColor').on('input', function () {
 });
 
 // Parse JSON input buttom
-$('#parseJsonInputButton').on('click', function () {
+$('#parseJsonInputButton').on('click', async function () {
+  const button = this;
+  button.disabled = true;
+  $('#jsonWarnings').text('');
   // attempt to parse the JSON
   let jsonString = $('#jsonInput').prop('value');
   // get rid of extra commas that happen when pasting from array
@@ -139,13 +136,19 @@ $('#parseJsonInputButton').on('click', function () {
   }
   try {
     let jsonData = JSON.parse(jsonString);
-    parseJSONData(jsonData);
+    const warnings = await parseJSONData(jsonData);
+    $('#jsonError').text('');
+    $('#jsonWarnings').text(warnings.join(' '));
   } catch(err) {
     $('#jsonError').text("JSON Parse error:" + err.message);
-    return;
+  } finally {
+    button.disabled = false;
   }
-  $('#jsonError').text("");
 })
+
+if ($('#jsonError').length && !$('#jsonWarnings').length) {
+  $('<div id="jsonWarnings" role="status"></div>').insertAfter('#jsonError');
+}
 
 // Output JSON Input button
 $('#outputJsonButton').on('click', function () {
@@ -621,7 +624,77 @@ JSON Parsing
 ============================================================================
 */
 
-function parseJSONData(data) {
+function queueLegacyImageImport(purpose, url, imagePromises, warnings) {
+  if (!isImagePurposeAvailable(purpose)) {
+    return;
+  }
+  imagePromises.push(
+    loadLegacyUserImageURL(purpose, url).catch(error => {
+      warnings.push(purpose + ': ' + error.message);
+    })
+  );
+}
+
+function clearImportedImage(purpose) {
+  if (isImagePurposeAvailable(purpose)) {
+    clearUserImage(purpose, { redraw: false });
+  }
+}
+
+function parseImageSources(data, warnings) {
+  const driveEntries = [];
+  if (!Object.prototype.hasOwnProperty.call(data, 'ImageSources')) {
+    return driveEntries;
+  }
+  const sources = data.ImageSources;
+  if (!sources || typeof sources !== 'object' || Array.isArray(sources)) {
+    warnings.push('ImageSources must be an object.');
+    return driveEntries;
+  }
+
+  Object.keys(sources).forEach(purpose => {
+    if (!isJSONImagePurposeAvailable(purpose)) {
+      warnings.push('Ignored unsupported image purpose: ' + purpose + '.');
+      return;
+    }
+    const source = sources[purpose];
+    if (!source || typeof source !== 'object' || Array.isArray(source)) {
+      warnings.push('Ignored malformed image source for ' + purpose + '.');
+      return;
+    }
+    if (source.type === 'local-file') {
+      setUnavailableLocalImageSource(purpose, source);
+      warnings.push(
+        'Reselect ' + (typeof source.name === 'string' && source.name
+          ? source.name
+          : 'the local image') + ' for ' + purpose + '.'
+      );
+      return;
+    }
+    if (source.type !== 'google-drive') {
+      warnings.push('Ignored unknown image source type for ' + purpose + '.');
+      return;
+    }
+    try {
+      const normalizedSource = window.GoogleDriveImages.validateSource(source);
+      driveEntries.push({
+        purpose: purpose,
+        source: normalizedSource,
+        generation: nextUserImageGeneration(purpose)
+      });
+    } catch (error) {
+      warnings.push(purpose + ': ' + error.message);
+    }
+  });
+  return driveEntries;
+}
+
+async function parseJSONData(data) {
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    throw new Error('Card JSON must be an object.');
+  }
+  const imagePromises = [];
+  const warnings = [];
   // Common fields
   if('HP' in data) {
     $('#inputHP').val(data.HP);
@@ -677,15 +750,9 @@ function parseJSONData(data) {
     $('#inputArtistAttribution').val('');
   }
   if('ImageURL' in data && data.ImageURL.length != 0) {
-    cardArtImage = new Image();
-    cardArtImage.crossOrigin = "Anonymous";
-    cardArtImage.src = data.ImageURL;
-    cardArtImage.onload = function (e) {
-      // Once the Image has loaded, redraw the canvas so it immediately appears
-      drawCardCanvas();
-    }
+    queueLegacyImageImport(MAIN_ART, data.ImageURL, imagePromises, warnings);
   } else {
-    cardArtImage = null;
+    clearImportedImage(MAIN_ART);
   }
   if('ImageX' in data) {
     $('.inputImageOffsetX').val(data.ImageX);
@@ -702,7 +769,7 @@ function parseJSONData(data) {
     // default to the middle of the bar, which is not the default
     // ImageZoom is used for card fronts, so it defaults to 100
     let zoomVal = parseInt(data.ImageZoom);
-    if (zoomVal == NaN) {
+    if (Number.isNaN(zoomVal)) {
       zoomVal = 100;
     }
     $('.inputImageScale').val(zoomVal);
@@ -732,15 +799,14 @@ function parseJSONData(data) {
 
   // Common Character card fields
   if('NemesisIconURL' in data && data.NemesisIconURL.length != 0) {
-    loadedUserImages[NEMESIS_ICON] = new Image();
-    loadedUserImages[NEMESIS_ICON].crossOrigin = "Anonymous";
-    loadedUserImages[NEMESIS_ICON].src = data.NemesisIconURL;
-    loadedUserImages[NEMESIS_ICON].onload = function () {
-      // Once the Image has loaded, redraw the canvas so it immediately appears
-      drawCardCanvas();
-    }
+    queueLegacyImageImport(
+      NEMESIS_ICON,
+      data.NemesisIconURL,
+      imagePromises,
+      warnings
+    );
   } else {
-    loadedUserImages[NEMESIS_ICON] = null;
+    clearImportedImage(NEMESIS_ICON);
   }
   if('NemesisX' in data) {
     $(getImagePurposeSelector(IMAGE_X, NEMESIS_ICON)).val(data.NemesisX);
@@ -754,7 +820,7 @@ function parseJSONData(data) {
   }
   if('NemesisZoom' in data) {
     let zoomVal = parseInt(data.NemesisZoom);
-    if (zoomVal == NaN) {
+    if (Number.isNaN(zoomVal)) {
       zoomVal = 0;
     }
     $(getImagePurposeSelector(IMAGE_ZOOM, NEMESIS_ICON)).val(zoomVal);
@@ -762,15 +828,14 @@ function parseJSONData(data) {
     $(getImagePurposeSelector(IMAGE_ZOOM, NEMESIS_ICON)).val(0);
   }
   if('BackgroundArtURL' in data && data.BackgroundArtURL.length != 0) {
-    loadedUserImages[BACKGROUND_ART] = new Image();
-    loadedUserImages[BACKGROUND_ART].crossOrigin = "Anonymous";
-    loadedUserImages[BACKGROUND_ART].src = data.BackgroundArtURL;
-    loadedUserImages[BACKGROUND_ART].onload = function () {
-      // Once the Image has loaded, redraw the canvas so it immediately appears
-      drawCardCanvas();
-    }
+    queueLegacyImageImport(
+      BACKGROUND_ART,
+      data.BackgroundArtURL,
+      imagePromises,
+      warnings
+    );
   } else {
-    loadedUserImages[BACKGROUND_ART] = null;
+    clearImportedImage(BACKGROUND_ART);
   }
   if('BackgroundArtX' in data) {
     $(getImagePurposeSelector(IMAGE_X, BACKGROUND_ART)).val(data.BackgroundArtX);
@@ -784,7 +849,7 @@ function parseJSONData(data) {
   }
   if('BackgroundArtZoom' in data) {
     let zoomVal = parseInt(data.BackgroundArtZoom);
-    if (zoomVal == NaN) {
+    if (Number.isNaN(zoomVal)) {
       zoomVal = 0;
     }
     $(getImagePurposeSelector(IMAGE_ZOOM, BACKGROUND_ART)).val(zoomVal);
@@ -792,15 +857,14 @@ function parseJSONData(data) {
     $(getImagePurposeSelector(IMAGE_ZOOM, BACKGROUND_ART)).val(0);
   }
   if('ForegroundArtURL' in data && data.ForegroundArtURL.length != 0) {
-    loadedUserImages[FOREGROUND_ART] = new Image();
-    loadedUserImages[FOREGROUND_ART].crossOrigin = "Anonymous";
-    loadedUserImages[FOREGROUND_ART].src = data.ForegroundArtURL;
-    loadedUserImages[FOREGROUND_ART].onload = function () {
-      // Once the Image has loaded, redraw the canvas so it immediately appears
-      drawCardCanvas();
-    }
+    queueLegacyImageImport(
+      FOREGROUND_ART,
+      data.ForegroundArtURL,
+      imagePromises,
+      warnings
+    );
   } else {
-    loadedUserImages[FOREGROUND_ART] = null;
+    clearImportedImage(FOREGROUND_ART);
   }
   if('ForegroundArtX' in data) {
     $(getImagePurposeSelector(IMAGE_X, FOREGROUND_ART)).val(data.ForegroundArtX);
@@ -814,37 +878,40 @@ function parseJSONData(data) {
   }
   if('ForegroundArtZoom' in data) {
     let zoomVal = parseInt(data.ForegroundArtZoom);
-    if (zoomVal == NaN) {
+    if (Number.isNaN(zoomVal)) {
       zoomVal = 0;
     }
     $(getImagePurposeSelector(IMAGE_ZOOM, FOREGROUND_ART)).val(zoomVal);
   } else {
     $(getImagePurposeSelector(IMAGE_ZOOM, FOREGROUND_ART)).val(0);
   }
-  if('NameLogoURL' in data && data.NameLogoURL.length != 0) {
-    loadedUserImages[NAME_LOGO] = new Image();
-    loadedUserImages[NAME_LOGO].crossOrigin = "Anonymous";
-    loadedUserImages[NAME_LOGO].src = data.NameLogoURL;
-    loadedUserImages[NAME_LOGO].onload = function () {
-      // Once the Image has loaded, redraw the canvas so it immediately appears
-      drawCardCanvas();
-    }
+  const nameLogoURL = 'NameLogoURL' in data
+    ? data.NameLogoURL
+    : data.CharacterLogoURL;
+  if(typeof nameLogoURL === 'string' && nameLogoURL.length != 0) {
+    queueLegacyImageImport(NAME_LOGO, nameLogoURL, imagePromises, warnings);
   } else {
-    loadedUserImages[NAME_LOGO] = null;
+    clearImportedImage(NAME_LOGO);
   }
-  if('NameLogoX' in data) {
-    $(getImagePurposeSelector(IMAGE_X, NAME_LOGO)).val(data.NameLogoX);
+  if('NameLogoX' in data || 'CharacterLogoX' in data) {
+    $(getImagePurposeSelector(IMAGE_X, NAME_LOGO)).val(
+      'NameLogoX' in data ? data.NameLogoX : data.CharacterLogoX
+    );
   } else {
     $(getImagePurposeSelector(IMAGE_X, NAME_LOGO)).val(0);
   }
-  if('NameLogoY' in data) {
-    $(getImagePurposeSelector(IMAGE_Y, NAME_LOGO)).val(data.NameLogoY);
+  if('NameLogoY' in data || 'CharacterLogoY' in data) {
+    $(getImagePurposeSelector(IMAGE_Y, NAME_LOGO)).val(
+      'NameLogoY' in data ? data.NameLogoY : data.CharacterLogoY
+    );
   } else {
     $(getImagePurposeSelector(IMAGE_Y, NAME_LOGO)).val(0);
   }
-  if('NameLogoZoom' in data) {
-    let zoomVal = parseInt(data.NameLogoZoom);
-    if (zoomVal == NaN) {
+  if('NameLogoZoom' in data || 'CharacterLogoZoom' in data) {
+    let zoomVal = parseInt(
+      'NameLogoZoom' in data ? data.NameLogoZoom : data.CharacterLogoZoom
+    );
+    if (Number.isNaN(zoomVal)) {
       zoomVal = 0;
     }
     $(getImagePurposeSelector(IMAGE_ZOOM, NAME_LOGO)).val(zoomVal);
@@ -888,14 +955,51 @@ function parseJSONData(data) {
   } else {
     $('#inputAdvancedBoxWidth').val(0);
   }
+  const driveEntries = parseImageSources(data, warnings);
+  if (driveEntries.length) {
+    if (window.GoogleDriveImages.isReady()) {
+      imagePromises.push(
+        window.GoogleDriveImages.loadSourceRecords(driveEntries).then(results => {
+          results.forEach(record => {
+            if (record.result.status === 'rejected') {
+              warnings.push(
+                record.entry.purpose + ': ' + record.result.reason.message
+              );
+            }
+          });
+        })
+      );
+    } else {
+      window.GoogleDriveImages.queueSourceRecords(driveEntries);
+      warnings.push(
+        'Google Drive is still loading. Use Continue Drive import when it becomes available.'
+      );
+    }
+  }
+  await Promise.allSettled(imagePromises);
   drawCardCanvas();
+  return warnings;
+}
+
+function outputImageSourcesField(indent) {
+  const sources = serializeUserImageSources();
+  if (!Object.keys(sources).length) {
+    return '';
+  }
+  return '"ImageSources": ' + JSON.stringify(sources) + ',' + '\n' + indent;
+}
+
+function exportedJSONContainsGoogleDriveImage() {
+  return Object.values(serializeUserImageSources()).some(source => {
+    return source && source.type === 'google-drive';
+  });
 }
 
 function outputJSONData(category="basic") {
   var outputJSON = '';
   if(category == BASIC || category == ENVIRONMENT) {
     outputJSON = `{
-      "Title": ${JSON.stringify($('#inputTitle').val())},
+      ${outputImageSourcesField('      ')}"Title": ${JSON.stringify($('#inputTitle').val())},
       "HP": ${JSON.stringify($('#inputHP').val())},
       "Keywords": ${JSON.stringify($('#inputKeywords').val())},
       "BoldedTerms": ${JSON.stringify($('#inputBoldWords').val())},
@@ -913,7 +1017,7 @@ function outputJSONData(category="basic") {
     },`;
   } else if (category == HERO_CHAR && FACE == "back") {
       outputJSON = `{
-        "PowerName": ${JSON.stringify($('#inputPowerName').val())},
+        ${outputImageSourcesField('        ')}"PowerName": ${JSON.stringify($('#inputPowerName').val())},
         "GameText": ${JSON.stringify($('#inputEffect').val())},
         "GameTextSize": ${JSON.stringify($('#inputEffectTextSize').val())},
         "BackgroundArtURL": ${JSON.stringify(extractImageURL(BACKGROUND_ART))},
@@ -924,7 +1028,7 @@ function outputJSONData(category="basic") {
       }`
     } else if (category == HERO_CHAR) {
       outputJSON = `{
-        "HP": ${JSON.stringify($('#inputHP').val())},
+        ${outputImageSourcesField('        ')}"HP": ${JSON.stringify($('#inputHP').val())},
         "Keywords": ${JSON.stringify($('#inputKeywords').val())},
         "BoldedTerms": ${JSON.stringify($('#inputBoldWords').val())},
         "PowerName": ${JSON.stringify($('#inputPowerName').val())},
@@ -942,17 +1046,17 @@ function outputJSONData(category="basic") {
         "ForegroundArtX": ${JSON.stringify($(getImagePurposeSelector(IMAGE_X, FOREGROUND_ART)).val())},
         "ForegroundArtY": ${JSON.stringify($(getImagePurposeSelector(IMAGE_Y, FOREGROUND_ART)).val())},
         "ForegroundArtZoom": ${JSON.stringify($(getImagePurposeSelector(IMAGE_ZOOM, FOREGROUND_ART)).val())},
-        "CharacterLogoURL": ${JSON.stringify(extractImageURL(NAME_LOGO))},
-        "CharacterLogoX": ${JSON.stringify($(getImagePurposeSelector(IMAGE_X, NAME_LOGO)).val())},
-        "CharacterLogoY": ${JSON.stringify($(getImagePurposeSelector(IMAGE_Y, NAME_LOGO)).val())},
-        "CharacterLogoZoom": ${JSON.stringify($(getImagePurposeSelector(IMAGE_ZOOM, NAME_LOGO)).val())},
+        "NameLogoURL": ${JSON.stringify(extractImageURL(NAME_LOGO))},
+        "NameLogoX": ${JSON.stringify($(getImagePurposeSelector(IMAGE_X, NAME_LOGO)).val())},
+        "NameLogoY": ${JSON.stringify($(getImagePurposeSelector(IMAGE_Y, NAME_LOGO)).val())},
+        "NameLogoZoom": ${JSON.stringify($(getImagePurposeSelector(IMAGE_ZOOM, NAME_LOGO)).val())},
         "ShowBorder": ${isChecked('#inputDisplayBorder')},
         "VariantToggle": ${isChecked('#inputVariantToggle')},
         "WhiteVariantText": ${isChecked('#inputVariantColor')}
       }`
     } else if (category == VILLAIN_CHAR) {
       outputJSON = `{
-        "HP": ${JSON.stringify($('#inputHP').val())},
+        ${outputImageSourcesField('        ')}"HP": ${JSON.stringify($('#inputHP').val())},
         "Description": ${JSON.stringify($('#inputDescription').val())},
         "Keywords": ${JSON.stringify($('#inputKeywords').val())},
         "VerticalAlignment": ${JSON.stringify($('#inputBelowNameLogoAlignment').val())},
@@ -984,7 +1088,7 @@ function outputJSONData(category="basic") {
       }`
     } else if (category == PRINCIPLES)  {
       outputJSON = `{
-        "Title": ${JSON.stringify($('#inputTitle').val())},
+        ${outputImageSourcesField('        ')}"Title": ${JSON.stringify($('#inputTitle').val())},
         "BoldedTerms": ${JSON.stringify($('#inputBoldWords').val())},
         "GameText": ${JSON.stringify($('#inputEffect').val())},
         "GameTextSize": ${JSON.stringify($('#inputEffectTextSize').val())},
@@ -999,6 +1103,7 @@ function outputJSONData(category="basic") {
       }`;
     }
   $('#jsonInput').val(outputJSON);
+  $('.driveJsonPrivacyWarning').prop('hidden', !exportedJSONContainsGoogleDriveImage());
 }
 
 // Helper method to get if a checkbox is checked without breaking if it doesn't exist
@@ -1011,19 +1116,23 @@ function getInputValue(jquery_id, fallback='') {
   return $(jquery_id).length? $(jquery_id).val() : fallback;
 }
 
-function extractImageURL(purpose="") {
-  var url = "";
-  if (purpose == "") {
-    if (cardArtImage) {
-      url = cardArtImage.src;
+function extractImageURL(purpose=MAIN_ART) {
+  const normalizedPurpose = purpose || MAIN_ART;
+  const source = getUserImageSource(normalizedPurpose);
+  if (source) {
+    if (source.type === 'url') {
+      return source.url;
     }
-  } else {
-    var image = loadedUserImages[purpose];
-    if (image) {
-      url = image.src;
+    if (source.type === 'google-drive' || source.type === 'local-file') {
+      return '';
     }
   }
-  return url;
+
+  const image = getRenderedUserImage(normalizedPurpose);
+  if (image && image.src && !image.src.startsWith('blob:')) {
+    return image.src;
+  }
+  return '';
 }
 
 /*
@@ -1639,4 +1748,13 @@ function getWordProperties(word) {
 
   // Output
   return { text: restoredWord, isBold: isBold, isItalics: isItalics, isPunctuated: isPunctuated };
+}
+
+// Page-specific assets can finish while this shared script is still parsing.
+// Consume one coalesced redraw now that every shared drawing helper and table
+// has been initialized; the normal window load draw remains as a fallback.
+commonDrawingHelpersReady = true;
+if (commonDrawingPending) {
+  commonDrawingPending = false;
+  requestCardCanvasDraw();
 }
