@@ -25,22 +25,6 @@ imagesToPreload.forEach((image) => {
 
 // Handle user image uploading
 var cardArtImage;
-$('#inputImageFile').on('input', function (e) {
-  // Get the uploaded file
-  let uploadedImage = e.target.files[0];
-  // If a file has been uploaded...
-  if (uploadedImage) {
-    // Turn that file into a useable Image object
-    var url = URL.createObjectURL(uploadedImage);
-    cardArtImage = new Image();
-    cardArtImage.crossOrigin = "Anonymous";
-    cardArtImage.src = url;
-    cardArtImage.onload = function (e) {
-      // Once the Image has loaded, redraw the canvas so it immediately appears
-      drawCardCanvas();
-    }
-  }
-})
 
 
 /*

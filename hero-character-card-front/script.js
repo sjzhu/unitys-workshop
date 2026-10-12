@@ -40,51 +40,14 @@ for (let i = 0; i < imagesToPreload.length; i++) {
   // Draw the canvas once the final image has loaded
   if (i === imagesToPreload.length - 1) {
     newImage.onload = function (e) {
-      drawCardCanvas();
+      requestCardCanvasDraw();
     }
   }
 }
 
 
-// Save the uploaded image so it doesn't have to load each time
-var cardArtImage;
-$('#inputImageFile').on('input', function (e) {
-  // Get the uploaded file
-  var cardImage = e.target.files[0];
-  // If a file has been uploaded...
-  if (cardImage) {
-    // Turn that file into a useable Image object
-    var url = URL.createObjectURL(cardImage);
-    cardArtImage = new Image();
-    cardArtImage.crossOrigin = "Anonymous";
-    cardArtImage.src = url;
-    cardArtImage.onload = function (e) {
-      // Once the Image has loaded, redraw the canvas so it immediately appears
-      drawCardCanvas();
-    }
-  }
-})
-
 // This object is where user input images (specifically Image objects) are stored
 CC_FRONT_IMAGES.forEach(key => loadedUserImages[key] = null);
-
-// Handle user image uploading
-$('.inputImageFile').on('input', function () {
-  // Get the uploaded file
-  let uploadedImage = this.files[0];
-  // If a file has been uploaded...
-  if (uploadedImage) {
-    // Turn that file into a useable Image object
-    let imagePurpose = this.dataset.imagePurpose;
-    loadedUserImages[imagePurpose] = new Image();
-    loadedUserImages[imagePurpose].crossOrigin = "Anonymous";
-    loadedUserImages[imagePurpose].src = URL.createObjectURL(uploadedImage);
-    loadedUserImages[imagePurpose].onload = function () {
-      // Once the Image has loaded, redraw the canvas so it immediately appears
-      drawCardCanvas();
-    }
-  }
-})
 
 
 /*

@@ -4,6 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' https://accounts.google.com/gsi/client https://apis.google.com; connect-src 'self' https://accounts.google.com/gsi/ https://www.googleapis.com; frame-src https://accounts.google.com/gsi/ https://docs.google.com; img-src 'self' blob: data: https:; style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style https://fonts.googleapis.com https://fonts.cdnfonts.com; font-src 'self' https://fonts.gstatic.com https://fonts.cdnfonts.com; object-src 'none'; base-uri 'self'">
 
   <title>Principles Deck Front</title>
   <link rel="icon" type="image/x-icon" href="../_resources/favicon.png">
@@ -12,8 +13,6 @@
   <link rel="stylesheet" href="../style.css">
 
   <!-- Google Fonts -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Noto+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Work+Sans:ital,wght@0,100;0,200;0,300;0,350;0,370;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 
   <!-- Other fonts -->
@@ -75,6 +74,7 @@
                 <li>Quote: Text to go in the quote box</li>
                 <li>Attribution: Quote attribution</li>
                 <li>ImageURL: External URL to retrieve a card image from</li>
+                <li>ImageSources: Optional image-source metadata. Exported JSON never contains OAuth tokens or image bytes. A Google Drive entry can contain a file ID and resource key; together they can have the same link-level sensitivity as the corresponding shared Drive URL, but cannot make a private, unshared file public. Importers authorize their own account and still need direct or link-based access. Do not publish JSON containing Drive references unless you are comfortable sharing that link capability. Local-file entries must be reselected after import.</li>
                 <li>ImageX: X position adjustment for card image (negative goes left, positive right) (from -50 to 50)</li>
                 <li>ImageY: Y position adjustment for card image (negative goes up, positive goes down) (from -50 to 50)</li>
                 <li>GameTextSize: scaling of text in the GameText box (from 80 to 100)</li>
@@ -141,7 +141,7 @@
       </div>
       <div class="inputGroup">
         <label for="inputImageFile">Art</label>
-        <input type="file" accept="image/*" class="contentInput" id="inputImageFile">
+        <input type="file" accept="image/*" data-image-purpose="mainArt" class="contentInput" id="inputImageFile">
         <!-- These ranges all represent percents, ex: 50 = 50% or times 0.5 -->
         <label for="inputImageOffsetX" style="margin-top: 10px;">X Position</label>
         <input type="range" data-image-purpose="mainArt" class="contentInput inputImageOffsetX rangeSlider" min="-50" max="50" data-default="0">
@@ -198,6 +198,7 @@
       <label for="jsonInput">Export/Import (JSON Format)</label>
       <div id="jsonError" class="errorMessage"></div>
       <textarea rows="10" class="contentInput" id="jsonInput" style="min-height: 100px;"></textarea>
+      <p class="driveJsonPrivacyWarning">Drive-backed JSON can contain a file ID and resource key with the same link-level sensitivity as its shared Drive URL. It contains no OAuth token or image bytes; share it only if you are comfortable sharing that link capability.</p>
       <button style="margin-top: 10px;" id="outputJsonButton">Export to JSON</button>
       <button style="margin-top: 10px;" id="parseJsonInputButton">Import from JSON</button>
     </div>
@@ -207,20 +208,17 @@
   <!-- Scripts -->
 
   <!-- jQuery -->
-  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js'></script>
+  <script src="../_vendor/jquery/jquery-3.6.0.min.js"></script>
 
   <!-- Declarations -->
-  <script>
-    const CARD_FORM = "deck";
-    const ORIENTATION = "horizontal";
-    const CARD_CATEGORY = "principles";
-    const FACE = "front";
-    const DEFAULT_DOWNLOAD_NAME = "principles-deck-front";
-  </script>
+  <script src="./config.js"></script>
   <!-- Common script -->
   <script src="../common-before.js"></script>
+  <script src="../common-images.js"></script>
   <!-- Script specific to this page -->
   <script src="./script.js"></script>
+  <script src="../google-drive-config.js"></script>
+  <script src="../google-drive.js"></script>
   <!-- Common script -->
   <script src="../common-after.js"></script>
 

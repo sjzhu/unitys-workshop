@@ -134,6 +134,17 @@ const DEFAULT_BOLD_LIST = new Set(["START PHASE", "PLAY PHASE", "POWER PHASE", "
 const DEFAULT_ITALICS_LIST = new Set(["PERFORM", "ACCOMPANY"]);
 
 // Common Image Key Names
+const MAIN_ART = "mainArt";
+let commonDrawingHelpersReady = false;
+let commonDrawingPending = false;
+
+function requestCardCanvasDraw() {
+  if (commonDrawingHelpersReady && typeof drawCardCanvas === 'function') {
+    drawCardCanvas();
+  } else {
+    commonDrawingPending = true;
+  }
+}
 const BACKGROUND_ART = "backgroundArt";
 const FOREGROUND_ART = "foregroundArt";
 const NEMESIS_ICON = "nemesisIcon";
