@@ -1,0 +1,243 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <title>Search Reference</title>
+  <link rel="icon" type="image/x-icon" href="../../_resources/favicon.png">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="../../style.css">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Boogaloo&family=Noto+Sans:ital,wght@0,400;0,700;1,400;1,700&family=Work+Sans:ital,wght@0,100;0,200;0,300;0,350;0,370;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
+
+  <!-- Other fonts -->
+  <link href="https://fonts.cdnfonts.com/css/unmasked-bb" rel="stylesheet">
+  <link href="https://fonts.cdnfonts.com/css/avengeance-mightiest-avenger" rel="stylesheet">
+
+  <style>
+    .searchForm {
+      width: 100%;
+      display: flex;
+    }
+
+    .searchSubmit {
+      flex: 0;
+      margin-left: 10px;
+    }
+
+    code {
+      background-color: #d5d5d5;
+      margin: 0 .1em;
+    }
+
+    #search-examples {
+      padding-left: 15px;
+    }
+
+    .search-ref {
+      margin-top: 10px;
+    }
+
+    .ref-title {
+      width: max-content;
+      border-bottom: 1px solid black;
+    }
+
+    .ref-desc {
+      margin: 0;
+      font-size: 14px;
+    }
+  </style>
+</head>
+
+<body>
+  <h1>Expressive Search Reference</h1>
+
+  <div class="inputGroup">
+    <div style="margin-bottom:5px;"><a href="../../">Home</a></div>
+    <div style="margin-bottom:5px;">&nbsp;&gt;&nbsp;<a href="../../card-gallery">Card Gallery</a></div>
+    <form class="searchForm" action="javascript:redirectToSearch()">
+      <input type="text" class="searchInput" placeholder='Search for a string of text in the details of a card, or with expressive search.' />
+      <input type="submit" class="searchSubmit" value="Search"/>
+    </form>
+    <p>
+      Choose any of the properties of a card and search by them using the terms we've defined below. Searches are case-insensitive. You can use double-quotes to search along multiple words, and combine multiple search tokens.
+    </p>
+    <p>Try these examples.</p>
+    <ul id="search-examples">
+      <li><code>type:hero gt:"each non-hero target" q&gt;=3</code> <a href='../../card-gallery?q=type:hero%20gt:%22each non-hero target%22%20q%3E=3'>Try it!</a></li>
+      <li><code>kind:deck type:villain hp&gt;3 hp&lt;10</code> <a href="../../card-gallery?q=ki:deck%20ty:villain%20hp%3E3%20hp%3C10">Try it!</a></li>
+      <li><code>power:damage complexity&lt;=4 set:core</code> <a href="../../card-gallery?q=p:damage%20complexity%3C=4%20set:core">Try it!</a></li>
+      <li><code>q=4 (g:collect or g:summon)</code> <a href="../../card-gallery?q=q=4%20%28g:collect%20or%20g:summon%29">Try it!</a></li>
+      <li><code>type:villain kind:character -gt:"start phase"</code> <a href="../../card-gallery?q=type:villain%20kind:character%20-gt:%22start phase%22">Try it!</a></li>
+    </ul>
+    <p>
+      You can negate queries, use "or" to search for multiple things, and use parentheses to isolate certain groups.
+    </p>
+    <h2>General</h2>
+    <div class="search-ref">
+      <div class="ref-title"><code>t:</code>, <code>ti:</code> or <code>title:</code></div>
+      <p class="ref-desc">Searches by a card's title.</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>g:</code>, <code>gt:</code>, or <code>gametext:</code></div>
+      <p class="ref-desc">Search by a card's game text.</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>k:</code>, <code>kw:</code> or <code>keyword:</code></div>
+      <p class="ref-desc">Search by a card's keyword.</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>ty:</code> or <code>type:</code></div>
+      <p class="ref-desc">Search by a card's type (hero, villain, environment, event, critical event).</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>d:</code> or <code>deck:</code></div>
+      <p class="ref-desc">Search by the name of the card's deck (e.g. Fanatic, The Organization).</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>c:</code> or <code>character:</code></div>
+      <p class="ref-desc">Search by the name of the character (e.g. Haka, The Operative)</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>ki:</code> or <code>kind:</code></div>
+      <p class="ref-desc">Search by the card's kind (a term we made up: deck, character, or event).</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>hp:</code>, or <code>hp:</code></div>
+      <p class="ref-desc">Seach by a card's HP. You can also search using comparators, like <code>&equals;</code>, <code>&gt;</code>, <code>&gt;&equals;</code>, <code>&lt;</code>, and <code>&lt;&equals;</code>.</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>f:</code>, <code>flavor:</code>, or <code>flavortext:</code></div>
+      <p class="ref-desc">Search by a card's flavor text. This includes card quotes and event descriptions.</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>flavortextattribution:</code></div>
+      <p class="ref-desc">Search by the attrition in a card's flavor text.</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>q:</code> or <code>quantity:</code></div>
+      <p class="ref-desc">Searches by a card's quantity. Does not include character cards, so you can search by <code>quantity=1</code> without tearing your hair out.</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>set:</code></div>
+      <p class="ref-desc">Searches by a card's set (e.g. Core Game, Rook City Renegades).</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>back:</code></div>
+      <p class="ref-desc">Searches by whether a card has a special back, like a hero character card, a villain character card, or an event card. Inputs include <code>t</code>, <code>true</code>, <code>y</code>, or <code>yes</code> for yes, and <code>f</code>, <code>false</code>, <code>n</code>, or <code>no</code> for no.</p>
+    </div>
+    <h2>Heroes</h2>
+    <div class="search-ref">
+      <div class="ref-title"><code>innatePowerTitle:</code></div>
+      <p class="ref-desc">Search by the <em>title</em> of a hero character card's innate power.</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>p:</code>, <code>ip:</code>, or <code>innatePowerEffect:</code></div>
+      <p class="ref-desc">Search by the <em>effect</em> of a hero character card's innate power.</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>v:</code>, or <code>variant:</code></div>
+      <p class="ref-desc">Search by the card's variant line (e.g. First Appearance, Dark Watch).</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>incapcaption:</code></div>
+      <p class="ref-desc">Searches by the caption on a hero's incapacitated side.</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>incapfeaturedissue:</code></div>
+      <p class="ref-desc">Searches by the featured issue on a hero's incapacitated side.</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>option:</code> or <code>incapoption:</code></div>
+      <p class="ref-desc">Searches by the effect options a hero gets on their incapacitated side.</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>c:</code> or <code>complexity:</code></div>
+      <p class="ref-desc">Searches by a hero's complexity. You can also search using comparators, like <code>&equals;</code>, <code>&gt;</code>, <code>&gt;&equals;</code>, <code>&lt;</code>, and <code>&lt;&equals;</code>.</p>
+    </div>
+    <h2>Villains</h2>
+    <div class="search-ref">
+      <div class="ref-title"><code>nemesisicon:</code> or <code>nemesisicons:</code></div>
+      <p class="ref-desc">Search by a card's nemesis icon(s). There's no way to search for cards without nemesis icons. Ping someone from the Workshop in the discord server if this is something you want!</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>s:</code> or <code>setup:</code></div>
+      <p class="ref-desc">Search by a card's setup text.</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>a:</code>, or <code>advanced:</code></div>
+      <p class="ref-desc">Search by a card's advanced game text.</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>desc:</code>, or <code>description:</code></div>
+      <p class="ref-desc">Search by a villain character's description (includes critical events).</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>diff:</code> or <code>difficulty:</code></div>
+      <p class="ref-desc">Searches by a villain's difficulty. You can also search using comparators, like <code>&equals;</code>, <code>&gt;</code>, <code>&gt;&equals;</code>, <code>&lt;</code>, and <code>&lt;&equals;</code>.</p>
+    </div>
+    <h2>Events</h2>
+    <div class="search-ref">
+      <div class="ref-title"><code>date:</code></div>
+      <p class="ref-desc">Search by an event's date. Right now this only matches on the text in "MMM YYYY" format (e.g. <code>date:Jan</code>, <code>date:"mar 2000"</code>, or <code>date:19 date:jun</code>).</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>l:</code>, <code>limit:</code>, or <code>collectionLimit:</code></div>
+      <p class="ref-desc">Search by an event's collection limit.</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>featuredissue:</code></div>
+      <p class="ref-desc">Searches by an event's featured issues (e.g. The Savage Haka #1).</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>collectionflavor:</code> or <code>collectionflavortext:</code></div>
+      <p class="ref-desc">Searches by the flavor text in an event's collections.</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>collectionfeaturedissue:</code></div>
+      <p class="ref-desc">Searches by by featured issue in an event's collection.</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>rewardtitle:</code></div>
+      <p class="ref-desc">Searches by the title of an event's collection awards.</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>rewardflavor:</code></div>
+      <p class="ref-desc">Searches by the flavor of an event's collection awards.</p>
+    </div>
+    <div class="search-ref">
+      <div class="ref-title"><code>rewardgametext:</code></div>
+      <p class="ref-desc">Searches by the game text of an event's collection award.</p>
+    </div>
+  </div>
+
+
+  <!-- Cards get loaded here -->
+  <div class="cardFlexDisplay"></div>
+
+
+  <!-- Scripts -->
+
+  <!-- jQuery -->
+  <script src='https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js'></script>
+
+  <!-- String Scanner -->
+  <script src="./strscan.js"></script>
+
+  <!-- Advanced Seach Script -->
+  <script src="./expressive-search.js"></script>
+
+  <!-- Card Gallery Script -->
+  <script src="./script.js"></script>
+
+
+</body>
+
+</html>
