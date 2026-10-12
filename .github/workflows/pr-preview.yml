@@ -66,7 +66,7 @@ jobs:
           header: pr-preview
           message: |
             ✅ Preview ready:
-            https://unitysworkshop.thewyrmsuperior.com/pr/${{ github.event.pull_request.number }}/
+            https://unitysworkshop.com/pr/${{ github.event.pull_request.number }}/
 
   cleanup-preview:
     if: github.event.action == 'closed'
