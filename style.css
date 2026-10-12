@@ -45,6 +45,18 @@ body {
   font-size: 14px;
 }
 
+.siteFooter {
+  box-sizing: border-box;
+  max-width: 900px;
+  margin: 24px auto 0;
+  text-align: center;
+}
+
+.siteFooter a {
+  display: inline-block;
+  margin: 0 10px;
+}
+
 img {
   max-width: 100%;
 }
