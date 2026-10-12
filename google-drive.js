@@ -291,9 +291,10 @@
   function openPicker(token) {
     if (pickerSessionPromise) return Promise.reject(new Error('Google Picker is already open.'));
     pickerSessionPromise = new Promise((resolve, reject) => {
-      const view = new google.picker.DocsView(google.picker.ViewId.DOCS_IMAGES);
-      view.setIncludeFolders(false);
+      const view = new google.picker.DocsView(google.picker.ViewId.DOCS);
+      view.setIncludeFolders(true);
       view.setSelectFolderEnabled(false);
+      view.setMimeTypes(DRIVE_MIME_TYPE_LIST);
       view.setMode(google.picker.DocsViewMode.LIST);
       const picker = new google.picker.PickerBuilder().addView(view)
         .setSelectableMimeTypes(DRIVE_MIME_TYPE_LIST).setDeveloperKey(getConfig().apiKey)

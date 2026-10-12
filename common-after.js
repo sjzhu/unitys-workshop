@@ -989,6 +989,12 @@ function outputImageSourcesField(indent) {
   return '"ImageSources": ' + JSON.stringify(sources) + ',' + '\n' + indent;
 }
 
+function exportedJSONContainsGoogleDriveImage() {
+  return Object.values(serializeUserImageSources()).some(source => {
+    return source && source.type === 'google-drive';
+  });
+}
+
 function outputJSONData(category="basic") {
   var outputJSON = '';
   if(category == BASIC || category == ENVIRONMENT) {
@@ -1097,6 +1103,7 @@ function outputJSONData(category="basic") {
       }`;
     }
   $('#jsonInput').val(outputJSON);
+  $('.driveJsonPrivacyWarning').prop('hidden', !exportedJSONContainsGoogleDriveImage());
 }
 
 // Helper method to get if a checkbox is checked without breaking if it doesn't exist
