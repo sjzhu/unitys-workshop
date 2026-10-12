@@ -27,6 +27,24 @@ body {
   word-break: break-word;
 }
 
+.policyPage {
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.policyPage h1 {
+  margin-bottom: 20px;
+}
+
+.policyPage h2:first-of-type {
+  margin-top: 25px;
+}
+
+.legalDescription {
+  max-width: 65ch;
+  font-size: 14px;
+}
+
 img {
   max-width: 100%;
 }
