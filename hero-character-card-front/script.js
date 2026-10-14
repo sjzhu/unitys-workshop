@@ -95,6 +95,16 @@ Drawing the canvas
 
 // Draw the canvas from scratch (this function gets called whenever an input changes)
 function drawCardCanvas() {
+  drawingReminder = true;
+  const reminderBlocks = parseReminderText();
+  if (reminderBlocks.length > 0) {
+    // If we have reminder text, add to the box height below offset.
+    adjustBoxHeightBelowOffset(reminderBlocks);
+  } else {
+    boxHeightBelowOffset = 0;
+  }
+  drawingReminder = false;
+
   // First, parse the blocks of this card's body text.
   const parsedBlocks = parseCardBody();
 
@@ -122,18 +132,28 @@ function drawCardCanvas() {
   drawArtInCroppedArea('hccf_foregroundArt');
   loadEffectList();
 
+  // Fill the full-width footer allocated to reminder text. Draw this before
+  // the body box so its angled lower edge remains visible over the footer.
+  if (reminderBlocks.length > 0) {
+    drawReminderBackground();
+  }
+
   // Draw the character body box, and the text in the card body.
   drawCharacterBodyBox();
   drawBodyText(parsedBlocks);
 
+  drawingReminder = true;
+  drawBodyText(reminderBlocks);
+  drawingReminder = false;
+
   // Draw the variant tag if it's enabled
   if (isVariant) {
-    drawVariantTag();
+    drawVariantTag(reminderBlocks.length > 0);
   }
 
   // == Draw the power name
   const powerNameX = pw(12.5);
-  const powerNameY = ph(82.5) + boxHeightOffset;
+  const powerNameY = ph(82.5) + boxHeightOffset + boxHeightBelowOffset;
   const powerNameFontSize = pw(4);
 
   ctx.font = "400 " + powerNameFontSize + "px Avengeance Mightiest Avenger";
@@ -162,8 +182,20 @@ function drawCardCanvas() {
 
     // Draw the nemesis icon frame
     let frameSize = pw(15);
-    ctx.drawImage(loadedGraphics['Nemesis Icon Frame'], pw(11), ph(89), frameSize, frameSize);
+    // Adjust for box height below offset
+    ctx.drawImage(loadedGraphics['Nemesis Icon Frame'], pw(11), ph(89) + boxHeightBelowOffset, frameSize, frameSize);
   }
+}
+
+/** Draws the full-width black footer behind reminder text. */
+function drawReminderBackground() {
+  const bodyBoxBottomY = Math.min(
+    CHARACTER_BODY_BOX.bottomLeft.y,
+    CHARACTER_BODY_BOX.bottomRight.y
+  );
+  const backgroundTopY = bodyBoxBottomY + boxHeightBelowOffset + ph(2);
+  ctx.fillStyle = colorBlack;
+  ctx.fillRect(0, backgroundTopY, canvas.width, canvas.height - backgroundTopY);
 }
 
 /**
@@ -188,7 +220,7 @@ function drawKeywords() {
   // Box dimensions
   let boxMargin = pw(2); // Left and right margin between text and box border
   let boxX = pw(84); // Right side of box
-  let boxY = ph(79) + boxHeightOffset; // Bottom of box
+  let boxY = ph(79) + boxHeightOffset + boxHeightBelowOffset; // Bottom of box
   let boxHeight = ph(3); // Height of box
   let boxExtraRight = pw(4);
   let boxWidth = keywordsWidth * keywordSquish + boxMargin * 2 + boxExtraRight;
@@ -224,7 +256,7 @@ function drawHP() {
   // Draw the HP graphic
   let hpGraphicSize = pw(17);
   let hpGraphicX = pw(78);
-  let hpGraphicY = ph(72) + boxHeightOffset;
+  let hpGraphicY = ph(72) + boxHeightOffset + boxHeightBelowOffset;
   ctx.drawImage(loadedGraphics['HP Graphic'], hpGraphicX, hpGraphicY, hpGraphicSize * 1.1, hpGraphicSize);
   // Draw the HP text
   let hpFontSize = pw(7.3);
@@ -245,13 +277,13 @@ function drawHP() {
 /**
  * Draws the Variant tag on a Hero character card.
  */
-function drawVariantTag() {
+function drawVariantTag(hasReminder) {
   let tagX = pw(77);
   // TODO(sjzhu): Make this change when CC reminder text is applied
   let tagY = ph(94.6);
   let tagFontSize = pw(2.7);
   ctx.save();
-  if(!variantTextColor) {
+  if(!variantTextColor && !hasReminder) {
     ctx.fillStyle = colorBlack;
   } else {
     ctx.fillStyle = "#ffffff";

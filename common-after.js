@@ -565,6 +565,11 @@ function drawArtInCroppedArea(areaName) {
     ctx.translate(bodyWidthAdjustment, advancedBoxYAdjustment);
   }
 
+  // Dynamically adjust nemesis icon placement on hero character cards
+  if (areaName == 'hccf_nemesisIcon') {
+    ctx.translate(0, boxHeightBelowOffset);
+  }
+
   // Clip path shape
   ctx.clip(areaPathShape.pathShape);
 
@@ -1202,6 +1207,25 @@ function parseCardBody() {
   return parsedBlocks;
 }
 
+/** Parses and returns the reminder text for a character card. */
+function parseReminderText() {
+  // Get the text the user entered into the textarea
+  let inputValue = $('#reminderEffect').prop('value');
+
+  // Split at line returns, then iterate through the array to build an ordered list of blocks
+  const parsedBlocks = inputValue
+    .split("\n")
+    .map(line => parseBodyText(line))
+    .flat();
+  if (parsedBlocks.length === 1) {
+    // If the only block is a space block, return an empty array instead
+    if (parsedBlocks[0].type === SPACE_BLOCK) {
+      return [];
+    }
+  }
+  return parsedBlocks;
+}
+
 /**
  * Given an array of parsed blocks, calculate the box height offset of a card.
  *
@@ -1220,7 +1244,23 @@ function adjustBoxHeightOffset(parsedBlocks) {
     // Unique minimum size for advanced box (higher number = smaller)
     minimumSizeCap = ph(10);
   }
-  boxHeightOffset = Math.min(Math.round(EFFECT_START_Y - currentOffsetY + 137), minimumSizeCap);
+  // drawBodyText() shifts the game text upward with the reminder footer. Cancel
+  // that positional shift so only the game text's own height determines how
+  // tall the body box needs to be.
+  boxHeightOffset = Math.min(Math.round(EFFECT_START_Y - currentOffsetY + boxHeightBelowOffset + 137), minimumSizeCap);
+  currentOffsetY = 0;
+  // Return to the main canvas
+  ctx = canvas.getContext("2d");
+}
+
+/** Calculates the height of the reminder text for a character card. */
+function adjustBoxHeightBelowOffset(reminderBlocks) {
+  // Draw on the invisible calculation canvas instead of the main canvas
+  ctx = calculationCanvas.getContext("2d");
+  boxHeightBelowOffset = 0;
+  const reminderStartY = REMINDER_EFFECT_START_Y;
+  drawBodyText(reminderBlocks);
+  boxHeightBelowOffset = Math.round(reminderStartY - currentOffsetY);
   currentOffsetY = 0;
   // Return to the main canvas
   ctx = canvas.getContext("2d");
@@ -1251,12 +1291,14 @@ function drawCharacterBodyBox() {
     advancedBoxYAdjustment = 0;
   }
 
-  // Sets the coordinates of the corners of the textbox. The bottom will never change, but the top can change based on boxHeightOffset
+  // Sets the coordinates of the corners of the textbox.
+  // boxHeightBelowOffset is already added into boxHeightOffset elsewhere.
+  // This may need to be reworked later if that proves to be too confusing.
   const boxValues = CHARACTER_BODY_BOX;
-  const topLeft = [boxValues.topLeft.x + bodyWidthAdjustment, boxValues.topLeft.y + boxHeightOffset + advancedBoxYAdjustment];
-  const topRight = [boxValues.topRight.x, boxValues.topRight.y + boxHeightOffset + advancedBoxYAdjustment];
-  const bottomRight = [boxValues.bottomRight.x, boxValues.bottomRight.y + advancedBoxYAdjustment];
-  const bottomLeft = [boxValues.bottomLeft.x + bodyWidthAdjustment, boxValues.bottomLeft.y + advancedBoxYAdjustment];
+  const topLeft = [boxValues.topLeft.x + bodyWidthAdjustment, boxValues.topLeft.y + boxHeightOffset + boxHeightBelowOffset + advancedBoxYAdjustment];
+  const topRight = [boxValues.topRight.x, boxValues.topRight.y + boxHeightOffset + boxHeightBelowOffset + advancedBoxYAdjustment];
+  const bottomRight = [boxValues.bottomRight.x, boxValues.bottomRight.y + boxHeightBelowOffset + advancedBoxYAdjustment];
+  const bottomLeft = [boxValues.bottomLeft.x + bodyWidthAdjustment, boxValues.bottomLeft.y + boxHeightBelowOffset + advancedBoxYAdjustment];
 
   // Determine the initial shape of the box.
   const boxShape = new Path2D();
@@ -1298,8 +1340,20 @@ function drawCharacterBodyBox() {
   }
 }
 
+function setupEffectTextBounds() {
+  // Make reminder text have wider horizontal bounds
+  const reminderMarginAddition = drawingReminder ? pw(2) : 0;
+  effectTextStartX = EFFECT_START_X - reminderMarginAddition;
+  effectTextEndX = EFFECT_END_X + reminderMarginAddition;
+}
+
 function setupEffectFontSize() {
-  effectFontScale = $('#inputEffectTextSize').prop('value') / 100; // Result is between 0 and 1
+  // Reminder text has its own size control. Both the measurement and visible
+  // drawing passes set drawingReminder, so they use identical font metrics.
+  const textSizeInput = drawingReminder && $('#reminderEffectTextSize').length > 0
+    ? '#reminderEffectTextSize'
+    : '#inputEffectTextSize';
+  effectFontScale = $(textSizeInput).prop('value') / 100; // Result is between 0 and 1
   effectFontSize = EFFECT_BASE_FONT_SIZE * effectFontScale;
   lineHeight = BODY_BASE_LINE_HEIGHT * effectFontScale;
   spaceWidth = effectFontSize * SPACE_WIDTH_FACTOR;
@@ -1310,7 +1364,8 @@ function measureBodyTextHeight(parsedBlocks, startY) {
   const originalContext = ctx;
   ctx = calculationCanvas.getContext("2d");
 
-  currentOffsetX = EFFECT_START_X + bodyWidthAdjustment;
+  setupEffectTextBounds();
+  currentOffsetX = effectTextStartX + bodyWidthAdjustment;
   currentOffsetY = startY;
 
   setupEffectFontSize();
@@ -1335,8 +1390,17 @@ function drawBodyText(parsedBlocks, options = {}) {
   }
 
   // Initialize positioning values
-  currentOffsetX = EFFECT_START_X + bodyWidthAdjustment;
-  currentOffsetY = EFFECT_START_Y + boxHeightOffset + advancedTextYAdjustment;
+  setupEffectTextBounds();
+  currentOffsetX = effectTextStartX + bodyWidthAdjustment;
+  if (drawingReminder) {
+    // Keep the reminder anchored to the bottom of the body box. The normal
+    // boxHeightOffset expands only the top edge, so it must not move the
+    // reminder; boxHeightBelowOffset tracks the footer's actual position.
+    currentOffsetY = REMINDER_EFFECT_START_Y + boxHeightBelowOffset;
+  }
+  else {
+    currentOffsetY = EFFECT_START_Y + boxHeightOffset + boxHeightBelowOffset + advancedTextYAdjustment;
+  }
 
   // Get and apply the text scale the user chose
   setupEffectFontSize();
@@ -1367,7 +1431,7 @@ function drawBodyText(parsedBlocks, options = {}) {
 /** Draws a single block from the array of parsed blocks. */
 function drawBlock(block, isFirstBlock) {
   // Reset indentation to default
-  currentIndentX = EFFECT_START_X + bodyWidthAdjustment;
+  currentIndentX = effectTextStartX + bodyWidthAdjustment;
 
   if (block.type === SPACE_BLOCK) {
     drawSpaceBlock(isFirstBlock);
@@ -1420,13 +1484,15 @@ function drawPhaseBlock(phase, isFirstBlock) {
 
   // Draw the text after the icon
   ctx.font = `400 ${EFFECT_PHASE_FONT_SIZE}px ${PHASE_FONT_FAMILY}`;
-  ctx.strokeStyle = colorBlack;
-  ctx.line = EFFECT_PHASE_FONT_SIZE
-  ctx.lineWidth = EFFECT_PHASE_FONT_SIZE * 0.2;
-  ctx.lineJoin = MITER;
-  ctx.miterLimit = 3;
-  ctx.strokeText(phaseText, currentOffsetX, currentOffsetY);
-  ctx.fillStyle = phaseColor;
+  if (!drawingReminder) {
+    ctx.strokeStyle = colorBlack;
+    ctx.line = EFFECT_PHASE_FONT_SIZE
+    ctx.lineWidth = EFFECT_PHASE_FONT_SIZE * 0.2;
+    ctx.lineJoin = MITER;
+    ctx.miterLimit = 3;
+    ctx.strokeText(phaseText, currentOffsetX, currentOffsetY);
+  }
+  ctx.fillStyle = drawingReminder ? '#ffffff' : phaseColor;
   ctx.fillText(phaseText, currentOffsetX, currentOffsetY);
 
   // Prepare for next block
@@ -1441,7 +1507,7 @@ function drawIndentBlock(indentLabel, indentContent, isFirstBlock) {
   }
 
   // Set shared characteristics for all labels:
-  ctx.fillStyle = colorBlack;
+  ctx.fillStyle = drawingReminder ? '#ffffff' : colorBlack;
 
   // Set properties specific to the type of indent block. Bullet points need special handling
   let labelContent;
@@ -1543,7 +1609,7 @@ function drawSimpleBlock(simpleContent, isFirstBlock) {
     } else {
       ctx.font = weightValue + ' ' + styleValue + ' ' + effectFontSize + 'px ' + EFFECT_FONT_FAMILY;
     }
-    ctx.fillStyle = colorBlack;
+    ctx.fillStyle = drawingReminder ? '#ffffff' : colorBlack;
 
     // Break up special bold/italics phrases into their component words
     let phraseParts = thisWord.text.split(' ');
@@ -1555,7 +1621,7 @@ function drawSimpleBlock(simpleContent, isFirstBlock) {
       // Check to see if the line should wrap
       let wrapped = false;
       // Looks forward to see if adding this word to the current line would make the line exceed the maximum x position
-      if (currentOffsetX + spaceWidth + wordWidth > EFFECT_END_X) {
+      if (currentOffsetX + spaceWidth + wordWidth > effectTextEndX) {
         // If it would, then start the next line
         currentOffsetY += lineHeight;
         currentOffsetX = currentIndentX;
@@ -1603,7 +1669,7 @@ function drawSimpleBlock(simpleContent, isFirstBlock) {
   });
 
   // After drawing all the words, prepare for the next block
-  currentOffsetX = EFFECT_START_X + bodyWidthAdjustment;
+  currentOffsetX = effectTextStartX + bodyWidthAdjustment;
   currentOffsetY += lineHeight * BLOCK_SPACING_FACTOR;
 }
 
