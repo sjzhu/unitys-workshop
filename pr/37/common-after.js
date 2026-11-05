@@ -17,6 +17,15 @@ $('.previewSizeButton').on('click', function (e) {
 });
 
 
+// Purpose-scoped uploads are shared by deck icons, character art, and deck backs.
+$('.inputImageFile[data-image-purpose]').on('input', function () {
+  const uploadedImage = this.files[0];
+  if (uploadedImage) {
+    loadUserImage(this.dataset.imagePurpose, URL.createObjectURL(uploadedImage));
+  }
+});
+
+
 // Range sliders with text box - when one changes, copy its value to the other
 $('.rangeSlider').on('input', function (e) {
   $(this).next().val($(this).val());
@@ -449,63 +458,36 @@ imageAreas = {
       return getUserImageAdjustments(BACK_LEFT_ART);
     }
   },
-  /*==========================================================
-  Hero Deck Front
-  ==========================================================*/
-  hdcf_additionalIcon: {
-    pathShape: coordinatesToPathShape([
-      [78, 48.10],
-      [102, 48.10],
-      [102, 65.30],
-      [78, 65.30]
-    ]),
-    scaleStyle: 'fit',
-    vAlign: 'center',
-    getImage: function () {
-      return getUserImage(ADDITIONAL_ICON);
-    },
-    getAdjustments: function () {
-      return getUserImageAdjustments(ADDITIONAL_ICON);
-    }
-  },
-  /*==========================================================
-  Villain Deck Front
-  ==========================================================*/
-  vdcf_additionalIcon: {
-    pathShape: coordinatesToPathShape([
-      [78, 47.90],
-      [102, 47.90],
-      [102, 65.10],
-      [78, 65.10]
-    ]),
-    scaleStyle: 'fit',
-    vAlign: 'center',
-    getImage: function () {
-      return getUserImage(ADDITIONAL_ICON);
-    },
-    getAdjustments: function () {
-      return getUserImageAdjustments(ADDITIONAL_ICON);
-    }
-  },
-  /*==========================================================
-  Environment Deck Front
-  ==========================================================*/
-  edcf_additionalIcon: {
-    pathShape: coordinatesToPathShape([
-      [41.41, 61.50],
-      [58.60, 61.50],
-      [58.60, 85.50],
-      [41.41, 85.50]
-    ]),
-    scaleStyle: 'fit',
-    vAlign: 'center',
-    getImage: function () {
-      return getUserImage(ADDITIONAL_ICON);
-    },
-    getAdjustments: function () {
-      return getUserImageAdjustments(ADDITIONAL_ICON);
-    }
-  }
+  // Additional icons share rendering behavior, with card-specific bounds.
+  hdcf_additionalIcon: createImageArea([
+    [78, 48.10], [102, 48.10], [102, 65.30], [78, 65.30]
+  ], ADDITIONAL_ICON),
+  vdcf_additionalIcon: createImageArea([
+    [78, 47.90], [102, 47.90], [102, 65.10], [78, 65.10]
+  ], ADDITIONAL_ICON),
+  edcf_additionalIcon: createImageArea([
+    [41.41, 61.50], [58.60, 61.50], [58.60, 85.50], [41.41, 85.50]
+  ], ADDITIONAL_ICON)
+}
+
+// Build an image area whose image and adjustments come from the same purpose.
+function createImageArea(coordinates, purpose, scaleStyle = 'fit', vAlign = 'center') {
+  return {
+    pathShape: coordinatesToPathShape(coordinates),
+    scaleStyle: scaleStyle,
+    vAlign: vAlign,
+    getImage: function () { return getUserImage(purpose); },
+    getAdjustments: function () { return getUserImageAdjustments(purpose); }
+  };
+}
+
+// Share image loading between file uploads and JSON imports.
+function loadUserImage(purpose, url) {
+  const image = new Image();
+  loadedUserImages[purpose] = image;
+  image.crossOrigin = "Anonymous";
+  image.onload = function () { drawCardCanvas(); };
+  image.src = url;
 }
 
 // Helper function to get selection strings for input image variables
@@ -767,13 +749,7 @@ function parseJSONData(data) {
     $('.inputImageScale').val(100);
   }
   if('AdditionalIconURL' in data && data.AdditionalIconURL.length != 0) {
-    loadedUserImages[ADDITIONAL_ICON] = new Image();
-    loadedUserImages[ADDITIONAL_ICON].crossOrigin = "Anonymous";
-    loadedUserImages[ADDITIONAL_ICON].src = data.AdditionalIconURL;
-    loadedUserImages[ADDITIONAL_ICON].onload = function () {
-      // Once the Image has loaded, redraw the canvas so it immediately appears
-      drawCardCanvas();
-    }
+    loadUserImage(ADDITIONAL_ICON, data.AdditionalIconURL);
   } else {
     loadedUserImages[ADDITIONAL_ICON] = null;
   }
@@ -819,13 +795,7 @@ function parseJSONData(data) {
 
   // Common Character card fields
   if('NemesisIconURL' in data && data.NemesisIconURL.length != 0) {
-    loadedUserImages[NEMESIS_ICON] = new Image();
-    loadedUserImages[NEMESIS_ICON].crossOrigin = "Anonymous";
-    loadedUserImages[NEMESIS_ICON].src = data.NemesisIconURL;
-    loadedUserImages[NEMESIS_ICON].onload = function () {
-      // Once the Image has loaded, redraw the canvas so it immediately appears
-      drawCardCanvas();
-    }
+    loadUserImage(NEMESIS_ICON, data.NemesisIconURL);
   } else {
     loadedUserImages[NEMESIS_ICON] = null;
   }
@@ -849,13 +819,7 @@ function parseJSONData(data) {
     $(getImagePurposeSelector(IMAGE_ZOOM, NEMESIS_ICON)).val(0);
   }
   if('BackgroundArtURL' in data && data.BackgroundArtURL.length != 0) {
-    loadedUserImages[BACKGROUND_ART] = new Image();
-    loadedUserImages[BACKGROUND_ART].crossOrigin = "Anonymous";
-    loadedUserImages[BACKGROUND_ART].src = data.BackgroundArtURL;
-    loadedUserImages[BACKGROUND_ART].onload = function () {
-      // Once the Image has loaded, redraw the canvas so it immediately appears
-      drawCardCanvas();
-    }
+    loadUserImage(BACKGROUND_ART, data.BackgroundArtURL);
   } else {
     loadedUserImages[BACKGROUND_ART] = null;
   }
@@ -879,13 +843,7 @@ function parseJSONData(data) {
     $(getImagePurposeSelector(IMAGE_ZOOM, BACKGROUND_ART)).val(0);
   }
   if('ForegroundArtURL' in data && data.ForegroundArtURL.length != 0) {
-    loadedUserImages[FOREGROUND_ART] = new Image();
-    loadedUserImages[FOREGROUND_ART].crossOrigin = "Anonymous";
-    loadedUserImages[FOREGROUND_ART].src = data.ForegroundArtURL;
-    loadedUserImages[FOREGROUND_ART].onload = function () {
-      // Once the Image has loaded, redraw the canvas so it immediately appears
-      drawCardCanvas();
-    }
+    loadUserImage(FOREGROUND_ART, data.ForegroundArtURL);
   } else {
     loadedUserImages[FOREGROUND_ART] = null;
   }
@@ -909,13 +867,7 @@ function parseJSONData(data) {
     $(getImagePurposeSelector(IMAGE_ZOOM, FOREGROUND_ART)).val(0);
   }
   if('NameLogoURL' in data && data.NameLogoURL.length != 0) {
-    loadedUserImages[NAME_LOGO] = new Image();
-    loadedUserImages[NAME_LOGO].crossOrigin = "Anonymous";
-    loadedUserImages[NAME_LOGO].src = data.NameLogoURL;
-    loadedUserImages[NAME_LOGO].onload = function () {
-      // Once the Image has loaded, redraw the canvas so it immediately appears
-      drawCardCanvas();
-    }
+    loadUserImage(NAME_LOGO, data.NameLogoURL);
   } else {
     loadedUserImages[NAME_LOGO] = null;
   }
@@ -982,9 +934,9 @@ function outputJSONData(category="basic") {
   var outputJSON = '';
   if(category == BASIC || category == ENVIRONMENT) {
     // Not every page that shares this category has Additional Icon controls, so fall back to defaults if they're missing
-    let additionalIconX = $(getImagePurposeSelector(IMAGE_X, ADDITIONAL_ICON)).length ? $(getImagePurposeSelector(IMAGE_X, ADDITIONAL_ICON)).val() : 0;
-    let additionalIconY = $(getImagePurposeSelector(IMAGE_Y, ADDITIONAL_ICON)).length ? $(getImagePurposeSelector(IMAGE_Y, ADDITIONAL_ICON)).val() : 0;
-    let additionalIconZoom = $(getImagePurposeSelector(IMAGE_ZOOM, ADDITIONAL_ICON)).length ? $(getImagePurposeSelector(IMAGE_ZOOM, ADDITIONAL_ICON)).val() : 50;
+    let additionalIconX = getInputValue(getImagePurposeSelector(IMAGE_X, ADDITIONAL_ICON), 0);
+    let additionalIconY = getInputValue(getImagePurposeSelector(IMAGE_Y, ADDITIONAL_ICON), 0);
+    let additionalIconZoom = getInputValue(getImagePurposeSelector(IMAGE_ZOOM, ADDITIONAL_ICON), 50);
     outputJSON = `{
       "Title": ${JSON.stringify($('#inputTitle').val())},
       "HP": ${JSON.stringify($('#inputHP').val())},
@@ -1719,8 +1671,9 @@ function getWordProperties(word) {
      isPunctuated = true;
   } else {
     isPunctuated = false;
-    // Remove any punctuation
-    minimizedWord = minimizedWord.replaceAll(/[.,!;:\?]/g, '');
+    // Ignore punctuation surrounding the word when matching styles. Keep the
+    // original word unchanged so the punctuation is still drawn.
+    minimizedWord = minimizedWord.replace(/^\p{P}+|\p{P}+$/gu, '');
 
     // Check minimized word against lists of words to bold and italicize
     if (effectBoldList.indexOf(minimizedWord) != -1) { isBold = true; }
