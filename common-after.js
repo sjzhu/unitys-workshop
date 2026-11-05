@@ -1545,8 +1545,9 @@ function drawSimpleBlock(simpleContent, isFirstBlock) {
     }
     ctx.fillStyle = colorBlack;
 
-    // Break up special bold/italics phrases into their component words
-    let phraseParts = thisWord.text.split(' ');
+    // Keep the lookahead after a number together until it is measured and removed.
+    // Its restored phrase spaces must not turn into extra words drawn here.
+    let phraseParts = thisWord.text.includes('\xa0') ? [thisWord.text] : thisWord.text.split(' ');
 
     // For each word in the phrase (and there will usually be just one)
     phraseParts.forEach((wordString) => {
