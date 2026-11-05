@@ -1478,31 +1478,23 @@ function drawSimpleBlock(simpleContent, isFirstBlock) {
   // Replace spaces after numbers (and X variables) with non-breaking spaces
   let blockString = simpleContent.replaceAll(/([0-9X]) /g, '$1\xa0'); // Non-breakable space is char 0xa0 (160 dec)
 
-  // First, identify special word strings and replace their spaces with underscores
-  effectBoldList.forEach((phrase) => {
-    // Make an all-caps copy of the block string
-    let testString = blockString.toUpperCase();
-    // Find the position of each instance of this phrase in the string
-    let position = testString.indexOf(phrase);
-    while (position !== -1) {
-      // Replace this instance of this phrase in the real block string with the all-caps + underscore format for detecting later
-      let thisSubString = blockString.substr(position, phrase.length);
-      blockString = blockString.replace(thisSubString, phrase.replaceAll(' ', '_'));
-      // Repeat if there's another instance of this phrase
-      position = testString.indexOf(phrase, position + 1);
-    }
-  });
-  effectItalicsList.forEach((phrase) => {
-    // Make an all-caps copy of the block string
-    let testString = blockString.toUpperCase();
-    // Find the position of each instance of this phrase in the string
-    let position = testString.indexOf(phrase);
-    while (position !== -1) {
-      // Replace this instance of this phrase in the real block string with the all-caps + underscore format for detecting later
-      let thisSubString = blockString.substr(position, phrase.length);
-      blockString = blockString.replace(thisSubString, phrase.replaceAll(' ', '_'));
-      // Repeat if there's another instance of this phrase
-      position = testString.indexOf(phrase, position + 1);
+  // Match complete terms, allowing surrounding punctuation but not parts of words.
+  new Set([...effectBoldList, ...effectItalicsList]).forEach((phrase) => {
+    if (!phrase) { return; }
+
+    for (let position = 0; position <= blockString.length - phrase.length; position++) {
+      const endPosition = position + phrase.length;
+      const candidate = blockString.slice(position, endPosition);
+      if (candidate.toUpperCase() !== phrase) { continue; }
+
+      const before = blockString.slice(0, position);
+      const after = blockString.slice(endPosition);
+      const startsInsideWord = /[\p{L}\p{M}\p{N}_]$/u.test(before);
+      const endsInsideWord = /^[\p{L}\p{M}\p{N}_]/u.test(after);
+      if (startsInsideWord || endsInsideWord) { continue; }
+
+      blockString = before + phrase.replaceAll(' ', '_') + after;
+      position = endPosition - 1;
     }
   });
 
@@ -1613,8 +1605,8 @@ function getWordProperties(word) {
   let isBold = false;
   let isItalics = false;
 
-  // Minimize the word for easier analyzing
-  var minimizedWord = word;
+  // Match styling against the text that will be drawn, excluding wrapping lookahead.
+  let minimizedWord = word.split('\xa0')[0];
   // Restore spaces that were replaced with underscores earlier
   minimizedWord = minimizedWord.replaceAll('_', ' ');
   // Check word with punctuation against lists of words to bold and italicize
