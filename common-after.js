@@ -1506,9 +1506,6 @@ function drawSimpleBlock(simpleContent, isFirstBlock) {
     }
   });
 
-  // Make minus signs more readable by replacing hyphens with en-dashes
-  blockString = blockString.replaceAll('-', '–');
-
   // Replace placeholder H and flip with custom symbols
   // Valid: '(H)' - case sensitive
   blockString = blockString.replaceAll('(H)', '҈____');
@@ -1637,6 +1634,8 @@ function getWordProperties(word) {
 
   // Restore spaces that were replaced with underscores earlier
   let restoredWord = word.replaceAll('_', ' ');
+  // Convert hyphens only after matching styles, so hyphenated terms still match.
+  restoredWord = restoredWord.replaceAll('-', '–');
 
   // Output
   return { text: restoredWord, isBold: isBold, isItalics: isItalics, isPunctuated: isPunctuated };
