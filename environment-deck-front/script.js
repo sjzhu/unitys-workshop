@@ -61,6 +61,9 @@ $('#inputImageFile').on('input', function (e) {
   }
 })
 
+// This object is where user input images (specifically Image objects) other than the main art are stored
+loadedUserImages[ADDITIONAL_ICON] = null;
+
 
 /*
 ============================================================================
@@ -108,6 +111,11 @@ function drawCardCanvas() {
 
   // Draw the card keywords
   drawCardKeywords();
+
+  // Draw the additional icon (on top of the keyword box, if they overlap)
+  if (loadedUserImages[ADDITIONAL_ICON]) {
+    drawArtInCroppedArea('edcf_additionalIcon');
+  }
 
   // Draw the card effect
   drawBodyText(parseCardBody(), { centerVertically: true });

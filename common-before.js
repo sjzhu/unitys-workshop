@@ -142,6 +142,7 @@ const BACK_LEFT_ART = "leftArt";
 const BACK_RIGHT_ART = "rightArt";
 const BACK_BOTTOM_ART = "bottomArt";
 const NAME_LOGO = "nameLogo";
+const ADDITIONAL_ICON = "additionalIcon";
 
 // Common Image Sets
 const CC_FRONT_IMAGES = new Set([BACKGROUND_ART, FOREGROUND_ART, NEMESIS_ICON, NAME_LOGO]);
@@ -505,7 +506,6 @@ const _artistAttributionYMap = new Map([
 const ARTIST_ATTRIBUTION_Y = _artistAttributionYMap.get(CARD_CATEGORY);
 
 // This object is where user input images (specifically Image objects) are stored
-// currently unused for deck fronts, but needs to exist for JSON parsing to function correctly
 const loadedUserImages = {
 };
 
