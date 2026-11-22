@@ -361,11 +361,12 @@ function executeSearch() {
   }
 
   // Show or hide each card
+  const foldedQuery = foldSearchText(query);
   $(".card").each(function (index, element) {
     // Get card content (text of cardDetails element basically) and make it not case-sensitive
-    let cardContent = $(this).text().toLowerCase();
+    const cardContent = foldSearchText($(this).text());
     // See if the card content contains the query
-    if (cardContent.includes(query)) {
+    if (cardContent.includes(foldedQuery)) {
       $(this).show();
     }
     else {
