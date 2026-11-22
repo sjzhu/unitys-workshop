@@ -576,6 +576,13 @@ function buildUniqueId(dataGroupIdPrefix, lineIndex) {
 Matching Utility Methods
 ============================================================================
 */
+function foldSearchText(text) {
+  return text.toLowerCase()
+    .replace(/æ/g, "ae")
+    .normalize("NFD")
+    .replace(/\p{M}/gu, "");
+}
+
 function regexMatch(candidate, regexp) {
   return !!candidate?.match(regexp);
 }
@@ -699,9 +706,12 @@ class TitleCond extends Condition {
   constructor(regexp) {
     super();
     this.regexp = regexp;
+    this.foldedRegexp = new RegExp(foldSearchText(regexp.source), regexp.flags);
   }
   match(c) {
-    return regexMatch(c.title, this.regexp) || regexMatch(c.eventRuleTitle, this.regexp);
+    return regexMatch(c.title, this.regexp) || regexMatch(c.eventRuleTitle, this.regexp) ||
+      regexMatch(c.title && foldSearchText(c.title), this.foldedRegexp) ||
+      regexMatch(c.eventRuleTitle && foldSearchText(c.eventRuleTitle), this.foldedRegexp);
   }
 }
 
