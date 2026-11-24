@@ -67,10 +67,11 @@
       <input type="submit" class="searchSubmit" value="Search"/>
     </form>
     <p>
-      Choose any of the properties of a card and search by them using the terms we've defined below. Searches are case-insensitive. You can use double-quotes to search along multiple words, and combine multiple search tokens.
+      Choose any of the properties of a card and search by them using the terms we've defined below. Searches are case-insensitive. You can use double-quotes to search along multiple words, and combine multiple search tokens. Plain text searches the card's details within the same filters, so <code>set:core infernal</code> finds Core Game cards containing "infernal".
     </p>
     <p>Try these examples.</p>
     <ul id="search-examples">
+      <li><code>set:core infernal</code> <a href="../../card-gallery?q=set:core%20infernal">Try it!</a></li>
       <li><code>type:hero gt:"each non-hero target" q&gt;=3</code> <a href='../../card-gallery?q=type:hero%20gt:%22each non-hero target%22%20q%3E=3'>Try it!</a></li>
       <li><code>kind:deck type:villain hp&gt;3 hp&lt;10</code> <a href="../../card-gallery?q=ki:deck%20ty:villain%20hp%3E3%20hp%3C10">Try it!</a></li>
       <li><code>power:damage complexity&lt;=4 set:core</code> <a href="../../card-gallery?q=p:damage%20complexity%3C=4%20set:core">Try it!</a></li>

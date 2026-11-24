@@ -682,6 +682,16 @@ class Condition {
   }
 }
 
+class TextCond extends Condition {
+  constructor(text) {
+    super();
+    this.text = foldSearchText(text);
+  }
+  match(c) {
+    return foldSearchText($(`#${c.id}`).text()).includes(this.text);
+  }
+}
+
 class DeckNameCond extends Condition {
   constructor(str) {
     super();
@@ -1191,6 +1201,8 @@ class ExpressiveSearcher {
           tokens.push(new KindCond(new RegExp(s.getCapture(0) || s.getCapture(1), "i")));
         } else if (s.scan(/back\s*[:=]\s*(?:"(.*?)"|([^\s\)]+))/i)) {
           tokens.push(new HasBackCond(parseBoolean(s.getCapture(0) || s.getCapture(1))));
+        } else if (s.scan(/"([^"]+)"|([^\s,()]+)/)) {
+          tokens.push(new TextCond(s.getCapture(0) || s.getCapture(1)));
         } else {
           throw new Error(`Couldn't identify query string: ${this.queryString}`);
         }
